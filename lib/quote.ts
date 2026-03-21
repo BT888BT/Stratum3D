@@ -1,4 +1,4 @@
-import type { QuoteInput } from "@/lib/validation";
+import type { QuoteInputParsed } from "@/lib/validation";
 
 type PricingConfig = {
   materialRatePerCm3Cents: number;
@@ -7,7 +7,7 @@ type PricingConfig = {
   minimumOrderCents: number;
 };
 
-const pricingByMaterial: Record<QuoteInput["material"], PricingConfig> = {
+const pricingByMaterial: Record<QuoteInputParsed["material"], PricingConfig> = {
   PLA: {
     materialRatePerCm3Cents: 35,
     machineRatePerHourCents: 800,
@@ -37,7 +37,7 @@ export type QuoteResult = {
   totalCents: number;
 };
 
-export function calculateQuote(input: QuoteInput): QuoteResult {
+export function calculateQuote(input: QuoteInputParsed): QuoteResult {
   const pricing = pricingByMaterial[input.material];
 
   const boundingBoxCm3 =

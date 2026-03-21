@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendStatusUpdateEmail } from "@/lib/email";
 
 const allowedStatuses = [
   "draft",
@@ -57,6 +58,25 @@ export async function POST(request: Request) {
 
     if (historyError) {
       throw new Error(historyError.message);
+    }
+
+    // Send customer status update email (fire-and-forget — don't block the response)
+    const { data: order } = await supabase
+      .from("orders")
+      .select("id, customer_name, email")
+      .eq("id", orderId)
+      .single();
+
+    if (order) {
+      sendStatusUpdateEmail({
+        id: order.id,
+        customerName: order.customer_name,
+        email: order.email,
+        status,
+        note: note || null
+      }).catch((err) =>
+        console.error("[email] status update failed:", err)
+      );
     }
 
     return NextResponse.json({ success: true });

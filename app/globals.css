@@ -236,6 +236,29 @@ input, select, textarea, button { font: inherit; }
   border-width: 0 2px 2px 0;
 }
 
+/* ── Nav link ────────────────────────────────────────── */
+.nav-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-dim);
+  padding: 6px 14px;
+  border-radius: 6px;
+  transition: color 0.15s;
+}
+.nav-link:hover { color: var(--text); }
+
+/* ── Order table row ─────────────────────────────────── */
+.order-row {
+  display: grid;
+  grid-template-columns: 100px 1fr 1fr 120px 120px 160px 80px;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  transition: background 0.1s;
+}
+.order-row:hover { background: var(--surface2); }
+
 /* ── Animations ─────────────────────────────────────── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }

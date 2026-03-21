@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendOrderConfirmationEmail } from "@/lib/email";
 import type Stripe from "stripe";
 
 export async function POST(request: Request) {
@@ -51,6 +52,38 @@ export async function POST(request: Request) {
           status: "paid",
           note: "Stripe payment completed"
         });
+
+        // Fetch order + quote inputs to build the confirmation email
+        const { data: order } = await supabase
+          .from("orders")
+          .select("*")
+          .eq("id", orderId)
+          .single();
+
+        const { data: quoteInput } = await supabase
+          .from("quote_inputs")
+          .select("*")
+          .eq("order_id", orderId)
+          .single();
+
+        if (order) {
+          await sendOrderConfirmationEmail({
+            id: order.id,
+            customerName: order.customer_name,
+            email: order.email,
+            totalCents: order.total_cents,
+            subtotalCents: order.subtotal_cents,
+            shippingCents: order.shipping_cents,
+            gstCents: order.gst_cents,
+            material: quoteInput?.material ?? "—",
+            colour: quoteInput?.colour ?? "—",
+            quantity: quoteInput?.quantity ?? 1,
+            shippingMethod: quoteInput?.shipping_method ?? "—"
+          }).catch((err) =>
+            // Don't fail the webhook if email fails — log and continue
+            console.error("[email] order confirmation failed:", err)
+          );
+        }
       }
     }
 

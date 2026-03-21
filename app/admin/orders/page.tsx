@@ -76,18 +76,7 @@ export default async function AdminOrdersPage() {
 
         <div>
           {orders?.map((order) => (
-            <div key={order.id} style={{
-              display: "grid",
-              gridTemplateColumns: "100px 1fr 1fr 120px 120px 160px 80px",
-              gap: 12,
-              padding: "14px 20px",
-              borderBottom: "1px solid var(--border)",
-              alignItems: "center",
-              transition: "background 0.1s"
-            }}
-              onMouseEnter={e => (e.currentTarget.style.background = "var(--surface2)")}
-              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-            >
+            <div key={order.id} className="order-row">
               <span className="font-mono" style={{ fontSize: 12, color: "var(--accent)" }}>#{order.id.slice(0, 8).toUpperCase()}</span>
               <span style={{ fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{order.customer_name}</span>
               <span style={{ fontSize: 12, color: "var(--text-dim)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{order.email}</span>

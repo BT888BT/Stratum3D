@@ -50,17 +50,7 @@ export default function RootLayout({
               </Link>
 
               <nav style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <Link href="/quote" style={{
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: "var(--text-dim)",
-                  padding: "6px 14px",
-                  borderRadius: 6,
-                  transition: "color 0.15s"
-                }}
-                  onMouseEnter={e => (e.currentTarget.style.color = "var(--text)")}
-                  onMouseLeave={e => (e.currentTarget.style.color = "var(--text-dim)")}
-                >
+                <Link href="/quote" className="nav-link">
                   Get Quote
                 </Link>
               </nav>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { calculateQuote } from "@/lib/quote";
+import { extractVolumeMm3 } from "@/lib/mesh-volume";
 import {
   isAllowedFile,
   maxFileSizeBytes,
@@ -31,6 +32,23 @@ export async function POST(request: Request) {
       );
     }
 
+    // Parse real mesh volume from the uploaded file
+    let volumeMm3: number;
+    try {
+      volumeMm3 = await extractVolumeMm3(file);
+      if (!isFinite(volumeMm3) || volumeMm3 <= 0) {
+        return NextResponse.json(
+          { error: "Could not calculate volume from your file. Please ensure it is a valid closed mesh." },
+          { status: 422 }
+        );
+      }
+    } catch {
+      return NextResponse.json(
+        { error: "Failed to parse your 3D file. Please ensure it is a valid STL, OBJ, or 3MF." },
+        { status: 422 }
+      );
+    }
+
     const parsed = quoteInputSchema.safeParse({
       customerName: formData.get("customerName"),
       email: formData.get("email"),
@@ -40,9 +58,6 @@ export async function POST(request: Request) {
       quantity: formData.get("quantity"),
       layerHeightMm: formData.get("layerHeightMm"),
       infillPercent: formData.get("infillPercent"),
-      approxXmm: formData.get("approxXmm"),
-      approxYmm: formData.get("approxYmm"),
-      approxZmm: formData.get("approxZmm"),
       shippingMethod: formData.get("shippingMethod")
     });
 
@@ -54,7 +69,7 @@ export async function POST(request: Request) {
     }
 
     const input = parsed.data;
-    const quote = calculateQuote(input);
+    const quote = calculateQuote(input, volumeMm3);
 
     const supabase = createAdminClient();
 
@@ -94,11 +109,9 @@ export async function POST(request: Request) {
         upsert: false
       });
 
-    if (uploadError) {
-      throw new Error(uploadError.message);
-    }
+    if (uploadError) throw new Error(uploadError.message);
 
-    const { error: fileRecordError } = await supabase.from("order_files").insert({
+    await supabase.from("order_files").insert({
       order_id: order.id,
       original_filename: file.name,
       storage_path: storagePath,
@@ -107,28 +120,20 @@ export async function POST(request: Request) {
       validation_status: "accepted"
     });
 
-    if (fileRecordError) {
-      throw new Error(fileRecordError.message);
-    }
-
-    const { error: quoteInputError } = await supabase.from("quote_inputs").insert({
+    await supabase.from("quote_inputs").insert({
       order_id: order.id,
       material: input.material,
       colour: input.colour,
       layer_height_mm: input.layerHeightMm,
       infill_percent: input.infillPercent,
       quantity: input.quantity,
-      bounding_box_x_mm: input.approxXmm,
-      bounding_box_y_mm: input.approxYmm,
-      bounding_box_z_mm: input.approxZmm,
+      bounding_box_x_mm: null,
+      bounding_box_y_mm: null,
+      bounding_box_z_mm: null,
       estimated_volume_cm3: quote.estimatedVolumeCm3,
       estimated_print_time_minutes: quote.estimatedPrintTimeMinutes,
       shipping_method: input.shippingMethod
     });
-
-    if (quoteInputError) {
-      throw new Error(quoteInputError.message);
-    }
 
     await supabase.from("order_status_history").insert({
       order_id: order.id,
@@ -142,10 +147,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Failed to create quote."
-      },
+      { error: error instanceof Error ? error.message : "Failed to create quote." },
       { status: 500 }
     );
   }

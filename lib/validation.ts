@@ -12,9 +12,6 @@ export const quoteInputSchema = z.object({
   quantity: z.coerce.number().int().min(1).max(100),
   layerHeightMm: z.coerce.number().min(0.08).max(0.4),
   infillPercent: z.coerce.number().int().min(0).max(100),
-  approxXmm: z.coerce.number().positive().max(1000),
-  approxYmm: z.coerce.number().positive().max(1000),
-  approxZmm: z.coerce.number().positive().max(1000),
   shippingMethod: z.enum(["pickup", "standard"])
 });
 

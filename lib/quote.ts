@@ -1,31 +1,9 @@
 import type { QuoteInputParsed } from "@/lib/validation";
 
-/**
- * Pricing is based on real FDM print cost modelling:
- *
- * 1. Volume estimation:
- *    - Bounding box * infill fraction * 0.35 (typical wall/infill ratio)
- *    - Minimum 0.5 cm³ to avoid zero-cost tiny parts
- *
- * 2. Material cost:
- *    - Filament density (g/cm³) → grams used → cost per gram
- *    - PLA: 1.24 g/cm³, PETG: 1.27 g/cm³, ABS: 1.04 g/cm³
- *
- * 3. Machine time cost:
- *    - Layer height + infill affect speed
- *    - Base rate: $2.00 AUD/hr for machine wear + electricity
- *
- * 4. Setup fee per job (slicing, quality check)
- *
- * 5. Minimum order enforced
- *
- * 6. GST 10%, optional standard shipping $15 AUD
- */
-
 type MaterialConfig = {
-  densityGPerCm3: number;        // filament density
-  filamentCostPerGramCents: number; // AUD cents per gram of filament
-  machineRatePerHourCents: number;  // AUD cents per machine-hour
+  densityGPerCm3: number;
+  filamentCostPerGramCents: number;
+  machineRatePerHourCents: number;
   setupFeeCents: number;
   minimumOrderCents: number;
 };
@@ -33,10 +11,10 @@ type MaterialConfig = {
 const MATERIALS: Record<QuoteInputParsed["material"], MaterialConfig> = {
   PLA: {
     densityGPerCm3: 1.24,
-    filamentCostPerGramCents: 4,   // ~$4/100g spool typical retail
-    machineRatePerHourCents: 200,  // $2/hr machine wear + electricity
-    setupFeeCents: 500,            // $5 per job setup
-    minimumOrderCents: 1500        // $15 minimum
+    filamentCostPerGramCents: 4,
+    machineRatePerHourCents: 200,
+    setupFeeCents: 500,
+    minimumOrderCents: 1500
   },
   PETG: {
     densityGPerCm3: 1.27,
@@ -54,26 +32,17 @@ const MATERIALS: Record<QuoteInputParsed["material"], MaterialConfig> = {
   }
 };
 
-// Print speed model: base mm³/s varies by layer height and infill
-// Typical 0.4mm nozzle at 60mm/s perimeter, 80mm/s infill
 function estimatePrintTimeMinutes(
   volumeCm3: number,
   layerHeightMm: number,
   infillPercent: number
 ): number {
   const volumeMm3 = volumeCm3 * 1000;
-
-  // Higher layer height = faster (more material per move)
-  // Lower infill = faster (less travel)
-  const baseSpeedMm3PerSec = 8; // conservative base
-  const layerFactor = layerHeightMm / 0.2; // normalised to 0.2mm
-  const infillFactor = 0.5 + (infillPercent / 100) * 0.5; // 0.5–1.0
-
+  const baseSpeedMm3PerSec = 8;
+  const layerFactor = layerHeightMm / 0.2;
+  const infillFactor = 0.5 + (infillPercent / 100) * 0.5;
   const effectiveSpeed = baseSpeedMm3PerSec * layerFactor / infillFactor;
-  const printSeconds = volumeMm3 / effectiveSpeed;
-
-  // Add 20% overhead for travel moves, retracts, layer changes
-  const totalSeconds = printSeconds * 1.2;
+  const totalSeconds = (volumeMm3 / effectiveSpeed) * 1.2;
   return Math.max(15, Math.round(totalSeconds / 60));
 }
 
@@ -90,45 +59,58 @@ export type QuoteResult = {
   totalCents: number;
 };
 
-export function calculateQuote(input: QuoteInputParsed): QuoteResult {
+/**
+ * Calculate quote from parsed form input + actual mesh volume in mm³.
+ * volumeMm3 comes from server-side STL/OBJ/3MF parsing — no user guessing.
+ *
+ * The infill factor adjusts the solid mesh volume down to reflect
+ * actual printed volume (shells always solid, infill is sparse).
+ */
+export function calculateQuote(
+  input: QuoteInputParsed,
+  volumeMm3: number
+): QuoteResult {
   const cfg = MATERIALS[input.material];
 
-  // Estimated solid volume: bounding box × infill fraction × shell ratio
-  // Shell ratio 0.35 accounts for walls taking up ~35% of bounding volume
-  const boundingBoxCm3 = (input.approxXmm * input.approxYmm * input.approxZmm) / 1000;
-  const infillFraction = input.infillPercent / 100;
-  const shellRatio = 0.30; // perimeter shells always present regardless of infill
+  // Convert mm³ → cm³
+  const solidVolumeCm3 = volumeMm3 / 1000;
 
-  // Effective volume = shell volume (always) + infill volume
-  const shellVolume = boundingBoxCm3 * shellRatio;
-  const infillVolume = boundingBoxCm3 * (1 - shellRatio) * infillFraction;
-  const estimatedVolumeCm3 = Math.max(0.5, shellVolume + infillVolume);
+  // Printed volume accounts for infill: shells (~30% of solid volume) are always
+  // 100% dense; the remaining interior is at the chosen infill %.
+  const shellFraction = 0.30;
+  const infillFraction = input.infillPercent / 100;
+  const printedVolumeCm3 = Math.max(
+    0.5,
+    solidVolumeCm3 * (shellFraction + (1 - shellFraction) * infillFraction)
+  );
 
   // Weight
-  const estimatedWeightGrams = parseFloat((estimatedVolumeCm3 * cfg.densityGPerCm3).toFixed(1));
+  const estimatedWeightGrams = parseFloat(
+    (printedVolumeCm3 * cfg.densityGPerCm3).toFixed(1)
+  );
 
   // Material cost
-  const materialCostCents = Math.round(estimatedWeightGrams * cfg.filamentCostPerGramCents) * input.quantity;
+  const materialCostCents =
+    Math.round(estimatedWeightGrams * cfg.filamentCostPerGramCents) * input.quantity;
 
-  // Machine time
+  // Machine time (based on printed volume, not solid)
   const estimatedPrintTimeMinutes = estimatePrintTimeMinutes(
-    estimatedVolumeCm3,
+    printedVolumeCm3,
     input.layerHeightMm,
     input.infillPercent
   );
-  const machineHours = estimatedPrintTimeMinutes / 60;
-  const machineCostCents = Math.round(machineHours * cfg.machineRatePerHourCents) * input.quantity;
+  const machineCostCents =
+    Math.round((estimatedPrintTimeMinutes / 60) * cfg.machineRatePerHourCents) *
+    input.quantity;
 
-  // Subtotal before minimums
   const rawSubtotal = materialCostCents + machineCostCents + cfg.setupFeeCents;
   const subtotalCents = Math.max(rawSubtotal, cfg.minimumOrderCents);
-
   const shippingCents = input.shippingMethod === "pickup" ? 0 : 1500;
   const gstCents = Math.round(subtotalCents * 0.1);
   const totalCents = subtotalCents + gstCents + shippingCents;
 
   return {
-    estimatedVolumeCm3: parseFloat(estimatedVolumeCm3.toFixed(2)),
+    estimatedVolumeCm3: parseFloat(solidVolumeCm3.toFixed(2)),
     estimatedWeightGrams,
     estimatedPrintTimeMinutes,
     materialCostCents,

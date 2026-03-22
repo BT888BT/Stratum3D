@@ -57,9 +57,6 @@ export default function QuoteForm() {
       quantity: 1,
       layerHeightMm: 0.2,
       infillPercent: 20,
-      approxXmm: 100,
-      approxYmm: 100,
-      approxZmm: 100,
       shippingMethod: "standard"
     }
   });
@@ -170,27 +167,6 @@ export default function QuoteForm() {
             </Field>
             <Field label="Quantity" error={errors.quantity?.message}>
               <input type="number" min={1} max={100} {...register("quantity")} className="input-field" />
-            </Field>
-          </div>
-        </div>
-
-        <hr className="divider" />
-
-        {/* Dimensions */}
-        <div>
-          <p className="eyebrow" style={{ marginBottom: 4 }}>Bounding Box Dimensions</p>
-          <p style={{ fontSize: 12, color: "var(--text-dim)", marginBottom: 16 }}>
-            Approximate outer dimensions of your model in millimetres
-          </p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
-            <Field label="X — Width (mm)" error={errors.approxXmm?.message}>
-              <input type="number" step="0.1" {...register("approxXmm")} className="input-field" />
-            </Field>
-            <Field label="Y — Depth (mm)" error={errors.approxYmm?.message}>
-              <input type="number" step="0.1" {...register("approxYmm")} className="input-field" />
-            </Field>
-            <Field label="Z — Height (mm)" error={errors.approxZmm?.message}>
-              <input type="number" step="0.1" {...register("approxZmm")} className="input-field" />
             </Field>
           </div>
         </div>

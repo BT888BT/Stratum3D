@@ -13,7 +13,8 @@ export type ParsedAddress = {
 
 declare global {
   interface Window {
-    google: typeof google;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    google: any;
     initGooglePlaces?: () => void;
   }
 }
@@ -38,7 +39,8 @@ function loadGoogleMaps(apiKey: string): Promise<void> {
 }
 
 function parseComponents(
-  components: google.maps.GeocoderAddressComponent[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  components: any[]
 ): ParsedAddress | null {
   const get = (type: string) =>
     components.find((c) => c.types.includes(type))?.long_name ?? "";
@@ -73,7 +75,7 @@ interface Props {
 
 export default function AddressAutocomplete({ onSelect, error }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const autocompleteRef = useRef<any>(null);
   const [inputValue, setInputValue] = useState("");
   const [loadError, setLoadError] = useState("");
   const [verified, setVerified] = useState(false);

@@ -83,13 +83,6 @@ export async function POST(request: Request) {
               order.shipping_address_line2,
               order.shipping_city && `${order.shipping_city} ${order.shipping_state} ${order.shipping_postcode}`
             ].filter(Boolean).join(", "),
-            shippingAddress: [
-              order.shipping_address_line1,
-              order.shipping_address_line2,
-              order.shipping_city,
-              order.shipping_state,
-              order.shipping_postcode,
-            ].filter(Boolean).join(", "),
           }).catch((err) =>
             // Don't fail the webhook if email fails — log and continue
             console.error("[email] order confirmation failed:", err)

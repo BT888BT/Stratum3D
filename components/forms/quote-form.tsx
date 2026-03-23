@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -9,6 +9,7 @@ import {
   type QuoteInputParsed
 } from "@/lib/validation";
 import { formatAud } from "@/lib/utils";
+import AddressAutocomplete, { type ParsedAddress } from "@/components/forms/address-autocomplete";
 
 type QuoteApiResponse = {
   orderId: string;
@@ -37,6 +38,8 @@ const COLOURS = ["Black", "White", "Grey", "Red", "Blue", "Green", "Yellow", "Or
 
 export default function QuoteForm() {
   const [file, setFile] = useState<File | null>(null);
+  const [address, setAddress] = useState<ParsedAddress | null>(null);
+  const [addressError, setAddressError] = useState<string>("");
   const [quote, setQuote] = useState<QuoteApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loadingQuote, setLoadingQuote] = useState(false);
@@ -51,26 +54,36 @@ export default function QuoteForm() {
     defaultValues: {
       customerName: "",
       email: "",
-      phone: "",
       material: "PLA",
       colour: "Black",
       quantity: 1,
       layerHeightMm: 0.2,
       infillPercent: 20,
-      shippingMethod: "standard"
     }
   });
+
+  const handleAddressSelect = useCallback((a: ParsedAddress) => {
+    setAddress(a);
+    setAddressError("");
+  }, []);
 
   async function onSubmit(values: QuoteInput) {
     setError(null);
     setQuote(null);
     if (!file) { setError("Please upload your 3D model file."); return; }
+    if (!address) { setAddressError("Please select a verified Australian address."); return; }
 
     try {
       setLoadingQuote(true);
       const formData = new FormData();
       Object.entries(values).forEach(([k, v]) => formData.append(k, String(v)));
       formData.append("file", file);
+      formData.append("shippingAddressLine1", address.line1);
+      formData.append("shippingAddressLine2", address.line2 ?? "");
+      formData.append("shippingCity", address.city);
+      formData.append("shippingState", address.state);
+      formData.append("shippingPostcode", address.postcode);
+      formData.append("shippingCountry", address.country);
 
       const res = await fetch("/api/quote", { method: "POST", body: formData });
       const data = await res.json();
@@ -118,10 +131,30 @@ export default function QuoteForm() {
             <Field label="Email" error={errors.email?.message}>
               <input {...register("email")} type="email" className="input-field" placeholder="jane@example.com" />
             </Field>
-            <Field label="Phone (optional)" error={errors.phone?.message}>
-              <input {...register("phone")} className="input-field" placeholder="+61 4xx xxx xxx" />
-            </Field>
           </div>
+        </div>
+
+        <hr className="divider" />
+
+        {/* Shipping address */}
+        <div>
+          <p className="eyebrow" style={{ marginBottom: 16 }}>Shipping Address</p>
+          <AddressAutocomplete onSelect={handleAddressSelect} error={addressError} />
+          {address && (
+            <div style={{
+              marginTop: 12,
+              padding: "12px 14px",
+              background: "rgba(0, 229, 160, 0.05)",
+              border: "1px solid rgba(0, 229, 160, 0.2)",
+              borderRadius: 8,
+              fontSize: 13,
+              color: "var(--text-dim)",
+              lineHeight: 1.6
+            }}>
+              <p style={{ color: "var(--text)" }}>{address.line1}{address.line2 ? `, ${address.line2}` : ""}</p>
+              <p>{address.city} {address.state} {address.postcode}</p>
+            </div>
+          )}
         </div>
 
         <hr className="divider" />
@@ -173,34 +206,24 @@ export default function QuoteForm() {
 
         <hr className="divider" />
 
-        {/* File + shipping */}
+        {/* File upload */}
         <div>
-          <p className="eyebrow" style={{ marginBottom: 16 }}>File & Delivery</p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-            <Field label="Shipping method" error={errors.shippingMethod?.message}>
-              <select {...register("shippingMethod")} className="input-field">
-                <option value="standard">Standard shipping (+$15.00)</option>
-                <option value="pickup">Pickup — free</option>
-              </select>
-            </Field>
-          </div>
-          <div style={{ marginTop: 14 }}>
-            <label style={{ display: "block" }}>
-              <span style={{ fontSize: 13, color: "var(--text-dim)", display: "block", marginBottom: 6 }}>
-                3D Model file <span style={{ color: "var(--accent)" }}>*</span>
-              </span>
-              <input
-                type="file"
-                accept=".stl,.obj,.3mf"
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                className="input-field"
-                style={{ cursor: "pointer", fontSize: 13 }}
-              />
-              <span style={{ fontSize: 11, color: "var(--muted)", display: "block", marginTop: 4 }}>
-                Accepted: STL, OBJ, 3MF — max 50 MB
-              </span>
-            </label>
-          </div>
+          <p className="eyebrow" style={{ marginBottom: 16 }}>Model File</p>
+          <label style={{ display: "block" }}>
+            <span style={{ fontSize: 13, color: "var(--text-dim)", display: "block", marginBottom: 6 }}>
+              3D Model file <span style={{ color: "var(--accent)" }}>*</span>
+            </span>
+            <input
+              type="file"
+              accept=".stl,.obj,.3mf"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              className="input-field"
+              style={{ cursor: "pointer", fontSize: 13 }}
+            />
+            <span style={{ fontSize: 11, color: "var(--muted)", display: "block", marginTop: 4 }}>
+              Accepted: STL, OBJ, 3MF — max 50 MB. Volume is calculated automatically from your file.
+            </span>
+          </label>
         </div>
 
         {error && <div className="error-box">{error}</div>}
@@ -236,11 +259,10 @@ export default function QuoteForm() {
               <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
                 <SummaryRow label="Material cost" value={formatAud(quote.materialCostCents)} />
                 <SummaryRow label="Machine time" value={formatAud(quote.machineCostCents)} />
-                <SummaryRow label="Setup fee" value={formatAud(quote.setupFeeCents)} />
                 <hr className="divider" style={{ margin: "4px 0" }} />
                 <SummaryRow label="Subtotal" value={formatAud(quote.subtotalCents)} />
                 <SummaryRow label="GST (10%)" value={formatAud(quote.gstCents)} />
-                <SummaryRow label="Shipping" value={quote.shippingCents === 0 ? "Free (pickup)" : formatAud(quote.shippingCents)} />
+                <SummaryRow label="Shipping" value={formatAud(quote.shippingCents)} />
               </div>
 
               <div style={{

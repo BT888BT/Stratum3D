@@ -52,13 +52,17 @@ export async function POST(request: Request) {
     const parsed = quoteInputSchema.safeParse({
       customerName: formData.get("customerName"),
       email: formData.get("email"),
-      phone: formData.get("phone"),
       material: formData.get("material"),
       colour: formData.get("colour"),
       quantity: formData.get("quantity"),
       layerHeightMm: formData.get("layerHeightMm"),
       infillPercent: formData.get("infillPercent"),
-      shippingMethod: formData.get("shippingMethod")
+      shippingAddressLine1: formData.get("shippingAddressLine1"),
+      shippingAddressLine2: formData.get("shippingAddressLine2"),
+      shippingCity: formData.get("shippingCity"),
+      shippingState: formData.get("shippingState"),
+      shippingPostcode: formData.get("shippingPostcode"),
+      shippingCountry: formData.get("shippingCountry"),
     });
 
     if (!parsed.success) {
@@ -78,13 +82,19 @@ export async function POST(request: Request) {
       .insert({
         customer_name: input.customerName,
         email: input.email,
-        phone: input.phone || null,
+        phone: null,
         status: "draft",
         currency: "AUD",
         subtotal_cents: quote.subtotalCents,
         shipping_cents: quote.shippingCents,
         gst_cents: quote.gstCents,
-        total_cents: quote.totalCents
+        total_cents: quote.totalCents,
+        shipping_address_line1: input.shippingAddressLine1,
+        shipping_address_line2: input.shippingAddressLine2 || null,
+        shipping_city: input.shippingCity,
+        shipping_state: input.shippingState,
+        shipping_postcode: input.shippingPostcode,
+        shipping_country: input.shippingCountry,
       })
       .select()
       .single();
@@ -132,7 +142,7 @@ export async function POST(request: Request) {
       bounding_box_z_mm: null,
       estimated_volume_cm3: quote.estimatedVolumeCm3,
       estimated_print_time_minutes: quote.estimatedPrintTimeMinutes,
-      shipping_method: input.shippingMethod
+      shipping_method: "standard"
     });
 
     await supabase.from("order_status_history").insert({

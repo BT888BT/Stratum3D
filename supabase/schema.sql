@@ -88,3 +88,12 @@ for all
 to anon, authenticated
 using (false)
 with check (false);
+
+-- Add shipping address fields to orders
+alter table public.orders
+  add column if not exists shipping_address_line1 text,
+  add column if not exists shipping_address_line2 text,
+  add column if not exists shipping_city text,
+  add column if not exists shipping_state text,
+  add column if not exists shipping_postcode text,
+  add column if not exists shipping_country text default 'AU';

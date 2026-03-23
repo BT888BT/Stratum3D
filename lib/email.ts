@@ -26,7 +26,7 @@ export async function sendOrderConfirmationEmail(order: {
   material: string;
   colour: string;
   quantity: number;
-  shippingMethod: string;
+  shippingAddress: string;
 }) {
   const shortId = order.id.slice(0, 8).toUpperCase();
   const adminLink = `${SITE}/admin/orders/${order.id}`;
@@ -46,7 +46,7 @@ export async function sendOrderConfirmationEmail(order: {
           <tr><td style="padding:8px 0;color:#555">Material</td><td style="padding:8px 0;text-align:right">${order.material}</td></tr>
           <tr><td style="padding:8px 0;color:#555">Colour</td><td style="padding:8px 0;text-align:right">${order.colour}</td></tr>
           <tr><td style="padding:8px 0;color:#555">Quantity</td><td style="padding:8px 0;text-align:right">${order.quantity}</td></tr>
-          <tr><td style="padding:8px 0;color:#555">Shipping</td><td style="padding:8px 0;text-align:right">${order.shippingMethod === "pickup" ? "Pickup" : "Standard shipping"}</td></tr>
+          <tr><td style="padding:8px 0;color:#555">Ship to</td><td style="padding:8px 0;text-align:right">${order.shippingAddress}</td></tr>
           <tr style="border-top:1px solid #eee">
             <td style="padding:12px 0;color:#555">Subtotal</td><td style="padding:12px 0;text-align:right">${formatAud(order.subtotalCents)}</td>
           </tr>
@@ -79,7 +79,6 @@ export async function sendOrderConfirmationEmail(order: {
           <p><strong>Customer:</strong> ${order.customerName} (${order.email})</p>
           <p><strong>Total:</strong> ${formatAud(order.totalCents)}</p>
           <p><strong>Material:</strong> ${order.material} — ${order.colour} × ${order.quantity}</p>
-          <p><strong>Shipping:</strong> ${order.shippingMethod}</p>
           <p><a href="${adminLink}" style="color:#0070f3">View order in admin →</a></p>
         </div>
       `

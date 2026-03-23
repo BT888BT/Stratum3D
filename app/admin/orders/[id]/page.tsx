@@ -63,7 +63,17 @@ export default async function AdminOrderDetailPage({
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <DetailRow label="Name" value={order.customer_name} />
             <DetailRow label="Email" value={order.email} />
-            <DetailRow label="Phone" value={order.phone || "—"} />
+            <hr className="divider" />
+            <p style={{ fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.1em" }}>Shipping address</p>
+            {order.shipping_address_line1 ? (
+              <div style={{ fontSize: 13, color: "var(--text)", lineHeight: 1.7 }}>
+                <p>{order.shipping_address_line1}{order.shipping_address_line2 ? `, ${order.shipping_address_line2}` : ""}</p>
+                <p>{order.shipping_city} {order.shipping_state} {order.shipping_postcode}</p>
+                <p style={{ color: "var(--text-dim)" }}>{order.shipping_country}</p>
+              </div>
+            ) : (
+              <p style={{ fontSize: 13, color: "var(--muted)" }}>No address recorded</p>
+            )}
           </div>
         </div>
 

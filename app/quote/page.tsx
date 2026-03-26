@@ -1,15 +1,12 @@
 import QuoteForm from "@/components/forms/quote-form";
-
 export default function QuotePage() {
   return (
     <div>
-      <div style={{ marginBottom: 32 }}>
-        <p className="eyebrow" style={{ marginBottom: 10 }}>Instant Pricing</p>
-        <h1 className="font-display" style={{ fontSize: 36, fontWeight: 700, marginBottom: 10 }}>
-          Get a Quote
-        </h1>
-        <p style={{ color: "var(--text-dim)", fontSize: 15 }}>
-          Upload your model and configure your print — pricing is calculated instantly.
+      <div style={{ marginBottom: "clamp(20px, 3vw, 36px)" }}>
+        <span className="eyebrow" style={{ marginBottom: 10 }}>Instant Pricing</span>
+        <h1 className="font-display" style={{ fontSize: "clamp(36px, 5vw, 60px)", marginBottom: 8 }}>GET A QUOTE</h1>
+        <p style={{ color: "var(--text-dim)", fontSize: "clamp(13px, 1.5vw, 15px)" }}>
+          Upload your STL files and configure each print — pricing calculated instantly from your mesh.
         </p>
       </div>
       <QuoteForm />

@@ -7,73 +7,64 @@ export const metadata: Metadata = {
   description: "Upload your model, get an instant quote, place your order."
 };
 
-export default function RootLayout({
-  children
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <head>
-        <meta name="viewport" content="width=1280, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body>
-        <div className="min-h-screen" style={{ background: "var(--bg)" }}>
+        <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
+
           {/* Header */}
           <header style={{
             borderBottom: "1px solid var(--border)",
-            background: "rgba(8,10,15,0.85)",
-            backdropFilter: "blur(12px)",
-            position: "sticky",
-            top: 0,
-            zIndex: 50
+            background: "rgba(14,10,6,0.9)",
+            backdropFilter: "blur(16px)",
+            position: "sticky", top: 0, zIndex: 50
           }}>
             <div style={{
-              maxWidth: 1200,
-              margin: "0 auto",
-              padding: "0 24px",
+              maxWidth: 1200, margin: "0 auto",
+              padding: "0 clamp(16px, 4vw, 32px)",
               height: 60,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between"
+              display: "flex", alignItems: "center", justifyContent: "space-between"
             }}>
               <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                {/* Logo mark */}
-                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                  <polygon points="14,2 26,8 26,20 14,26 2,20 2,8" stroke="var(--accent)" strokeWidth="1.5" fill="none"/>
-                  <polygon points="14,7 21,11 21,17 14,21 7,17 7,11" stroke="var(--accent)" strokeWidth="1" fill="rgba(0,212,255,0.05)"/>
-                  <line x1="14" y1="2" x2="14" y2="7" stroke="var(--accent)" strokeWidth="1" opacity="0.5"/>
-                  <line x1="26" y1="8" x2="21" y2="11" stroke="var(--accent)" strokeWidth="1" opacity="0.5"/>
-                  <line x1="26" y1="20" x2="21" y2="17" stroke="var(--accent)" strokeWidth="1" opacity="0.5"/>
-                  <line x1="14" y1="26" x2="14" y2="21" stroke="var(--accent)" strokeWidth="1" opacity="0.5"/>
-                  <line x1="2" y1="20" x2="7" y2="17" stroke="var(--accent)" strokeWidth="1" opacity="0.5"/>
-                  <line x1="2" y1="8" x2="7" y2="11" stroke="var(--accent)" strokeWidth="1" opacity="0.5"/>
+                {/* Hexagon logo */}
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                  <polygon points="16,2 29,9 29,23 16,30 3,23 3,9"
+                    stroke="var(--orange)" strokeWidth="1.5" fill="rgba(249,115,22,0.08)"/>
+                  <polygon points="16,8 23,12 23,20 16,24 9,20 9,12"
+                    stroke="var(--orange)" strokeWidth="1" fill="rgba(249,115,22,0.12)" opacity="0.6"/>
+                  <circle cx="16" cy="16" r="3" fill="var(--orange)" opacity="0.9"/>
                 </svg>
-                <span className="font-display" style={{ fontSize: 18, fontWeight: 600, letterSpacing: "0.05em", color: "var(--text)" }}>
-                  STRATUM<span style={{ color: "var(--accent)" }}>3D</span>
+                <span className="font-display" style={{ fontSize: 22, color: "var(--text)", letterSpacing: "0.06em" }}>
+                  STRATUM<span style={{ color: "var(--orange)" }}>3D</span>
                 </span>
               </Link>
 
-              <nav style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <Link href="/quote" className="nav-link">
+              <nav style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <Link href="/quote" className="btn-primary" style={{ fontSize: 14, padding: "8px 20px" }}>
                   Get Quote
                 </Link>
               </nav>
             </div>
           </header>
 
-          <main style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 24px" }}>
+          <main style={{ maxWidth: 1200, margin: "0 auto", padding: "clamp(24px, 5vw, 48px) clamp(16px, 4vw, 32px)" }}>
             {children}
           </main>
 
           <footer style={{
             borderTop: "1px solid var(--border)",
-            padding: "24px",
-            textAlign: "center",
-            color: "var(--muted)",
-            fontSize: 12,
-            fontFamily: "var(--font-mono)"
+            padding: "24px clamp(16px, 4vw, 32px)",
+            textAlign: "center"
           }}>
-            <span className="font-mono">© {new Date().getFullYear()} STRATUM3D — PROFESSIONAL 3D PRINTING SERVICES</span>
+            <span className="font-mono" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.15em" }}>
+              © {new Date().getFullYear()} STRATUM3D — PROFESSIONAL 3D PRINTING SERVICES — AUSTRALIA
+            </span>
           </footer>
+
         </div>
       </body>
     </html>

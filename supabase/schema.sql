@@ -97,3 +97,33 @@ alter table public.orders
   add column if not exists shipping_state text,
   add column if not exists shipping_postcode text,
   add column if not exists shipping_country text default 'AU';
+
+-- Colour inventory managed by admin
+create table if not exists public.colours (
+  id uuid primary key default gen_random_uuid(),
+  name text not null unique,
+  hex text not null default '#888888',
+  available boolean not null default true,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+alter table public.colours enable row level security;
+
+drop policy if exists "deny all colours" on public.colours;
+create policy "deny all colours"
+on public.colours for all to anon, authenticated
+using (false) with check (false);
+
+-- Seed default colours
+insert into public.colours (name, hex, available, sort_order) values
+  ('Black',   '#1a1a1a', true,  1),
+  ('White',   '#f5f5f5', true,  2),
+  ('Grey',    '#888888', true,  3),
+  ('Red',     '#dc2626', true,  4),
+  ('Blue',    '#2563eb', true,  5),
+  ('Green',   '#16a34a', true,  6),
+  ('Yellow',  '#eab308', true,  7),
+  ('Orange',  '#ea580c', true,  8),
+  ('Natural', '#d4c5a9', true,  9)
+on conflict (name) do nothing;

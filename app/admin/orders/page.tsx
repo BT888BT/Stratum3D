@@ -38,9 +38,12 @@ export default async function AdminOrdersPage() {
           <p className="eyebrow" style={{ marginBottom: 8 }}>Dashboard</p>
           <h1 className="font-display" style={{ fontSize: 32, fontWeight: 700 }}>Orders</h1>
         </div>
-        <form action="/api/admin/logout" method="POST">
-          <button type="submit" className="btn-ghost" style={{ fontSize: 12 }}>Log out</button>
-        </form>
+        <div style={{ display: "flex", gap: 10 }}>
+          <Link href="/admin/colours" className="btn-ghost" style={{ fontSize: 12 }}>Manage Colours</Link>
+          <form action="/api/admin/logout" method="POST">
+            <button type="submit" className="btn-ghost" style={{ fontSize: 12 }}>Log out</button>
+          </form>
+        </div>
       </div>
 
       {/* Stats */}

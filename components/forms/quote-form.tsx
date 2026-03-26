@@ -20,9 +20,11 @@ type FileItem = {
   layerHeightMm: number; infillPercent: number;
 };
 type ItemResult = {
-  filename: string; estimatedVolumeCm3: number;
+  filename: string; material: string; colour: string; quantity: number;
+  solidVolumeCm3: number; printedVolumeCm3: number;
   estimatedWeightGrams: number; estimatedPrintTimeMinutes: number;
-  materialCostCents: number; machineCostCents: number; itemTotalCents: number;
+  materialCostCents: number; machineCostCents: number;
+  setupFeeCents: number; itemTotalCents: number;
 };
 type QuoteApiResponse = {
   orderId: string; items: ItemResult[];
@@ -293,11 +295,16 @@ export default function QuoteForm() {
               {quote.items.map((item, i) => (
                 <div key={i} style={{ background: "rgba(0,0,0,0.3)", borderRadius: 8, padding: 12 }}>
                   <p style={{ fontSize: 11, fontWeight: 700, marginBottom: 8, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--orange)" }}>{item.filename}</p>
+                  <p style={{ fontSize: 10, color: "var(--muted)", marginBottom: 8 }}>{item.material} · {item.colour} · qty {item.quantity}</p>
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <SR label="Volume"     value={`${item.estimatedVolumeCm3} cm³`} />
-                    <SR label="Weight"     value={`${item.estimatedWeightGrams} g`} />
-                    <SR label="Print time" value={`${item.estimatedPrintTimeMinutes} min`} />
-                    <SR label="Item total" value={formatAud(item.itemTotalCents)} hi />
+                    <SR label="Solid volume"   value={`${item.solidVolumeCm3} cm³`} />
+                    <SR label="Printed volume" value={`${item.printedVolumeCm3} cm³`} />
+                    <SR label="Weight/unit"    value={`${item.estimatedWeightGrams} g`} />
+                    <SR label="Print time/unit" value={`${item.estimatedPrintTimeMinutes} min`} />
+                    <SR label="Material cost"  value={formatAud(item.materialCostCents)} />
+                    <SR label="Machine cost"   value={formatAud(item.machineCostCents)} />
+                    <SR label="Setup"          value={formatAud(item.setupFeeCents)} />
+                    <SR label="Line total"     value={formatAud(item.itemTotalCents)} hi />
                   </div>
                 </div>
               ))}

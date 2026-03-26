@@ -156,7 +156,7 @@ export async function POST(request: Request) {
         bounding_box_x_mm: null,
         bounding_box_y_mm: null,
         bounding_box_z_mm: null,
-        estimated_volume_cm3: itemQuote.estimatedVolumeCm3,
+        estimated_volume_cm3: itemQuote.solidVolumeCm3,
         estimated_print_time_minutes: itemQuote.estimatedPrintTimeMinutes,
         shipping_method: "standard",
       });

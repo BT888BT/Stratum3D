@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -31,26 +30,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div className="card-accent corner-accent" style={{ width: "100%", maxWidth: 380 }}>
-        <p className="eyebrow" style={{ marginBottom: 20 }}>Secure Access</p>
-        <h1 className="font-display" style={{ fontSize: 26, fontWeight: 700, marginBottom: 6 }}>Login</h1>
-        <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 28 }}>Enter your password to continue.</p>
-
+    <div style={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div className="card-orange" style={{ width: "100%", maxWidth: 400 }}>
+        <div style={{ marginBottom: 24 }}>
+          <span className="eyebrow" style={{ marginBottom: 10 }}>Secure Access</span>
+          <h1 className="font-display" style={{ fontSize: 40 }}>LOGIN</h1>
+        </div>
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Password</span>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input-field"
-              autoFocus
-            />
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+              className="input-field" autoFocus />
           </label>
-
           {error && <div className="error-box">{error}</div>}
-
           <button type="submit" disabled={loading} className="btn-primary" style={{ width: "100%", marginTop: 4 }}>
             {loading ? "Verifying..." : "Sign In →"}
           </button>

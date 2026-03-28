@@ -64,28 +64,35 @@ export async function POST(request: Request) {
       .eq("id", orderId)
       .single();
 
+    let emailSent = false;
     let emailError: string | null = null;
 
-    if (order) {
-      try {
-        await sendStatusUpdateEmail({
-          id: order.id,
-          orderNumber: order.order_number ?? undefined,
-          customerName: order.customer_name,
-          email: order.email,
-          status,
-          note: note || null
-        });
-      } catch (err) {
-        emailError = err instanceof Error ? err.message : "Unknown email error";
-        console.error("[email] status update failed:", err);
-      }
+    if (!order) {
+      emailError = "Could not load order details for email.";
+    } else {
+      const result = await sendStatusUpdateEmail({
+        id: order.id,
+        orderNumber: order.order_number ?? undefined,
+        customerName: order.customer_name,
+        email: order.email,
+        status,
+        note: note || null
+      });
+      emailSent = result.sent;
+      emailError = result.reason ?? null;
     }
 
     return NextResponse.json({
       success: true,
-      emailSent: !emailError,
+      emailSent,
       emailError: emailError ?? undefined,
+      // Include debug info so you can see exactly what happened
+      emailDebug: {
+        from: process.env.EMAIL_FROM ?? "orders@stratum3d.com",
+        to: order?.email ?? "unknown",
+        status,
+        hasApiKey: !!process.env.RESEND_API_KEY,
+      }
     });
   } catch (error) {
     return NextResponse.json(

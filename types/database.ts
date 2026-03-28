@@ -25,6 +25,12 @@ export interface Database {
           stripe_checkout_session_id: string | null;
           stripe_payment_intent_id: string | null;
           notes: string | null;
+          shipping_address_line1: string | null;
+          shipping_address_line2: string | null;
+          shipping_city: string | null;
+          shipping_state: string | null;
+          shipping_postcode: string | null;
+          shipping_country: string | null;
         };
         Insert: {
           id?: string;
@@ -41,6 +47,12 @@ export interface Database {
           stripe_checkout_session_id?: string | null;
           stripe_payment_intent_id?: string | null;
           notes?: string | null;
+          shipping_address_line1?: string | null;
+          shipping_address_line2?: string | null;
+          shipping_city?: string | null;
+          shipping_state?: string | null;
+          shipping_postcode?: string | null;
+          shipping_country?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["orders"]["Insert"]>;
       };

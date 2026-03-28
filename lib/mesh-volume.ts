@@ -122,7 +122,11 @@ function volumeFrom3MF(buf: ArrayBuffer): number {
 
 export function extractVolumeMm3FromBuffer(buffer: Buffer, filename: string): number {
   const ext = filename.split(".").pop()?.toLowerCase();
-  const ab: ArrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+  // Convert Buffer → ArrayBuffer safely. In newer @types/node (v22+), Buffer.buffer
+  // returns ArrayBuffer | SharedArrayBuffer which is not assignable to ArrayBuffer.
+  // Using the ArrayBuffer constructor with a Uint8Array source creates a clean copy.
+  const bytes = new Uint8Array(buffer);
+  const ab = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
 
   if (ext === "stl") {
     // Check if ASCII STL (starts with "solid" text, not binary)

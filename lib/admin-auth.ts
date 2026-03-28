@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 /**
  * Must match the token generated in the login route.
  */
-function generateSessionToken(password: string): string {
+export function generateSessionToken(password: string): string {
   return crypto
     .createHmac("sha256", password)
     .update("stratum3d-admin-session")

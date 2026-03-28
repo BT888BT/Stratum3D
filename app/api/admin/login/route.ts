@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import crypto from "crypto";
+import { generateSessionToken } from "@/lib/admin-auth";
 
 // Simple in-memory rate limit for login attempts (per IP)
 const attempts = new Map<string, { count: number; resetAt: number }>();
@@ -15,18 +15,6 @@ function checkRateLimit(ip: string): boolean {
   }
   entry.count++;
   return entry.count <= MAX_ATTEMPTS;
-}
-
-/**
- * Generate a session token from the password.
- * This is deterministic so the middleware can verify it without a database,
- * but the actual password is never stored in the cookie.
- */
-export function generateSessionToken(password: string): string {
-  return crypto
-    .createHmac("sha256", password)
-    .update("stratum3d-admin-session")
-    .digest("hex");
 }
 
 export async function POST(request: Request) {

@@ -29,11 +29,11 @@ export default function OrderStatusActions({ orderId, currentStatus }: { orderId
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to update status.");
 
-      // Show email feedback
+      // Show email feedback with detail
       if (data.emailSent) {
-        setEmailResult("Customer email sent successfully.");
+        setEmailResult(`Email sent to ${data.emailDebug?.to ?? "customer"}.`);
       } else if (data.emailError) {
-        setEmailResult(`Status updated but email failed: ${data.emailError}`);
+        setEmailResult(`Status updated — email failed: ${data.emailError}`);
       } else {
         setEmailResult("Status updated (no email for this status).");
       }

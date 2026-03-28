@@ -2,14 +2,9 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { calculateItemQuote, sumQuote } from "@/lib/quote";
 import { fileItemSchema, orderContactSchema } from "@/lib/validation";
+import { slugFileName } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
-
-/**
- * Accepts JSON body with pre-computed volumes and Supabase storage paths.
- * Files are uploaded directly to Supabase Storage from the client,
- * bypassing Vercel's 4.5 MB serverless function body limit.
- */
 
 interface QuoteFileItem {
   originalFilename: string;
@@ -65,7 +60,6 @@ export async function POST(request: Request) {
     }
     const contact = contactParsed.data;
 
-    // ── Items ──────────────────────────────────────────────
     if (!body.items?.length) {
       return NextResponse.json({ error: "At least one file is required." }, { status: 400 });
     }
@@ -134,37 +128,51 @@ export async function POST(request: Request) {
         shipping_postcode: contact.shippingPostcode,
         shipping_country: "AU",
       })
-      .select()
+      .select("id, order_number")
       .single();
 
     if (orderError || !order) throw new Error(orderError?.message || "Failed to create order.");
 
-    // ── Move files from pending to order folder + save records ──
+    // Build a human-readable folder name: S3D-0042_jane-smith
+    const orderNum = String(order.order_number ?? "").padStart(4, "0");
+    const customerSlug = slugFileName(contact.customerName).slice(0, 30);
+    const folderName = `S3D-${orderNum}_${customerSlug}`;
+
+    // ── Save files + quote inputs (linked) ─────────────────
     for (let i = 0; i < validatedItems.length; i++) {
       const { item, settings } = validatedItems[i];
       const itemQuote = itemQuotes[i];
 
-      // Move file from pending/{batchId}/... to {orderId}/...
-      const newPath = item.storagePath.replace(`pending/${body.batchId}/`, `${order.id}/`);
+      // Clean filename for storage: "benchy (1).stl" → "benchy-1-.stl"
+      const safeName = slugFileName(item.originalFilename);
+      const newPath = `${folderName}/${safeName}`;
 
+      // Move file from pending upload location into the order folder
       const { error: moveError } = await supabase.storage
         .from("order-files")
         .move(item.storagePath, newPath);
 
-      // If move fails, keep the file where it is — still usable
       const finalPath = moveError ? item.storagePath : newPath;
 
-      await supabase.from("order_files").insert({
-        order_id: order.id,
-        original_filename: item.originalFilename,
-        storage_path: finalPath,
-        mime_type: "model/stl",
-        file_size_bytes: item.fileSizeBytes,
-        validation_status: "accepted",
-      });
+      // Insert file record
+      const { data: fileRecord } = await supabase
+        .from("order_files")
+        .insert({
+          order_id: order.id,
+          original_filename: item.originalFilename,
+          storage_path: finalPath,
+          mime_type: "model/stl",
+          file_size_bytes: item.fileSizeBytes,
+          validation_status: "accepted",
+        })
+        .select("id")
+        .single();
 
+      // Insert quote_inputs linked to the file
       await supabase.from("quote_inputs").insert({
         order_id: order.id,
+        file_id: fileRecord?.id ?? null,
+        original_filename: item.originalFilename,
         material: settings.material,
         colour: settings.colour,
         layer_height_mm: settings.layerHeightMm,
@@ -176,13 +184,14 @@ export async function POST(request: Request) {
         estimated_volume_cm3: itemQuote.solidVolumeCm3,
         estimated_print_time_minutes: itemQuote.estimatedPrintTimeMinutes,
         shipping_method: "standard",
+        line_total_cents: itemQuote.itemTotalCents,
       });
     }
 
     await supabase.from("order_status_history").insert({
       order_id: order.id,
       status: "draft",
-      note: `Draft quote — ${body.items.length} file(s)`,
+      note: `Draft quote — ${body.items.length} file(s): ${body.items.map(i => i.originalFilename).join(", ")}`,
     });
 
     return NextResponse.json({ orderId: order.id, ...quote });

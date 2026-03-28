@@ -13,76 +13,117 @@ function formatAud(cents: number) {
   }).format(cents / 100);
 }
 
+// ─── Shared: check if email sending is configured ────────────────────────────
+
+function isEmailConfigured(): boolean {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn("[email] RESEND_API_KEY is not set — skipping email.");
+    return false;
+  }
+  return true;
+}
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+export type OrderLineItem = {
+  filename: string;
+  material: string;
+  colour: string;
+  quantity: number;
+};
+
 // ─── Customer: order confirmation ────────────────────────────────────────────
 
 export async function sendOrderConfirmationEmail(order: {
   id: string;
+  orderNumber?: number;
   customerName: string;
   email: string;
   totalCents: number;
   subtotalCents: number;
   shippingCents: number;
   gstCents: number;
-  material: string;
-  colour: string;
-  quantity: number;
+  items: OrderLineItem[];
   shippingAddress: string;
 }) {
-  const shortId = order.id.slice(0, 8).toUpperCase();
+  if (!isEmailConfigured()) return;
+
+  const shortId = order.orderNumber
+    ? `S3D-${String(order.orderNumber).padStart(4, "0")}`
+    : order.id.slice(0, 8).toUpperCase();
+
   const adminLink = `${SITE}/admin/orders/${order.id}`;
 
-  // Customer email
-  await resend.emails.send({
-    from: FROM,
-    to: order.email,
-    subject: `Stratum3D — Order #${shortId} confirmed`,
-    html: `
-      <div style="font-family:sans-serif;max-width:540px;margin:auto;color:#111">
-        <h2 style="margin-bottom:4px">Thanks, ${order.customerName}!</h2>
-        <p style="color:#555;margin-top:0">Your 3D print order has been placed and payment received.</p>
+  // Build item rows for the email
+  const itemRowsHtml = order.items.map((item, i) => `
+    <tr${i > 0 ? ' style="border-top:1px solid #eee"' : ""}>
+      <td style="padding:8px 0;color:#555;font-size:14px">${item.filename}</td>
+      <td style="padding:8px 0;text-align:right;font-size:14px">${item.material} · ${item.colour} × ${item.quantity}</td>
+    </tr>
+  `).join("");
 
-        <table style="width:100%;border-collapse:collapse;margin:24px 0">
-          <tr><td style="padding:8px 0;color:#555">Order ID</td><td style="padding:8px 0;text-align:right"><strong>#${shortId}</strong></td></tr>
-          <tr><td style="padding:8px 0;color:#555">Material</td><td style="padding:8px 0;text-align:right">${order.material}</td></tr>
-          <tr><td style="padding:8px 0;color:#555">Colour</td><td style="padding:8px 0;text-align:right">${order.colour}</td></tr>
-          <tr><td style="padding:8px 0;color:#555">Quantity</td><td style="padding:8px 0;text-align:right">${order.quantity}</td></tr>
-          <tr><td style="padding:8px 0;color:#555">Ship to</td><td style="padding:8px 0;text-align:right">${order.shippingAddress}</td></tr>
-          <tr style="border-top:1px solid #eee">
-            <td style="padding:12px 0;color:#555">Subtotal</td><td style="padding:12px 0;text-align:right">${formatAud(order.subtotalCents)}</td>
-          </tr>
-          <tr>
-            <td style="padding:8px 0;color:#555">GST</td><td style="padding:8px 0;text-align:right">${formatAud(order.gstCents)}</td>
-          </tr>
-          <tr>
-            <td style="padding:8px 0;color:#555">Shipping</td><td style="padding:8px 0;text-align:right">${formatAud(order.shippingCents)}</td>
-          </tr>
-          <tr style="border-top:1px solid #eee">
-            <td style="padding:12px 0;font-weight:bold">Total</td><td style="padding:12px 0;text-align:right;font-weight:bold">${formatAud(order.totalCents)}</td>
-          </tr>
-        </table>
-
-        <p style="color:#555;font-size:14px">We'll send you another email when your print status changes. If you have any questions, just reply to this email.</p>
-        <p style="color:#555;font-size:14px">— The Stratum3D team</p>
-      </div>
-    `
-  });
-
-  // Admin notification
-  if (ADMIN) {
+  try {
+    // Customer email
     await resend.emails.send({
       from: FROM,
-      to: ADMIN,
-      subject: `New paid order #${shortId} — ${order.customerName}`,
+      to: order.email,
+      subject: `Stratum3D — Order ${shortId} confirmed`,
       html: `
         <div style="font-family:sans-serif;max-width:540px;margin:auto;color:#111">
-          <h2>New order received</h2>
-          <p><strong>Customer:</strong> ${order.customerName} (${order.email})</p>
-          <p><strong>Total:</strong> ${formatAud(order.totalCents)}</p>
-          <p><strong>Material:</strong> ${order.material} — ${order.colour} × ${order.quantity}</p>
-          <p><a href="${adminLink}" style="color:#0070f3">View order in admin →</a></p>
+          <h2 style="margin-bottom:4px">Thanks, ${order.customerName}!</h2>
+          <p style="color:#555;margin-top:0">Your 3D print order has been placed and payment received.</p>
+
+          <table style="width:100%;border-collapse:collapse;margin:24px 0">
+            <tr><td style="padding:8px 0;color:#555">Order</td><td style="padding:8px 0;text-align:right"><strong>${shortId}</strong></td></tr>
+            <tr style="border-top:1px solid #eee"><td colspan="2" style="padding:12px 0 6px;font-weight:600;font-size:13px;color:#333;text-transform:uppercase;letter-spacing:0.05em">Print items</td></tr>
+            ${itemRowsHtml}
+            <tr style="border-top:1px solid #eee"><td style="padding:8px 0;color:#555">Ship to</td><td style="padding:8px 0;text-align:right;font-size:14px">${order.shippingAddress}</td></tr>
+            <tr style="border-top:1px solid #eee">
+              <td style="padding:12px 0;color:#555">Subtotal</td><td style="padding:12px 0;text-align:right">${formatAud(order.subtotalCents)}</td>
+            </tr>
+            <tr>
+              <td style="padding:8px 0;color:#555">GST</td><td style="padding:8px 0;text-align:right">${formatAud(order.gstCents)}</td>
+            </tr>
+            <tr>
+              <td style="padding:8px 0;color:#555">Shipping</td><td style="padding:8px 0;text-align:right">${formatAud(order.shippingCents)}</td>
+            </tr>
+            <tr style="border-top:1px solid #eee">
+              <td style="padding:12px 0;font-weight:bold">Total</td><td style="padding:12px 0;text-align:right;font-weight:bold">${formatAud(order.totalCents)}</td>
+            </tr>
+          </table>
+
+          <p style="color:#555;font-size:14px">We'll send you another email when your print status changes. If you have any questions, just reply to this email.</p>
+          <p style="color:#555;font-size:14px">— The Stratum3D team</p>
         </div>
       `
     });
+    console.log(`[email] Order confirmation sent to ${order.email} for ${shortId}`);
+  } catch (err) {
+    console.error(`[email] Failed to send order confirmation to ${order.email}:`, err);
+    throw err;
+  }
+
+  // Admin notification (separate try — don't fail customer email if this breaks)
+  if (ADMIN) {
+    try {
+      const itemSummary = order.items.map(i => `${i.filename} (${i.material} ${i.colour} ×${i.quantity})`).join(", ");
+      await resend.emails.send({
+        from: FROM,
+        to: ADMIN,
+        subject: `New paid order ${shortId} — ${order.customerName}`,
+        html: `
+          <div style="font-family:sans-serif;max-width:540px;margin:auto;color:#111">
+            <h2>New order received</h2>
+            <p><strong>Customer:</strong> ${order.customerName} (${order.email})</p>
+            <p><strong>Total:</strong> ${formatAud(order.totalCents)}</p>
+            <p><strong>Items:</strong> ${itemSummary}</p>
+            <p><a href="${adminLink}" style="color:#0070f3">View order in admin →</a></p>
+          </div>
+        `
+      });
+    } catch (err) {
+      console.error("[email] Admin notification failed:", err);
+    }
   }
 }
 
@@ -97,28 +138,43 @@ const STATUS_LABELS: Record<string, string> = {
 
 export async function sendStatusUpdateEmail(order: {
   id: string;
+  orderNumber?: number;
   customerName: string;
   email: string;
   status: string;
   note?: string | null;
 }) {
+  if (!isEmailConfigured()) return;
+
   const label = STATUS_LABELS[order.status];
-  if (!label) return; // Don't email for draft / checkout_pending
+  if (!label) {
+    console.log(`[email] No email template for status "${order.status}" — skipping.`);
+    return;
+  }
 
-  const shortId = order.id.slice(0, 8).toUpperCase();
+  const shortId = order.orderNumber
+    ? `S3D-${String(order.orderNumber).padStart(4, "0")}`
+    : order.id.slice(0, 8).toUpperCase();
 
-  await resend.emails.send({
-    from: FROM,
-    to: order.email,
-    subject: `Stratum3D — ${label} (#${shortId})`,
-    html: `
-      <div style="font-family:sans-serif;max-width:540px;margin:auto;color:#111">
-        <h2>${label}</h2>
-        <p>Hi ${order.customerName},</p>
-        <p>Your order <strong>#${shortId}</strong> status has been updated to <strong>${order.status}</strong>.</p>
-        ${order.note ? `<p style="background:#f5f5f5;padding:12px;border-radius:8px;color:#333">${order.note}</p>` : ""}
-        <p style="color:#555;font-size:14px">— The Stratum3D team</p>
-      </div>
-    `
-  });
+  try {
+    await resend.emails.send({
+      from: FROM,
+      to: order.email,
+      subject: `Stratum3D — ${label} (${shortId})`,
+      html: `
+        <div style="font-family:sans-serif;max-width:540px;margin:auto;color:#111">
+          <h2>${label}</h2>
+          <p>Hi ${order.customerName},</p>
+          <p>Your order <strong>${shortId}</strong> status has been updated to <strong>${order.status}</strong>.</p>
+          ${order.note ? `<p style="background:#f5f5f5;padding:12px;border-radius:8px;color:#333">${order.note}</p>` : ""}
+          <p style="color:#555;font-size:14px">If you have any questions, just reply to this email.</p>
+          <p style="color:#555;font-size:14px">— The Stratum3D team</p>
+        </div>
+      `
+    });
+    console.log(`[email] Status update "${order.status}" sent to ${order.email} for ${shortId}`);
+  } catch (err) {
+    console.error(`[email] Failed to send status update to ${order.email}:`, err);
+    throw err;
+  }
 }

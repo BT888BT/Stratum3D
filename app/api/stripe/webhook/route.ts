@@ -53,38 +53,48 @@ export async function POST(request: Request) {
           note: "Stripe payment completed"
         });
 
-        // Fetch order + quote inputs to build the confirmation email
+        // Fetch order + ALL quote inputs to build the confirmation email
         const { data: order } = await supabase
           .from("orders")
           .select("*")
           .eq("id", orderId)
           .single();
 
-        const { data: quoteInput } = await supabase
+        const { data: quoteInputs } = await supabase
           .from("quote_inputs")
           .select("*")
           .eq("order_id", orderId)
-          .single();
+          .order("original_filename");
 
         if (order) {
+          const items = (quoteInputs ?? []).map(qi => ({
+            filename: qi.original_filename ?? "Unknown file",
+            material: qi.material ?? "—",
+            colour: qi.colour ?? "—",
+            quantity: qi.quantity ?? 1,
+          }));
+
+          // Fallback if no quote_inputs found (shouldn't happen, but safe)
+          if (items.length === 0) {
+            items.push({ filename: "3D Print", material: "—", colour: "—", quantity: 1 });
+          }
+
           await sendOrderConfirmationEmail({
             id: order.id,
+            orderNumber: order.order_number ?? undefined,
             customerName: order.customer_name,
             email: order.email,
             totalCents: order.total_cents,
             subtotalCents: order.subtotal_cents,
             shippingCents: order.shipping_cents,
             gstCents: order.gst_cents,
-            material: quoteInput?.material ?? "—",
-            colour: quoteInput?.colour ?? "—",
-            quantity: quoteInput?.quantity ?? 1,
+            items,
             shippingAddress: [
               order.shipping_address_line1,
               order.shipping_address_line2,
               order.shipping_city && `${order.shipping_city} ${order.shipping_state} ${order.shipping_postcode}`
             ].filter(Boolean).join(", "),
           }).catch((err) =>
-            // Don't fail the webhook if email fails — log and continue
             console.error("[email] order confirmation failed:", err)
           );
         }

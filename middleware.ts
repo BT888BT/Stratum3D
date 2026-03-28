@@ -1,15 +1,22 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import crypto from "crypto";
 
-function generateSessionToken(password: string): string {
-  return crypto
-    .createHmac("sha256", password)
-    .update("stratum3d-admin-session")
-    .digest("hex");
+async function generateSessionToken(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(password),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, encoder.encode("stratum3d-admin-session"));
+  return Array.from(new Uint8Array(sig))
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Admin login page and login API are public
@@ -23,7 +30,7 @@ export function middleware(request: NextRequest) {
   }
 
   const sessionCookie = request.cookies.get("stratum3d_admin")?.value;
-  const expectedToken = generateSessionToken(expected);
+  const expectedToken = await generateSessionToken(expected);
 
   if (sessionCookie === expectedToken) {
     return NextResponse.next();

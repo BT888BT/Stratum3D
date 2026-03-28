@@ -60,26 +60,36 @@ export async function POST(request: Request) {
       throw new Error(historyError.message);
     }
 
-    // Send customer status update email (fire-and-forget — don't block the response)
+    // Send customer status update email
     const { data: order } = await supabase
       .from("orders")
-      .select("id, customer_name, email")
+      .select("id, order_number, customer_name, email")
       .eq("id", orderId)
       .single();
 
+    let emailError: string | null = null;
+
     if (order) {
-      sendStatusUpdateEmail({
-        id: order.id,
-        customerName: order.customer_name,
-        email: order.email,
-        status,
-        note: note || null
-      }).catch((err) =>
-        console.error("[email] status update failed:", err)
-      );
+      try {
+        await sendStatusUpdateEmail({
+          id: order.id,
+          orderNumber: order.order_number ?? undefined,
+          customerName: order.customer_name,
+          email: order.email,
+          status,
+          note: note || null
+        });
+      } catch (err) {
+        emailError = err instanceof Error ? err.message : "Unknown email error";
+        console.error("[email] status update failed:", err);
+      }
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      emailSent: !emailError,
+      emailError: emailError ?? undefined,
+    });
   } catch (error) {
     return NextResponse.json(
       {

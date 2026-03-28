@@ -12,6 +12,7 @@ export interface Database {
       orders: {
         Row: {
           id: string;
+          order_number: number;
           created_at: string;
           customer_name: string;
           email: string;
@@ -34,6 +35,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          order_number?: number;
           created_at?: string;
           customer_name: string;
           email: string;
@@ -83,6 +85,8 @@ export interface Database {
         Row: {
           id: string;
           order_id: string;
+          file_id: string | null;
+          original_filename: string | null;
           material: string;
           colour: string | null;
           layer_height_mm: number | null;
@@ -94,10 +98,13 @@ export interface Database {
           estimated_volume_cm3: number | null;
           estimated_print_time_minutes: number | null;
           shipping_method: string | null;
+          line_total_cents: number | null;
         };
         Insert: {
           id?: string;
           order_id: string;
+          file_id?: string | null;
+          original_filename?: string | null;
           material: string;
           colour?: string | null;
           layer_height_mm?: number | null;
@@ -109,6 +116,7 @@ export interface Database {
           estimated_volume_cm3?: number | null;
           estimated_print_time_minutes?: number | null;
           shipping_method?: string | null;
+          line_total_cents?: number | null;
         };
         Update: Partial<Database["public"]["Tables"]["quote_inputs"]["Insert"]>;
       };
@@ -130,6 +138,25 @@ export interface Database {
         Update: Partial<
           Database["public"]["Tables"]["order_status_history"]["Insert"]
         >;
+      };
+      colours: {
+        Row: {
+          id: string;
+          name: string;
+          hex: string;
+          available: boolean;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          hex?: string;
+          available?: boolean;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["colours"]["Insert"]>;
       };
     };
   };

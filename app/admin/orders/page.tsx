@@ -10,6 +10,12 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+function orderLabel(order: { order_number?: number; id: string }) {
+  return order.order_number
+    ? `S3D-${String(order.order_number).padStart(4, "0")}`
+    : `#${order.id.slice(0, 8).toUpperCase()}`;
+}
+
 export default async function AdminOrdersPage() {
   const supabase = createAdminClient();
   const { data: orders, error } = await supabase
@@ -66,13 +72,13 @@ export default async function AdminOrdersPage() {
         {/* Table header */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: "100px 1fr 1fr 120px 120px 160px 80px",
+          gridTemplateColumns: "110px 1fr 1fr 120px 120px 160px 80px",
           gap: 12,
           padding: "12px 20px",
           borderBottom: "1px solid var(--border)",
           background: "var(--bg2)"
         }}>
-          {["ID", "Customer", "Email", "Status", "Total", "Date", ""].map(h => (
+          {["Order", "Customer", "Email", "Status", "Total", "Date", ""].map(h => (
             <span key={h} className="font-mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase" }}>{h}</span>
           ))}
         </div>
@@ -80,7 +86,7 @@ export default async function AdminOrdersPage() {
         <div>
           {orders?.map((order) => (
             <div key={order.id} className="order-row">
-              <span className="font-mono" style={{ fontSize: 12, color: "var(--accent)" }}>#{order.id.slice(0, 8).toUpperCase()}</span>
+              <span className="font-mono" style={{ fontSize: 12, color: "var(--accent)" }}>{orderLabel(order)}</span>
               <span style={{ fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{order.customer_name}</span>
               <span style={{ fontSize: 12, color: "var(--text-dim)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{order.email}</span>
               <StatusBadge status={order.status} />

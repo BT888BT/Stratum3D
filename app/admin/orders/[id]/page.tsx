@@ -18,15 +18,20 @@ export default async function AdminOrderDetailPage({
   const { id } = await params;
   const supabase = createAdminClient();
 
-  const [{ data: order }, { data: files }, { data: quote }, { data: history }] =
+  const [{ data: order }, { data: files }, { data: quoteItems }, { data: history }] =
     await Promise.all([
       supabase.from("orders").select("*").eq("id", id).single(),
-      supabase.from("order_files").select("*").eq("order_id", id),
-      supabase.from("quote_inputs").select("*").eq("order_id", id).single(),
+      supabase.from("order_files").select("*").eq("order_id", id).order("created_at"),
+      supabase.from("quote_inputs").select("*").eq("order_id", id).order("original_filename"),
       supabase.from("order_status_history").select("*").eq("order_id", id).order("created_at", { ascending: false })
     ]);
 
   if (!order) notFound();
+
+  const shortId = (order.order_number
+    ? `S3D-${String(order.order_number).padStart(4, "0")}`
+    : `#${order.id.slice(0, 8).toUpperCase()}`
+  );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
@@ -39,7 +44,7 @@ export default async function AdminOrderDetailPage({
           </Link>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <h1 className="font-display" style={{ fontSize: 28, fontWeight: 700 }}>
-              Order <span style={{ color: "var(--accent)" }}>#{order.id.slice(0, 8).toUpperCase()}</span>
+              Order <span style={{ color: "var(--accent)" }}>{shortId}</span>
             </h1>
             <StatusBadge status={order.status} />
           </div>
@@ -54,7 +59,7 @@ export default async function AdminOrderDetailPage({
         {/* Actions */}
         <div className="card">
           <p className="eyebrow" style={{ marginBottom: 16 }}>Actions</p>
-          <OrderStatusActions orderId={order.id} />
+          <OrderStatusActions orderId={order.id} currentStatus={order.status} />
         </div>
 
         {/* Customer */}
@@ -92,45 +97,6 @@ export default async function AdminOrderDetailPage({
           </div>
         </div>
 
-        {/* Quote inputs */}
-        <div className="card">
-          <p className="eyebrow" style={{ marginBottom: 16 }}>Print Specifications</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <DetailRow label="Material" value={quote?.material || "—"} />
-            <DetailRow label="Colour" value={quote?.colour || "—"} />
-            <DetailRow label="Layer height" value={quote?.layer_height_mm ? `${quote.layer_height_mm} mm` : "—"} />
-            <DetailRow label="Infill" value={quote?.infill_percent != null ? `${quote.infill_percent}%` : "—"} />
-            <DetailRow label="Quantity" value={String(quote?.quantity ?? "—")} />
-            <DetailRow label="Est. volume" value={quote?.estimated_volume_cm3 ? `${quote.estimated_volume_cm3} cm³` : "—"} />
-            <DetailRow label="Est. print time" value={quote?.estimated_print_time_minutes ? `${quote.estimated_print_time_minutes} min` : "—"} />
-            <DetailRow label="Shipping method" value={quote?.shipping_method || "—"} />
-          </div>
-        </div>
-
-        {/* Files */}
-        <div className="card">
-          <p className="eyebrow" style={{ marginBottom: 16 }}>Files</p>
-          {files?.length ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {files.map((f) => (
-                <div key={f.id} style={{
-                  background: "var(--bg2)",
-                  border: "1px solid var(--border)",
-                  borderRadius: 8,
-                  padding: "12px 14px"
-                }}>
-                  <p className="font-mono" style={{ fontSize: 12, color: "var(--text)" }}>{f.original_filename}</p>
-                  <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>
-                    {(f.file_size_bytes / 1024).toFixed(1)} KB · {f.storage_path}
-                  </p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p style={{ fontSize: 13, color: "var(--text-dim)" }}>No files attached.</p>
-          )}
-        </div>
-
         {/* Status history */}
         <div className="card">
           <p className="eyebrow" style={{ marginBottom: 16 }}>Status History</p>
@@ -155,7 +121,89 @@ export default async function AdminOrderDetailPage({
             <p style={{ fontSize: 13, color: "var(--text-dim)" }}>No history yet.</p>
           )}
         </div>
+      </div>
 
+      {/* ── Print items (full width — one card per file) ── */}
+      <div>
+        <p className="eyebrow" style={{ marginBottom: 16 }}>
+          Print Items — {quoteItems?.length ?? 0} file{(quoteItems?.length ?? 0) !== 1 ? "s" : ""}
+        </p>
+
+        {quoteItems?.length ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {quoteItems.map((qi, idx) => {
+              // Find matching file record
+              const matchedFile = files?.find(f =>
+                f.id === qi.file_id || f.original_filename === qi.original_filename
+              );
+
+              return (
+                <div key={qi.id} style={{
+                  border: "1px solid var(--border-hi)",
+                  borderRadius: 10,
+                  background: "var(--surface)",
+                  overflow: "hidden"
+                }}>
+                  {/* File header */}
+                  <div style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    padding: "12px 16px",
+                    borderBottom: "1px solid var(--border)",
+                    background: "var(--bg2)"
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                      <span className="font-mono" style={{ fontSize: 11, color: "var(--orange)", flexShrink: 0 }}>
+                        #{idx + 1}
+                      </span>
+                      <span style={{ fontSize: 14, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {qi.original_filename || matchedFile?.original_filename || "Unknown file"}
+                      </span>
+                      {matchedFile && (
+                        <span className="font-mono" style={{ fontSize: 10, color: "var(--muted)", flexShrink: 0 }}>
+                          {(matchedFile.file_size_bytes / 1024).toFixed(0)} KB
+                        </span>
+                      )}
+                    </div>
+                    {qi.line_total_cents != null && (
+                      <span className="font-mono" style={{ fontSize: 14, color: "var(--orange)", flexShrink: 0 }}>
+                        {formatAud(qi.line_total_cents)}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Specs grid */}
+                  <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+                    gap: 16,
+                    padding: "14px 16px"
+                  }}>
+                    <SpecCell label="Material" value={qi.material || "—"} />
+                    <SpecCell label="Colour" value={qi.colour || "—"} />
+                    <SpecCell label="Layer height" value={qi.layer_height_mm ? `${qi.layer_height_mm} mm` : "—"} />
+                    <SpecCell label="Infill" value={qi.infill_percent != null ? `${qi.infill_percent}%` : "—"} />
+                    <SpecCell label="Quantity" value={String(qi.quantity ?? "—")} />
+                    <SpecCell label="Est. volume" value={qi.estimated_volume_cm3 ? `${qi.estimated_volume_cm3} cm³` : "—"} />
+                    <SpecCell label="Est. print time" value={qi.estimated_print_time_minutes ? `${qi.estimated_print_time_minutes} min` : "—"} />
+                  </div>
+
+                  {/* Storage path (small, for admin reference) */}
+                  {matchedFile && (
+                    <div style={{ padding: "6px 16px 10px", borderTop: "1px solid var(--border)" }}>
+                      <span className="font-mono" style={{ fontSize: 10, color: "var(--muted)" }}>
+                        {matchedFile.storage_path}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="card">
+            <p style={{ fontSize: 13, color: "var(--text-dim)" }}>No print specifications recorded.</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -166,6 +214,15 @@ function DetailRow({ label, value }: { label: string; value: string }) {
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
       <span style={{ fontSize: 12, color: "var(--text-dim)" }}>{label}</span>
       <span style={{ fontSize: 13, color: "var(--text)", textAlign: "right" }}>{value}</span>
+    </div>
+  );
+}
+
+function SpecCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p style={{ fontSize: 10, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>{label}</p>
+      <p style={{ fontSize: 13, color: "var(--text)" }}>{value}</p>
     </div>
   );
 }

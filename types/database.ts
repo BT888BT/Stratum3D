@@ -26,6 +26,7 @@ export interface Database {
           stripe_checkout_session_id: string | null;
           stripe_payment_intent_id: string | null;
           notes: string | null;
+          checkout_token: string | null;
           shipping_address_line1: string | null;
           shipping_address_line2: string | null;
           shipping_city: string | null;
@@ -49,6 +50,7 @@ export interface Database {
           stripe_checkout_session_id?: string | null;
           stripe_payment_intent_id?: string | null;
           notes?: string | null;
+          checkout_token?: string | null;
           shipping_address_line1?: string | null;
           shipping_address_line2?: string | null;
           shipping_city?: string | null;
@@ -135,9 +137,7 @@ export interface Database {
           note?: string | null;
           created_at?: string;
         };
-        Update: Partial<
-          Database["public"]["Tables"]["order_status_history"]["Insert"]
-        >;
+        Update: Partial<Database["public"]["Tables"]["order_status_history"]["Insert"]>;
       };
       colours: {
         Row: {
@@ -157,6 +157,63 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["colours"]["Insert"]>;
+      };
+      pending_uploads: {
+        Row: {
+          id: string;
+          batch_id: string;
+          storage_path: string;
+          original_filename: string;
+          file_size_bytes: number | null;
+          uploaded: boolean;
+          consumed: boolean;
+          ip_address: string | null;
+          created_at: string;
+          expires_at: string;
+        };
+        Insert: {
+          id?: string;
+          batch_id: string;
+          storage_path: string;
+          original_filename: string;
+          file_size_bytes?: number | null;
+          uploaded?: boolean;
+          consumed?: boolean;
+          ip_address?: string | null;
+          created_at?: string;
+          expires_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["pending_uploads"]["Insert"]>;
+      };
+      admin_sessions: {
+        Row: {
+          id: string;
+          token: string;
+          ip_address: string | null;
+          created_at: string;
+          expires_at: string;
+        };
+        Insert: {
+          id?: string;
+          token: string;
+          ip_address?: string | null;
+          created_at?: string;
+          expires_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["admin_sessions"]["Insert"]>;
+      };
+      rate_limits: {
+        Row: {
+          key: string;
+          count: number;
+          window_end: string;
+        };
+        Insert: {
+          key: string;
+          count?: number;
+          window_end: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["rate_limits"]["Insert"]>;
       };
     };
   };

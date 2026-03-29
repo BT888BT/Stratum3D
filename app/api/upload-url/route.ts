@@ -1,31 +1,20 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { slugFileName } from "@/lib/utils";
+import { isAllowedFile, maxFileSizeBytes } from "@/lib/validation";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
-// Rate limit: max 20 upload batches per IP per 15 minutes
-const uploadAttempts = new Map<string, { count: number; resetAt: number }>();
-const MAX_BATCHES = 20;
-const WINDOW_MS = 15 * 60 * 1000;
 const MAX_FILES_PER_BATCH = 10;
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = uploadAttempts.get(ip);
-  if (!entry || now > entry.resetAt) {
-    uploadAttempts.set(ip, { count: 1, resetAt: now + WINDOW_MS });
-    return true;
-  }
-  entry.count++;
-  return entry.count <= MAX_BATCHES;
-}
 
 export async function POST(request: Request) {
   try {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 
-    if (!checkRateLimit(ip)) {
+    // Persistent rate limit: 20 upload batches per IP per 15 minutes
+    const { allowed } = await checkRateLimit(`upload:${ip}`, 20, 15 * 60 * 1000);
+    if (!allowed) {
       return NextResponse.json(
         { error: "Too many upload requests. Please wait a few minutes." },
         { status: 429 }
@@ -47,18 +36,23 @@ export async function POST(request: Request) {
       );
     }
 
-    const maxSize = 50 * 1024 * 1024;
+    // Validate filenames and sizes server-side (#3)
     for (const f of files) {
-      if (f.size > maxSize) {
+      if (!isAllowedFile(f.name)) {
         return NextResponse.json(
-          { error: `"${f.name}" exceeds 50 MB limit.` },
+          { error: `"${f.name}": only .stl files are accepted.` },
+          { status: 400 }
+        );
+      }
+      if (!f.size || f.size <= 0 || f.size > maxFileSizeBytes) {
+        return NextResponse.json(
+          { error: `"${f.name}": file must be between 1 byte and 50 MB.` },
           { status: 400 }
         );
       }
     }
 
     const supabase = createAdminClient();
-
     const batchId = crypto.randomUUID();
 
     const uploads = await Promise.all(
@@ -73,6 +67,17 @@ export async function POST(request: Request) {
         if (error || !data) {
           throw new Error(`Failed to create upload URL for "${f.name}": ${error?.message}`);
         }
+
+        // Record in pending_uploads table (#2)
+        await supabase.from("pending_uploads").insert({
+          batch_id: batchId,
+          storage_path: storagePath,
+          original_filename: f.name,
+          file_size_bytes: f.size,
+          uploaded: false,
+          consumed: false,
+          ip_address: ip,
+        });
 
         return {
           originalFilename: f.name,

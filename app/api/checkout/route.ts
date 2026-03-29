@@ -4,25 +4,35 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(request: Request) {
   try {
-    const { orderId } = await request.json();
+    const { orderId, checkoutToken } = await request.json();
 
-    if (!orderId) {
+    if (!orderId || !checkoutToken) {
       return NextResponse.json(
-        { error: "orderId is required." },
+        { error: "orderId and checkoutToken are required." },
         { status: 400 }
       );
     }
 
     const supabase = createAdminClient();
 
+    // Fetch order and verify the checkout token matches
     const { data: order, error } = await supabase
       .from("orders")
       .select("*")
       .eq("id", orderId)
+      .eq("checkout_token", checkoutToken)
       .single();
 
     if (error || !order) {
-      return NextResponse.json({ error: "Order not found." }, { status: 404 });
+      return NextResponse.json({ error: "Order not found or invalid token." }, { status: 404 });
+    }
+
+    // Only allow checkout from draft status
+    if (order.status !== "draft") {
+      return NextResponse.json(
+        { error: `Order is already in "${order.status}" status and cannot be checked out again.` },
+        { status: 400 }
+      );
     }
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!;
@@ -42,7 +52,7 @@ export async function POST(request: Request) {
           price_data: {
             currency: "aud",
             product_data: {
-              name: `Stratum3D Order ${order.id.slice(0, 8)}`
+              name: `Stratum3D Order ${order.order_number ? `S3D-${String(order.order_number).padStart(4, "0")}` : order.id.slice(0, 8)}`
             },
             unit_amount: order.total_cents
           }
@@ -50,11 +60,13 @@ export async function POST(request: Request) {
       ]
     });
 
+    // Nullify checkout_token so it can't be reused
     const { error: updateError } = await supabase
       .from("orders")
       .update({
         stripe_checkout_session_id: session.id,
-        status: "checkout_pending"
+        status: "checkout_pending",
+        checkout_token: null,
       })
       .eq("id", order.id);
 

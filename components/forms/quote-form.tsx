@@ -31,7 +31,7 @@ type ItemResult = {
   setupFeeCents: number; itemTotalCents: number;
 };
 type QuoteApiResponse = {
-  orderId: string; items: ItemResult[];
+  orderId: string; checkoutToken: string; items: ItemResult[];
   subtotalCents: number; shippingCents: number; gstCents: number; totalCents: number;
 };
 
@@ -178,8 +178,6 @@ export default function QuoteForm() {
           items: items.map((item, i) => ({
             originalFilename: item.file.name,
             storagePath: uploads[i].storagePath,
-            fileSizeBytes: item.file.size,
-            volumeMm3: item.volumeMm3,
             material: item.material,
             colour: item.colour,
             quantity: item.quantity,
@@ -211,7 +209,7 @@ export default function QuoteForm() {
       setLoadingCheckout(true);
       const res = await fetch("/api/checkout", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: quote.orderId }),
+        body: JSON.stringify({ orderId: quote.orderId, checkoutToken: quote.checkoutToken }),
       });
 
       if (!res.ok) {

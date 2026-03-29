@@ -1,27 +1,14 @@
 import { NextResponse } from "next/server";
-import { generateSessionToken } from "@/lib/admin-auth";
-
-// Simple in-memory rate limit for login attempts (per IP)
-const attempts = new Map<string, { count: number; resetAt: number }>();
-const MAX_ATTEMPTS = 5;
-const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = attempts.get(ip);
-  if (!entry || now > entry.resetAt) {
-    attempts.set(ip, { count: 1, resetAt: now + WINDOW_MS });
-    return true;
-  }
-  entry.count++;
-  return entry.count <= MAX_ATTEMPTS;
-}
+import { createAdminSession } from "@/lib/admin-auth";
+import { checkRateLimit, clearRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 
-    if (!checkRateLimit(ip)) {
+    // Persistent rate limit: 5 attempts per IP per 15 minutes
+    const { allowed } = await checkRateLimit(`login:${ip}`, 5, 15 * 60 * 1000);
+    if (!allowed) {
       return NextResponse.json(
         { error: "Too many login attempts. Try again in 15 minutes." },
         { status: 429 }
@@ -44,14 +31,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // Clear rate limit on successful login
-    attempts.delete(ip);
-
-    const sessionToken = generateSessionToken(process.env.ADMIN_PASSWORD);
+    // Success — clear rate limit and create session
+    await clearRateLimit(`login:${ip}`);
+    const token = await createAdminSession(ip);
 
     const response = NextResponse.json({ success: true });
 
-    response.cookies.set("stratum3d_admin", sessionToken, {
+    response.cookies.set("stratum3d_admin", token, {
       httpOnly: true,
       secure: true,
       sameSite: "lax",
@@ -60,7 +46,8 @@ export async function POST(request: Request) {
     });
 
     return response;
-  } catch {
+  } catch (err) {
+    console.error("[login]", err);
     return NextResponse.json({ error: "Login failed." }, { status: 500 });
   }
 }

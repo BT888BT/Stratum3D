@@ -1,42 +1,34 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-async function generateSessionToken(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(password),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
-  const sig = await crypto.subtle.sign("HMAC", key, encoder.encode("stratum3d-admin-session"));
-  return Array.from(new Uint8Array(sig))
-    .map(b => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-export async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Admin login page and login API are public
+  // Admin login is public
   if (pathname === "/login" || pathname === "/admin/login" || pathname === "/api/admin/login") {
     return NextResponse.next();
   }
 
-  const expected = process.env.ADMIN_PASSWORD;
-  if (!expected) {
-    return NextResponse.redirect(new URL("/", request.url));
+  // ── CSRF check on admin API mutations (#7) ────────────────
+  if (pathname.startsWith("/api/admin") && request.method !== "GET") {
+    const origin = request.headers.get("origin");
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    if (siteUrl && origin && origin !== siteUrl) {
+      return NextResponse.json({ error: "CSRF: origin mismatch." }, { status: 403 });
+    }
   }
 
+  // ── Session cookie check ──────────────────────────────────
   const sessionCookie = request.cookies.get("stratum3d_admin")?.value;
-  const expectedToken = await generateSessionToken(expected);
 
-  if (sessionCookie === expectedToken) {
+  // Cookie must be a 64-char hex string (random token format)
+  const hasValidCookie = !!sessionCookie && /^[a-f0-9]{64}$/.test(sessionCookie);
+
+  if (hasValidCookie) {
     return NextResponse.next();
   }
 
-  // API routes get a 401 JSON response, pages get redirected
+  // API routes get 401, pages get redirect
   if (pathname.startsWith("/api/admin")) {
     return NextResponse.json({ error: "Unauthorised." }, { status: 401 });
   }

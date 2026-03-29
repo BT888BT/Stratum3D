@@ -1,32 +1,17 @@
+import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { calculateItemQuote, sumQuote } from "@/lib/quote";
+import { extractVolumeMm3FromBuffer } from "@/lib/mesh-volume";
 import { fileItemSchema, orderContactSchema } from "@/lib/validation";
 import { slugFileName } from "@/lib/utils";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
-
-// Rate limit: max 10 quote submissions per IP per 15 minutes
-const quoteAttempts = new Map<string, { count: number; resetAt: number }>();
-const MAX_QUOTES = 10;
-const WINDOW_MS = 15 * 60 * 1000;
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = quoteAttempts.get(ip);
-  if (!entry || now > entry.resetAt) {
-    quoteAttempts.set(ip, { count: 1, resetAt: now + WINDOW_MS });
-    return true;
-  }
-  entry.count++;
-  return entry.count <= MAX_QUOTES;
-}
 
 interface QuoteFileItem {
   originalFilename: string;
   storagePath: string;
-  fileSizeBytes: number;
-  volumeMm3: number;
   material: string;
   colour: string;
   quantity: number;
@@ -50,7 +35,10 @@ interface QuoteRequestBody {
 export async function POST(request: Request) {
   try {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    if (!checkRateLimit(ip)) {
+
+    // Persistent rate limit
+    const { allowed } = await checkRateLimit(`quote:${ip}`, 10, 15 * 60 * 1000);
+    if (!allowed) {
       return NextResponse.json(
         { error: "Too many quote requests. Please wait a few minutes." },
         { status: 429 }
@@ -87,25 +75,49 @@ export async function POST(request: Request) {
     if (!body.items?.length) {
       return NextResponse.json({ error: "At least one file is required." }, { status: 400 });
     }
+    if (body.items.length > 10) {
+      return NextResponse.json({ error: "Maximum 10 files per order." }, { status: 400 });
+    }
 
-    // ── Validate + calculate each item ─────────────────────
-    const validatedItems: { item: QuoteFileItem; settings: ReturnType<typeof fileItemSchema.parse> }[] = [];
+    const supabase = createAdminClient();
 
+    // ── #2: Verify batch ownership and all paths belong to this batch ──
+    const { data: pendingRows } = await supabase
+      .from("pending_uploads")
+      .select("*")
+      .eq("batch_id", body.batchId)
+      .eq("consumed", false)
+      .gt("expires_at", new Date().toISOString());
+
+    if (!pendingRows?.length) {
+      return NextResponse.json(
+        { error: "Upload batch not found or expired. Please re-upload your files." },
+        { status: 400 }
+      );
+    }
+
+    const pendingByPath = new Map(pendingRows.map(r => [r.storage_path, r]));
+
+    // Verify every submitted item has a matching pending upload
     for (const item of body.items) {
-      if (!item.volumeMm3 || !isFinite(item.volumeMm3) || item.volumeMm3 <= 0) {
+      if (!pendingByPath.has(item.storagePath)) {
         return NextResponse.json(
-          { error: `"${item.originalFilename}": invalid volume. Ensure it is a valid closed mesh.` },
-          { status: 422 }
-        );
-      }
-
-      if (!item.storagePath) {
-        return NextResponse.json(
-          { error: `"${item.originalFilename}": missing storage path — upload may have failed.` },
+          { error: `"${item.originalFilename}": file not found in this upload batch.` },
           { status: 400 }
         );
       }
+    }
 
+    // ── Validate settings, download files, compute volume server-side ──
+    type ValidatedItem = {
+      item: QuoteFileItem;
+      settings: ReturnType<typeof fileItemSchema.parse>;
+      volumeMm3: number;
+      actualSizeBytes: number;
+    };
+    const validatedItems: ValidatedItem[] = [];
+
+    for (const item of body.items) {
       const settingsParsed = fileItemSchema.safeParse({
         material: item.material,
         colour: item.colour,
@@ -121,18 +133,67 @@ export async function POST(request: Request) {
         );
       }
 
-      validatedItems.push({ item, settings: settingsParsed.data });
+      // #1 + #3: Download the actual file from Supabase Storage and verify it
+      const { data: fileData, error: dlError } = await supabase.storage
+        .from("order-files")
+        .download(item.storagePath);
+
+      if (dlError || !fileData) {
+        return NextResponse.json(
+          { error: `"${item.originalFilename}": file not found in storage. Upload may have failed.` },
+          { status: 400 }
+        );
+      }
+
+      const actualSizeBytes = fileData.size;
+
+      // #3: Verify file isn't empty and isn't absurdly large
+      if (actualSizeBytes < 84) {
+        return NextResponse.json(
+          { error: `"${item.originalFilename}": file is too small to be a valid STL.` },
+          { status: 422 }
+        );
+      }
+      if (actualSizeBytes > 50 * 1024 * 1024) {
+        return NextResponse.json(
+          { error: `"${item.originalFilename}": file exceeds 50 MB limit.` },
+          { status: 400 }
+        );
+      }
+
+      // #1: Recalculate volume SERVER-SIDE — ignore any client-supplied volume
+      let volumeMm3: number;
+      try {
+        const arrayBuf = await fileData.arrayBuffer();
+        const buffer = Buffer.from(arrayBuf);
+        volumeMm3 = extractVolumeMm3FromBuffer(buffer, item.originalFilename);
+
+        if (!isFinite(volumeMm3) || volumeMm3 <= 0) {
+          return NextResponse.json(
+            { error: `"${item.originalFilename}": could not calculate volume. Ensure it is a valid closed mesh.` },
+            { status: 422 }
+          );
+        }
+      } catch (err) {
+        return NextResponse.json(
+          { error: `"${item.originalFilename}": failed to parse — ${err instanceof Error ? err.message : "invalid STL"}` },
+          { status: 422 }
+        );
+      }
+
+      validatedItems.push({ item, settings: settingsParsed.data, volumeMm3, actualSizeBytes });
     }
 
-    // ── Calculate quote ────────────────────────────────────
-    const itemQuotes = validatedItems.map(({ item, settings }) =>
-      calculateItemQuote(settings, item.volumeMm3, item.originalFilename)
+    // ── Calculate quote from server-derived volumes ─────────
+    const itemQuotes = validatedItems.map(({ item, settings, volumeMm3 }) =>
+      calculateItemQuote(settings, volumeMm3, item.originalFilename)
     );
     const quote = sumQuote(itemQuotes);
 
-    // ── Save order ─────────────────────────────────────────
-    const supabase = createAdminClient();
+    // #6: Generate a one-time checkout token
+    const checkoutToken = crypto.randomBytes(32).toString("hex");
 
+    // ── Save order ─────────────────────────────────────────
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
@@ -145,6 +206,7 @@ export async function POST(request: Request) {
         shipping_cents: quote.shippingCents,
         gst_cents: quote.gstCents,
         total_cents: quote.totalCents,
+        checkout_token: checkoutToken,
         shipping_address_line1: contact.shippingAddressLine1,
         shipping_address_line2: contact.shippingAddressLine2 || null,
         shipping_city: contact.shippingCity,
@@ -157,28 +219,24 @@ export async function POST(request: Request) {
 
     if (orderError || !order) throw new Error(orderError?.message || "Failed to create order.");
 
-    // Build a human-readable folder name: S3D-0042_jane-smith
     const orderNum = String(order.order_number ?? "").padStart(4, "0");
     const customerSlug = slugFileName(contact.customerName).slice(0, 30);
     const folderName = `S3D-${orderNum}_${customerSlug}`;
 
-    // ── Save files + quote inputs (linked) ─────────────────
+    // ── Save files + quote inputs, mark uploads consumed ───
     for (let i = 0; i < validatedItems.length; i++) {
-      const { item, settings } = validatedItems[i];
+      const { item, settings, volumeMm3, actualSizeBytes } = validatedItems[i];
       const itemQuote = itemQuotes[i];
 
-      // Clean filename for storage: "benchy (1).stl" → "benchy-1-.stl"
       const safeName = slugFileName(item.originalFilename);
       const newPath = `${folderName}/${safeName}`;
 
-      // Move file from pending upload location into the order folder
       const { error: moveError } = await supabase.storage
         .from("order-files")
         .move(item.storagePath, newPath);
 
       const finalPath = moveError ? item.storagePath : newPath;
 
-      // Insert file record
       const { data: fileRecord } = await supabase
         .from("order_files")
         .insert({
@@ -186,13 +244,12 @@ export async function POST(request: Request) {
           original_filename: item.originalFilename,
           storage_path: finalPath,
           mime_type: "model/stl",
-          file_size_bytes: item.fileSizeBytes,
+          file_size_bytes: actualSizeBytes,
           validation_status: "accepted",
         })
         .select("id")
         .single();
 
-      // Insert quote_inputs linked to the file
       await supabase.from("quote_inputs").insert({
         order_id: order.id,
         file_id: fileRecord?.id ?? null,
@@ -202,14 +259,17 @@ export async function POST(request: Request) {
         layer_height_mm: settings.layerHeightMm,
         infill_percent: settings.infillPercent,
         quantity: settings.quantity,
-        bounding_box_x_mm: null,
-        bounding_box_y_mm: null,
-        bounding_box_z_mm: null,
-        estimated_volume_cm3: itemQuote.solidVolumeCm3,
+        estimated_volume_cm3: parseFloat((volumeMm3 / 1000).toFixed(2)),
         estimated_print_time_minutes: itemQuote.estimatedPrintTimeMinutes,
         shipping_method: "standard",
         line_total_cents: itemQuote.itemTotalCents,
       });
+
+      // #2: Mark this upload as consumed so it can't be reused
+      await supabase
+        .from("pending_uploads")
+        .update({ consumed: true })
+        .eq("storage_path", item.storagePath);
     }
 
     await supabase.from("order_status_history").insert({
@@ -218,7 +278,11 @@ export async function POST(request: Request) {
       note: `Draft quote — ${body.items.length} file(s): ${body.items.map(i => i.originalFilename).join(", ")}`,
     });
 
-    return NextResponse.json({ orderId: order.id, ...quote });
+    return NextResponse.json({
+      orderId: order.id,
+      checkoutToken,
+      ...quote,
+    });
 
   } catch (error) {
     console.error("[quote]", error);

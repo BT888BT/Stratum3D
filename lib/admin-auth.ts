@@ -1,32 +1,55 @@
 import crypto from "crypto";
 import { cookies } from "next/headers";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
- * Must match the token generated in the login route.
+ * Create a new admin session with a random token.
+ * Stored in DB so sessions are individually revocable and survive restarts.
  */
-export function generateSessionToken(password: string): string {
-  return crypto
-    .createHmac("sha256", password)
-    .update("stratum3d-admin-session")
-    .digest("hex");
+export async function createAdminSession(ip: string): Promise<string> {
+  const token = crypto.randomBytes(32).toString("hex");
+  const supabase = createAdminClient();
+
+  await supabase.from("admin_sessions").insert({
+    token,
+    ip_address: ip,
+    // expires_at defaults to now() + 7 days in the DB
+  });
+
+  return token;
 }
 
 /**
- * Check if the current request has a valid admin session.
- * Compares the cookie against a HMAC of the password — the raw
- * password is never stored in the cookie.
+ * Verify the admin session cookie against stored sessions.
  */
 export async function isAdminAuthed(): Promise<boolean> {
-  const password = process.env.ADMIN_PASSWORD;
-  if (!password) return false;
-
   const cookieStore = await cookies();
   const token = cookieStore.get("stratum3d_admin")?.value;
-  if (!token) return false;
+  if (!token || token.length !== 64) return false;
 
-  const expected = generateSessionToken(password);
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from("admin_sessions")
+    .select("id")
+    .eq("token", token)
+    .gt("expires_at", new Date().toISOString())
+    .single();
 
-  // Constant-time comparison to prevent timing attacks
-  if (token.length !== expected.length) return false;
-  return crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expected));
+  return !!data;
+}
+
+/**
+ * Revoke a specific session by token.
+ */
+export async function revokeSession(token: string): Promise<void> {
+  const supabase = createAdminClient();
+  await supabase.from("admin_sessions").delete().eq("token", token);
+}
+
+/**
+ * Revoke all admin sessions (e.g. on password change).
+ */
+export async function revokeAllSessions(): Promise<void> {
+  const supabase = createAdminClient();
+  await supabase.from("admin_sessions").delete().neq("id", "00000000-0000-0000-0000-000000000000");
 }

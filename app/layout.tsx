@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Stratum3D — Professional 3D Printing",
+  title: "Stratum3D — Local 3D Printing",
   description: "Upload your model, get an instant quote, place your order."
 };
 
@@ -61,7 +61,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             textAlign: "center"
           }}>
             <span className="font-mono" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.15em" }}>
-              © {new Date().getFullYear()} STRATUM3D — PROFESSIONAL 3D PRINTING SERVICES — AUSTRALIA
+              © {new Date().getFullYear()} STRATUM3D — LOCAL 3D PRINTING SERVICES — AUSTRALIA
             </span>
           </footer>
 

@@ -41,7 +41,7 @@ export default function HomePage() {
         }}>
           <div style={{ position: "relative", zIndex: 1 }}>
             <span className="eyebrow fade-up" style={{ marginBottom: 16, display: "block" }}>
-              Professional 3D Printing — Australia
+              Local 3D Printing — Australia
             </span>
             <h1 className="font-display fade-up-2" style={{
               fontSize: "clamp(52px, 8vw, 100px)",
@@ -220,7 +220,7 @@ export default function HomePage() {
           GET YOUR QUOTE IN SECONDS
         </h2>
         <p style={{ color: "var(--text-dim)", marginBottom: "clamp(24px, 4vw, 40px)", fontSize: "clamp(13px, 1.5vw, 16px)", maxWidth: 480, margin: "0 auto clamp(24px, 4vw, 40px)" }}>
-          Upload your STL file and receive instant pricing — no account required.
+          Upload your STL file and receive instant pricing.
         </p>
         <Link href="/quote" className="btn-primary glow-pulse" style={{ fontSize: 18 }}>
           Upload & Quote Now →

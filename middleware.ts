@@ -13,8 +13,19 @@ export function middleware(request: NextRequest) {
   if (pathname.startsWith("/api/admin") && request.method !== "GET") {
     const origin = request.headers.get("origin");
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-    if (siteUrl && origin && origin !== siteUrl) {
-      return NextResponse.json({ error: "CSRF: origin mismatch." }, { status: 403 });
+    if (siteUrl && origin) {
+      // Normalize: strip trailing slashes, compare lowercase
+      const normalizedOrigin = origin.replace(/\/+$/, "").toLowerCase();
+      const normalizedSite = siteUrl.replace(/\/+$/, "").toLowerCase();
+      // Allow both www and non-www variants
+      const allowedOrigins = [
+        normalizedSite,
+        normalizedSite.replace("://www.", "://"),
+        normalizedSite.replace("://", "://www."),
+      ];
+      if (!allowedOrigins.includes(normalizedOrigin)) {
+        return NextResponse.json({ error: "CSRF: origin mismatch." }, { status: 403 });
+      }
     }
   }
 

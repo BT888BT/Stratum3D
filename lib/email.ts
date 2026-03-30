@@ -3,6 +3,7 @@ import { Resend } from "resend";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const FROM = process.env.EMAIL_FROM ?? "orders@stratum3d.com";
+const REPLY_TO = process.env.EMAIL_REPLY_TO ?? "";
 const ADMIN = process.env.EMAIL_ADMIN ?? "";
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "";
 
@@ -67,6 +68,7 @@ export async function sendOrderConfirmationEmail(order: {
   // Customer email
   const { data, error } = await resend.emails.send({
     from: FROM,
+    replyTo: REPLY_TO || undefined,
     to: order.email,
     subject: `Stratum3D — Order ${shortId} confirmed`,
     html: `
@@ -161,6 +163,7 @@ export async function sendStatusUpdateEmail(order: {
 
   const { data, error } = await resend.emails.send({
     from: FROM,
+    replyTo: REPLY_TO || undefined,
     to: order.email,
     subject: `Stratum3D — ${label} (${shortId})`,
     html: `

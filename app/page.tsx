@@ -1,16 +1,23 @@
 import Link from "next/link";
 
 const materials = [
-  { name: "PLA",  colour: "#fb923c", desc: "Best for prototypes, display models & low-stress parts", temp: "190–220°C", strength: "Good",      use: "Prototyping" },
-  { name: "PETG", colour: "#f97316", desc: "Durable, moisture resistant, slightly flexible",          temp: "230–250°C", strength: "Very Good", use: "Functional" },
-  { name: "ABS",  colour: "#ea580c", desc: "Heat resistant, impact tough and machinable",             temp: "230–260°C", strength: "Excellent", use: "Engineering" },
+  { name: "PLA",  colour: "#fb923c", desc: "Great for hobby projects, display models & cosplay props", temp: "190–220°C", strength: "Good",      use: "Hobby / General" },
+  { name: "PETG", colour: "#f97316", desc: "Durable, moisture resistant — ideal for outdoor or functional parts",          temp: "230–250°C", strength: "Very Good", use: "Functional" },
+  { name: "ABS",  colour: "#ea580c", desc: "Heat resistant, impact tough — suited for mechanical or engineering use",             temp: "230–260°C", strength: "Excellent", use: "Engineering" },
 ];
 
 const steps = [
   { n: "01", icon: "⬆", title: "Upload STL",       desc: "Drop one or more STL files — up to 50 MB each" },
-  { n: "02", icon: "⚙", title: "Configure",        desc: "Set material, colour, layer height and infill per file" },
-  { n: "03", icon: "💲", title: "Instant Quote",    desc: "Real pricing calculated from your actual mesh volume" },
-  { n: "04", icon: "✓", title: "Pay & Track",      desc: "Secure Stripe checkout, email updates all the way" },
+  { n: "02", icon: "⚙", title: "Configure",        desc: "Pick material, colour, layer height and infill for each file" },
+  { n: "03", icon: "💲", title: "Instant Quote",    desc: "Pricing calculated from your actual mesh volume — no hidden fees" },
+  { n: "04", icon: "✓", title: "Pay & Track",      desc: "Secure checkout, then email updates until it's at your door" },
+];
+
+const perks = [
+  { icon: "📍", title: "Local & Australian", desc: "Based in Australia — shorter shipping, local support, no overseas delays" },
+  { icon: "⚡", title: "Fast Turnaround", desc: "Most orders printed and shipped within a few business days" },
+  { icon: "💰", title: "Hobbyist Friendly", desc: "Low-cost pricing built for makers, hobbyists and small projects" },
+  { icon: "📐", title: "Honest Pricing", desc: "Pay for what you print — volume-based quotes with no minimum order" },
 ];
 
 export default function HomePage() {
@@ -60,11 +67,11 @@ export default function HomePage() {
               maxWidth: 480,
               marginBottom: "clamp(24px, 4vw, 40px)"
             }}>
-              FDM printing in PLA, PETG & ABS. Pricing calculated from your actual mesh volume — no guessing, no surprises.
+              Affordable FDM printing for hobbyists and makers. PLA, PETG & ABS — priced from your actual mesh volume with fast local turnaround.
             </p>
             <div className="fade-up-4" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Link href="/quote" className="btn-primary glow-pulse" style={{ fontSize: 16 }}>
-                Start Your Quote →
+                Get a Quote →
               </Link>
               <a href="#how-it-works" className="btn-ghost">How it works</a>
             </div>
@@ -123,6 +130,27 @@ export default function HomePage() {
             ))}
           </div>
           <span className="font-mono" style={{ fontSize: 10, color: "var(--orange)", whiteSpace: "nowrap" }}>Layer by layer</span>
+        </div>
+      </section>
+
+      {/* ── Why Stratum3D ── */}
+      <section>
+        <span className="eyebrow" style={{ marginBottom: 12 }}>Why Us</span>
+        <h2 className="font-display" style={{ fontSize: "clamp(32px, 5vw, 52px)", marginBottom: "clamp(20px, 3vw, 36px)" }}>
+          BUILT FOR MAKERS
+        </h2>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))",
+          gap: 12
+        }}>
+          {perks.map((p) => (
+            <div key={p.title} className="card">
+              <div style={{ fontSize: 24, marginBottom: 12 }}>{p.icon}</div>
+              <h3 className="font-display" style={{ fontSize: 20, color: "var(--orange)", marginBottom: 8 }}>{p.title}</h3>
+              <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.65 }}>{p.desc}</p>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -220,7 +248,7 @@ export default function HomePage() {
           GET YOUR QUOTE IN SECONDS
         </h2>
         <p style={{ color: "var(--text-dim)", marginBottom: "clamp(24px, 4vw, 40px)", fontSize: "clamp(13px, 1.5vw, 16px)", maxWidth: 480, margin: "0 auto clamp(24px, 4vw, 40px)" }}>
-          Upload your STL file and receive instant pricing.
+          Upload your STL, pick your settings, and get an instant price. Affordable local printing with fast turnaround.
         </p>
         <Link href="/quote" className="btn-primary glow-pulse" style={{ fontSize: 18 }}>
           Upload & Quote Now →

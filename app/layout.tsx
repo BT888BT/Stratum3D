@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Stratum3D — Local 3D Printing",
-  description: "Upload your model, get an instant quote, place your order."
+  description: "Affordable local 3D printing for hobbyists and makers. Upload your STL, get an instant quote, and we'll print and ship it fast."
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -58,8 +58,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <footer style={{
             borderTop: "1px solid var(--border)",
             padding: "24px clamp(16px, 4vw, 32px)",
-            textAlign: "center"
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 10
           }}>
+            <div style={{ display: "flex", gap: 20 }}>
+              <Link href="/privacy" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.1em" }}>Privacy Policy</Link>
+              <Link href="/terms" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.1em" }}>Terms of Service</Link>
+            </div>
             <span className="font-mono" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.15em" }}>
               © {new Date().getFullYear()} STRATUM3D — LOCAL 3D PRINTING SERVICES — AUSTRALIA
             </span>

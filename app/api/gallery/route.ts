@@ -12,17 +12,30 @@ export async function GET() {
     .order("sort_order")
     .order("created_at", { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[gallery] DB error:", error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
-  // Generate signed URLs for each image (valid 1 hour)
-  const withUrls = await Promise.all(
-    (images ?? []).map(async (img) => {
-      const { data } = await supabase.storage
-        .from("gallery")
-        .createSignedUrl(img.storage_path, 3600);
-      return { ...img, url: data?.signedUrl ?? null };
-    })
-  );
+  if (!images?.length) {
+    return NextResponse.json([]);
+  }
 
-  return NextResponse.json(withUrls.filter(i => i.url));
+  // Generate signed URLs (valid 24 hours)
+  const paths = images.map(i => i.storage_path);
+  const { data: signedUrls, error: signError } = await supabase.storage
+    .from("gallery")
+    .createSignedUrls(paths, 86400);
+
+  if (signError) {
+    console.error("[gallery] Signed URL error:", signError.message);
+    return NextResponse.json({ error: "Failed to load images." }, { status: 500 });
+  }
+
+  const result = images.map((img, i) => ({
+    ...img,
+    url: signedUrls?.[i]?.signedUrl ?? null,
+  })).filter(i => i.url);
+
+  return NextResponse.json(result);
 }

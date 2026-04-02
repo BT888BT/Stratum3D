@@ -12,7 +12,7 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://js.stripe.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: https://*.googleapis.com https://*.gstatic.com",
+      "img-src 'self' data: blob: https://*.googleapis.com https://*.gstatic.com https://*.supabase.co https://lppctvfjaiepglfexuqm.supabase.co",
       "frame-src https://js.stripe.com https://hooks.stripe.com",
       "connect-src 'self' https://*.supabase.co https://maps.googleapis.com https://api.stripe.com",
     ].join("; "),

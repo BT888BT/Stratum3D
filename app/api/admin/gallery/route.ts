@@ -15,13 +15,21 @@ export async function GET() {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Generate signed URLs
+  // Generate URLs
   const withUrls = await Promise.all(
     (images ?? []).map(async (img) => {
-      const { data } = await supabase.storage
+      const { data: publicData } = supabase.storage
+        .from("gallery")
+        .getPublicUrl(img.storage_path);
+
+      if (publicData?.publicUrl) {
+        return { ...img, url: publicData.publicUrl };
+      }
+
+      const { data: signedData } = await supabase.storage
         .from("gallery")
         .createSignedUrl(img.storage_path, 3600);
-      return { ...img, url: data?.signedUrl ?? null };
+      return { ...img, url: signedData?.signedUrl ?? null };
     })
   );
 

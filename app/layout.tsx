@@ -97,10 +97,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               </Link>
 
               <nav style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <Link href="/gallery" style={{ fontSize: 13, color: "var(--text-dim)", textDecoration: "none", transition: "color 0.15s" }}
-                  onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.color = "var(--text)")}
-                  onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.color = "var(--text-dim)")}
-                >Gallery</Link>
+                <Link href="/gallery" className="nav-link" style={{ fontSize: 13, color: "var(--text-dim)", textDecoration: "none" }}>Gallery</Link>
                 <Link href="/quote" className="btn-primary" style={{ fontSize: 14, padding: "8px 20px" }}>
                   Get Quote
                 </Link>

@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
-import { createPublicReadClient } from "@/lib/supabase/public-read";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const supabase = createPublicReadClient();
+  // Use admin client because the gallery bucket is private —
+  // the anon key cannot generate signed URLs for private storage.
+  const supabase = createAdminClient();
   const { data: images, error } = await supabase
     .from("gallery_images")
     .select("id, storage_path, caption, sort_order")
@@ -33,7 +35,8 @@ export async function GET() {
   }
 
   const result = images.map((img, i) => ({
-    ...img,
+    id: img.id,
+    caption: img.caption,
     url: signedUrls?.[i]?.signedUrl ?? null,
   })).filter(i => i.url);
 

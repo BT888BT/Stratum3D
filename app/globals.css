@@ -153,13 +153,14 @@ input, select, textarea, button { font: inherit; }
   border: 1px solid var(--border);
   color: var(--muted);
 }
-.badge-paid          { border-color: #065f46; background: var(--green-dim); color: var(--green); }
-.badge-printing      { border-color: var(--orange-dim); background: #1e0e00; color: var(--orange); }
-.badge-order_ready   { border-color: #065f46; background: var(--green-dim); color: var(--green); }
-.badge-pickup_ready  { border-color: var(--orange-dim); background: #1e0e00; color: var(--orange); }
-.badge-completed     { border-color: #065f46; background: var(--green-dim); color: var(--green); }
-.badge-cancelled     { border-color: #7f1d1d; background: var(--red-dim); color: var(--red); }
-.badge-draft         { border-color: var(--border); color: var(--muted); }
+.badge-paid             { border-color: #065f46; background: var(--green-dim); color: var(--green); }
+.badge-order_received   { border-color: var(--accent-dim); background: rgba(0,229,160,0.08); color: var(--accent); }
+.badge-printing         { border-color: var(--orange-dim); background: #1e0e00; color: var(--orange); }
+.badge-order_shipped    { border-color: #065f46; background: var(--green-dim); color: var(--green); }
+.badge-completed        { border-color: #065f46; background: var(--green-dim); color: var(--green); }
+.badge-cancelled        { border-color: #7f1d1d; background: var(--red-dim); color: var(--red); }
+.badge-refunded         { border-color: #7f1d1d; background: var(--red-dim); color: var(--red); }
+.badge-draft            { border-color: var(--border); color: var(--muted); }
 .badge-checkout_pending { border-color: #312e81; background: #1e1b4b; color: #a5b4fc; }
 
 /* ── Error / success ─────────────────────────── */
@@ -197,7 +198,7 @@ input, select, textarea, button { font: inherit; }
 /* ── Order row ───────────────────────────────── */
 .order-row {
   display: grid;
-  grid-template-columns: 110px 1fr 1fr 130px 100px 150px 100px 50px;
+  grid-template-columns: 110px 1fr 1fr 140px 80px 90px 140px 90px 44px;
   gap: 12px;
   padding: 13px 20px;
   border-bottom: 1px solid var(--border);

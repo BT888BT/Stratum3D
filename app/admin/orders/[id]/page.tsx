@@ -59,12 +59,7 @@ export default async function AdminOrderDetailPage({
         {/* Actions */}
         <div className="card">
           <p className="eyebrow" style={{ marginBottom: 16 }}>Actions</p>
-          <OrderStatusActions
-            orderId={order.id}
-            currentStatus={order.status}
-            stripePaymentIntentId={order.stripe_payment_intent_id}
-            totalCents={order.total_cents}
-          />
+          <OrderStatusActions orderId={order.id} currentStatus={order.status} />
         </div>
 
         {/* Customer */}

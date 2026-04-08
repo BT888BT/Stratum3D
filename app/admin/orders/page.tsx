@@ -11,6 +11,16 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+function PaidBadge({ order }: { order: { status: string; stripe_payment_intent_id: string | null } }) {
+  if (order.status === "refunded") {
+    return <span className="badge badge-refunded">refunded</span>;
+  }
+  if (order.stripe_payment_intent_id) {
+    return <span className="badge badge-paid">paid</span>;
+  }
+  return <span className="badge" style={{ color: "var(--muted)" }}>unpaid</span>;
+}
+
 function orderLabel(order: { order_number?: number; id: string }) {
   return order.order_number
     ? `S3D-${String(order.order_number).padStart(4, "0")}`
@@ -75,13 +85,13 @@ export default async function AdminOrdersPage() {
         {/* Table header */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: "110px 1fr 1fr 130px 100px 150px 100px 50px",
+          gridTemplateColumns: "110px 1fr 1fr 140px 80px 90px 140px 90px 44px",
           gap: 12,
           padding: "12px 20px",
           borderBottom: "1px solid var(--border)",
           background: "var(--bg2)"
         }}>
-          {["Order", "Customer", "Email", "Status", "Total", "Date", "", ""].map((h, i) => (
+          {["Order", "Customer", "Email", "Status", "Paid", "Total", "Date", "", ""].map((h, i) => (
             <span key={i} className="font-mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase" }}>{h}</span>
           ))}
         </div>
@@ -93,6 +103,7 @@ export default async function AdminOrdersPage() {
               <span style={{ fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{order.customer_name}</span>
               <span style={{ fontSize: 12, color: "var(--text-dim)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{order.email}</span>
               <StatusBadge status={order.status} />
+              <PaidBadge order={order} />
               <span className="font-mono" style={{ fontSize: 13 }}>{formatAud(order.total_cents)}</span>
               <span style={{ fontSize: 12, color: "var(--text-dim)" }}>{new Date(order.created_at).toLocaleString("en-AU", { dateStyle: "short", timeStyle: "short" })}</span>
               <Link href={`/admin/orders/${order.id}`} style={{

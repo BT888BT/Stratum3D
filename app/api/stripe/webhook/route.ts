@@ -58,7 +58,7 @@ export async function POST(request: Request) {
         await supabase
           .from("orders")
           .update({
-            status: "paid",
+            status: "order_received",
             stripe_payment_intent_id:
               typeof session.payment_intent === "string"
                 ? session.payment_intent
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
 
         await supabase.from("order_status_history").insert({
           order_id: orderId,
-          status: "paid",
+          status: "order_received",
           note: "Stripe payment completed"
         });
 
@@ -126,6 +126,35 @@ export async function POST(request: Request) {
           }).catch((err) =>
             console.error("[email] order confirmation failed:", err)
           );
+        }
+      }
+    }
+
+    // ── Refund issued from Stripe dashboard — mark order as refunded ──
+    if (event.type === "charge.refunded") {
+      const charge = event.data.object as Stripe.Charge;
+      const paymentIntentId = typeof charge.payment_intent === "string" ? charge.payment_intent : null;
+
+      if (paymentIntentId) {
+        const { data: order } = await supabase
+          .from("orders")
+          .select("id")
+          .eq("stripe_payment_intent_id", paymentIntentId)
+          .single();
+
+        if (order) {
+          await supabase
+            .from("orders")
+            .update({ status: "refunded" })
+            .eq("id", order.id);
+
+          await supabase.from("order_status_history").insert({
+            order_id: order.id,
+            status: "refunded",
+            note: `Refund confirmed by Stripe (charge: ${charge.id})`,
+          });
+
+          console.log(`[webhook] Order ${order.id} marked as refunded via Stripe charge ${charge.id}`);
         }
       }
     }

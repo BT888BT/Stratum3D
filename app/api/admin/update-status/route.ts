@@ -6,12 +6,14 @@ import { sendStatusUpdateEmail } from "@/lib/email";
 const allowedStatuses = [
   "draft",
   "checkout_pending",
-  "paid",
+  "order_received",
   "printing",
-  "order_ready",
-  "pickup_ready",
+  "order_shipped",
   "completed",
-  "cancelled"
+  "cancelled",
+  "refunded",
+  // legacy — existing paid orders can still be moved
+  "paid",
 ] as const;
 
 export async function POST(request: Request) {

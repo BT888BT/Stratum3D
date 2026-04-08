@@ -222,10 +222,12 @@ export async function sendOrderConfirmationEmail(order: {
 // ─── Customer: status update ──────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<string, { label: string; emoji: string; colour: string; bg: string; border: string }> = {
-  paid:      { label: "Payment confirmed",            emoji: "✓", colour: "#0a7c42", bg: "#f0faf5", border: "#c4edda" },
-  printing:  { label: "Your order is now printing",   emoji: "⚙", colour: "#c2590a", bg: "#fef7f0", border: "#fde0c4" },
-  completed: { label: "Your order is complete",       emoji: "✓", colour: "#0a7c42", bg: "#f0faf5", border: "#c4edda" },
-  cancelled: { label: "Your order has been cancelled", emoji: "✕", colour: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
+  paid:         { label: "Payment confirmed",                   emoji: "✓", colour: "#0a7c42", bg: "#f0faf5", border: "#c4edda" },
+  printing:     { label: "Your order is now printing",          emoji: "⚙", colour: "#c2590a", bg: "#fef7f0", border: "#fde0c4" },
+  order_ready:  { label: "Your order is ready",                 emoji: "📦", colour: "#0a7c42", bg: "#f0faf5", border: "#c4edda" },
+  pickup_ready: { label: "Your order is ready for pickup",      emoji: "📍", colour: "#c2590a", bg: "#fef7f0", border: "#fde0c4" },
+  completed:    { label: "Your order is complete",              emoji: "✓", colour: "#0a7c42", bg: "#f0faf5", border: "#c4edda" },
+  cancelled:    { label: "Your order has been cancelled",       emoji: "✕", colour: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
 };
 
 export async function sendStatusUpdateEmail(order: {

@@ -35,7 +35,7 @@ import type { QuoteInputParsed } from "@/lib/validation";
  *   Height surcharge   = 0/5/10/15% on (material+machine)  ≤50/≤100/≤200/>200 mm
  *   SA surcharge       = 0/5/10/15% on material cost        ≤100/≤300/≤600/>600 cm²
  *   Minimum per item
- *   GST 10%, shipping $15 AUD or $2.50 pickup
+ *   GST 10%, shipping $10 AUD or $2.50 pickup
  *   PRICE_MULTIPLIER env var scales the final item total
  *
  * ── Customer display time ──────────────────────────────────────────────────────
@@ -296,7 +296,7 @@ export function calculateItemQuote(
 
 export function sumQuote(items: ItemQuoteResult[], shippingMethod: string): QuoteResult {
   const subtotalCents = items.reduce((s, i) => s + i.itemTotalCents, 0);
-  const shippingCents = shippingMethod === "pickup" ? 250 : 1500;
+  const shippingCents = shippingMethod === "pickup" ? 250 : 1000;
   const gstCents      = Math.round((subtotalCents + shippingCents) * 0.1);
   const totalCents    = subtotalCents + shippingCents + gstCents;
 

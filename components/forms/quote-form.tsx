@@ -43,6 +43,7 @@ function makeId() { return Math.random().toString(36).slice(2); }
 export default function QuoteForm() {
   const [colours, setColours] = useState<Colour[]>([]);
   const [items, setItems] = useState<FileItem[]>([]);
+  const [pickupEnabled, setPickupEnabled] = useState(true);
 
   // Phase 2 fields — only shown after quote is calculated
   const [customerName, setCustomerName] = useState("");
@@ -61,6 +62,12 @@ export default function QuoteForm() {
   useEffect(() => {
     fetch("/api/colours").then(r => r.json())
       .then((d: Colour[]) => setColours(d))
+      .catch(() => {});
+    fetch("/api/settings").then(r => r.json())
+      .then((d: { pickupEnabled: boolean }) => {
+        setPickupEnabled(d.pickupEnabled);
+        if (!d.pickupEnabled) setShippingMethod("shipping");
+      })
       .catch(() => {});
   }, []);
 
@@ -440,24 +447,26 @@ export default function QuoteForm() {
                       style={{ accentColor: "var(--orange)", marginTop: 2 }} />
                     <div>
                       <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Ship to address — Australia Post</p>
-                      <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>Flat rate $15.00 AUD — delivered to your door</p>
+                      <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>Flat rate $10.00 AUD — delivered to your door</p>
                     </div>
                   </label>
-                  <label style={{
-                    display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 14px",
-                    border: `1px solid ${shippingMethod === "pickup" ? "var(--orange)" : "var(--border)"}`,
-                    borderRadius: 8, cursor: "pointer", background: shippingMethod === "pickup" ? "rgba(249,115,22,0.04)" : "var(--bg2)",
-                    transition: "border-color 0.15s, background 0.15s"
-                  }}>
-                    <input type="radio" name="shippingMethod" value="pickup" checked={shippingMethod === "pickup"}
-                      onChange={() => { setShippingMethod("pickup"); setQuote(null); }}
-                      style={{ accentColor: "var(--orange)", marginTop: 2 }} />
-                    <div>
-                      <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Parcel locker pickup — Australia Post</p>
-                      <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>Flat rate $2.50 AUD — dropped to parcel locker</p>
-                      <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>Location: Stirling Central Shopping Centre, 478 Wanneroo Rd, Westminster WA 6061</p>
-                    </div>
-                  </label>
+                  {pickupEnabled && (
+                    <label style={{
+                      display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 14px",
+                      border: `1px solid ${shippingMethod === "pickup" ? "var(--orange)" : "var(--border)"}`,
+                      borderRadius: 8, cursor: "pointer", background: shippingMethod === "pickup" ? "rgba(249,115,22,0.04)" : "var(--bg2)",
+                      transition: "border-color 0.15s, background 0.15s"
+                    }}>
+                      <input type="radio" name="shippingMethod" value="pickup" checked={shippingMethod === "pickup"}
+                        onChange={() => { setShippingMethod("pickup"); setQuote(null); }}
+                        style={{ accentColor: "var(--orange)", marginTop: 2 }} />
+                      <div>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Parcel locker pickup — Australia Post</p>
+                        <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>Flat rate $2.50 AUD — dropped to parcel locker</p>
+                        <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>Location: Stirling Central Shopping Centre, 478 Wanneroo Rd, Westminster WA 6061</p>
+                      </div>
+                    </label>
+                  )}
                 </div>
               </div>
             </>

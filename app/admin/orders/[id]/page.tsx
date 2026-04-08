@@ -7,7 +7,7 @@ import OrderStatusActions from "@/components/admin/order-status-actions";
 export const dynamic = "force-dynamic";
 
 function StatusBadge({ status }: { status: string }) {
-  return <span className={`badge badge-${status}`}>{status.replace("_", " ")}</span>;
+  return <span className={`badge badge-${status}`}>{status.replace(/_/g, " ")}</span>;
 }
 
 export default async function AdminOrderDetailPage({
@@ -59,7 +59,12 @@ export default async function AdminOrderDetailPage({
         {/* Actions */}
         <div className="card">
           <p className="eyebrow" style={{ marginBottom: 16 }}>Actions</p>
-          <OrderStatusActions orderId={order.id} currentStatus={order.status} />
+          <OrderStatusActions
+            orderId={order.id}
+            currentStatus={order.status}
+            stripePaymentIntentId={order.stripe_payment_intent_id}
+            totalCents={order.total_cents}
+          />
         </div>
 
         {/* Customer */}

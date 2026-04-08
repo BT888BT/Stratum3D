@@ -1,12 +1,13 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatAud } from "@/lib/utils";
 import Link from "next/link";
+import OrderRowActions from "@/components/admin/order-row-actions";
 
 export const dynamic = "force-dynamic";
 
 function StatusBadge({ status }: { status: string }) {
   return (
-    <span className={`badge badge-${status}`}>{status.replace("_", " ")}</span>
+    <span className={`badge badge-${status}`}>{status.replace(/_/g, " ")}</span>
   );
 }
 
@@ -45,6 +46,7 @@ export default async function AdminOrdersPage() {
           <h1 className="font-display" style={{ fontSize: 32, fontWeight: 700 }}>Orders</h1>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
+          <Link href="/admin/settings" className="btn-ghost" style={{ fontSize: 12 }}>Settings</Link>
           <Link href="/admin/gallery" className="btn-ghost" style={{ fontSize: 12 }}>Gallery</Link>
           <Link href="/admin/colours" className="btn-ghost" style={{ fontSize: 12 }}>Manage Colours</Link>
           <form action="/api/admin/logout" method="POST">
@@ -73,14 +75,14 @@ export default async function AdminOrdersPage() {
         {/* Table header */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: "110px 1fr 1fr 120px 120px 160px 80px",
+          gridTemplateColumns: "110px 1fr 1fr 130px 100px 150px 100px 50px",
           gap: 12,
           padding: "12px 20px",
           borderBottom: "1px solid var(--border)",
           background: "var(--bg2)"
         }}>
-          {["Order", "Customer", "Email", "Status", "Total", "Date", ""].map(h => (
-            <span key={h} className="font-mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase" }}>{h}</span>
+          {["Order", "Customer", "Email", "Status", "Total", "Date", "", ""].map((h, i) => (
+            <span key={i} className="font-mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase" }}>{h}</span>
           ))}
         </div>
 
@@ -104,6 +106,7 @@ export default async function AdminOrdersPage() {
               }}>
                 View →
               </Link>
+              <OrderRowActions orderId={order.id} status={order.status} />
             </div>
           ))}
 

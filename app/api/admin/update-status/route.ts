@@ -8,6 +8,8 @@ const allowedStatuses = [
   "checkout_pending",
   "paid",
   "printing",
+  "order_ready",
+  "pickup_ready",
   "completed",
   "cancelled"
 ] as const;

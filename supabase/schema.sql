@@ -3,6 +3,7 @@
 -- ⚠️  This DELETES all existing data
 -- ═══════════════════════════════════════════════════════════════════════════
 
+drop table if exists public.site_settings cascade;
 drop table if exists public.rate_limits cascade;
 drop table if exists public.admin_sessions cascade;
 drop table if exists public.pending_uploads cascade;
@@ -127,6 +128,15 @@ create table public.rate_limits (
   window_end timestamptz not null
 );
 
+-- ─── Site settings (admin-controlled key/value store) ─────────────────────
+create table public.site_settings (
+  key        text primary key,
+  value      text not null,
+  updated_at timestamptz not null default now()
+);
+
+insert into public.site_settings (key, value) values ('pickup_enabled', 'true');
+
 -- ─── RLS ───────────────────────────────────────────────────────────────────
 alter table public.orders enable row level security;
 alter table public.order_files enable row level security;
@@ -152,6 +162,9 @@ create policy "deny all" on public.pending_uploads
 create policy "deny all" on public.admin_sessions
   for all to anon, authenticated using (false) with check (false);
 create policy "deny all" on public.rate_limits
+  for all to anon, authenticated using (false) with check (false);
+alter table public.site_settings enable row level security;
+create policy "deny all" on public.site_settings
   for all to anon, authenticated using (false) with check (false);
 
 -- ─── Cleanup function for expired data ─────────────────────────────────────

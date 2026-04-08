@@ -77,6 +77,22 @@ export async function POST(request: Request) {
     }
     const contact = contactParsed.data;
 
+    // Check if pickup is enabled before accepting a pickup order
+    if (contact.shippingMethod === "pickup") {
+      const supabaseCheck = createAdminClient();
+      const { data: pickupSetting } = await supabaseCheck
+        .from("site_settings")
+        .select("value")
+        .eq("key", "pickup_enabled")
+        .single();
+      if (pickupSetting?.value === "false") {
+        return NextResponse.json(
+          { error: "Local pickup is not currently available. Please select shipping." },
+          { status: 400 }
+        );
+      }
+    }
+
     if (!body.items?.length) {
       return NextResponse.json({ error: "At least one file is required." }, { status: 400 });
     }

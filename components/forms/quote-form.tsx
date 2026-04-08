@@ -165,6 +165,12 @@ export default function QuoteForm() {
       return;
     }
 
+    const badMesh = items.find(i => i.meshWarnings.length > 0);
+    if (badMesh) {
+      setError(`"${badMesh.file.name}" has mesh issues that must be fixed before quoting.`);
+      return;
+    }
+
     try {
       setLoadingQuote(true);
 
@@ -372,38 +378,19 @@ export default function QuoteForm() {
                     </div>
                   )}
 
-                  {/* Mesh validation warnings — advisory only, do not affect pricing */}
-                  {item.meshWarnings.length > 0 && (
-                    <div style={{ borderBottom: "1px solid var(--border)" }}>
-                      {item.meshWarnings.map((w, wi) => (
-                        <div key={wi} style={{
-                          padding: "8px 14px",
-                          display: "flex", alignItems: "flex-start", gap: 8,
-                          background: w.severity === "error" ? "rgba(255,90,90,0.07)" : "rgba(249,115,22,0.07)",
-                          borderBottom: wi < item.meshWarnings.length - 1 ? "1px solid var(--border)" : undefined,
-                        }}>
-                          <span style={{ flexShrink: 0, fontSize: 13, marginTop: 1 }}>
-                            {w.severity === "error" ? "⚠" : "⚠"}
-                          </span>
-                          <div>
-                            <span style={{
-                              fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em",
-                              color: w.severity === "error" ? "var(--red)" : "var(--orange)",
-                            }}>
-                              {w.code === "open_mesh" ? "Open Mesh" :
-                               w.code === "multiple_bodies" ? "Multiple Bodies" :
-                               w.code === "inverted_normals" ? "Inverted Normals" :
-                               "Model Origin"}
-                              {" "}
-                            </span>
-                            <span style={{ fontSize: 12, color: "var(--text-dim)", lineHeight: 1.5 }}>
-                              {w.message}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
+                  {/* Mesh warnings — blocks quoting until fixed */}
+                  {item.meshWarnings.map((w, wi) => (
+                    <div key={wi} style={{
+                      padding: "7px 14px",
+                      fontSize: 12, color: "var(--red)",
+                      background: "rgba(255,90,90,0.07)",
+                      borderBottom: "1px solid rgba(255,90,90,0.12)",
+                      display: "flex", alignItems: "center", gap: 6,
+                    }}>
+                      <span style={{ flexShrink: 0 }}>⚠</span>
+                      {w.message}
                     </div>
-                  )}
+                  ))}
 
                   {/* Settings grid */}
                   <div className="file-settings-grid" style={{ padding: 14, display: "grid", gridTemplateColumns: "1fr 1fr 1fr 70px 70px", gap: 10 }}>

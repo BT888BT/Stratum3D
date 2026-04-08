@@ -121,10 +121,8 @@ function validateBinarySTL(ab: ArrayBuffer): MeshWarning[] {
   if (signedSum < 0) {
     warnings.push({
       code: "inverted_normals",
-      severity: "warning",
-      message:
-        "Mesh normals appear to be inverted (inside-out). Volume estimate may be inaccurate. " +
-        "In your CAD tool, flip normals or re-export the mesh.",
+      severity: "error",
+      message: "Inverted normals detected — please fix your file and re-export.",
     });
   }
 
@@ -132,11 +130,8 @@ function validateBinarySTL(ab: ArrayBuffer): MeshWarning[] {
   if (isFinite(minZ) && minZ > 1.0) {
     warnings.push({
       code: "floating_z",
-      severity: "warning",
-      message:
-        `Model origin is ${minZ.toFixed(1)} mm above Z=0. ` +
-        "The height surcharge tier is calculated from bounding box extent and may be correct, " +
-        "but grounding your model to Z=0 before export is best practice.",
+      severity: "error",
+      message: "Model is not grounded to Z=0 — please fix your file and re-export.",
     });
   }
 
@@ -152,10 +147,7 @@ function validateBinarySTL(ab: ArrayBuffer): MeshWarning[] {
       warnings.push({
         code: "open_mesh",
         severity: "error",
-        message:
-          `Mesh has ${openEdges.toLocaleString()} open edge${openEdges !== 1 ? "s" : ""} — it is not a closed solid. ` +
-          "Volume calculation will be inaccurate. Repair the mesh in Meshmixer, Netfabb, PrusaSlicer " +
-          "(Mesh → Fix), or your CAD tool before uploading.",
+        message: "Open mesh detected (non-watertight) — please repair your file before uploading.",
       });
     }
   }
@@ -185,12 +177,8 @@ function validateBinarySTL(ab: ArrayBuffer): MeshWarning[] {
     if (bodyCount > 1) {
       warnings.push({
         code: "multiple_bodies",
-        severity: "warning",
-        message:
-          `File contains ${bodyCount} separate bodies. ` +
-          "Volume is the sum of all bodies, which is correct if they don't overlap. " +
-          "If any bodies intersect each other, volume will be underestimated and pricing may be inaccurate. " +
-          "Boolean-union overlapping parts in your CAD tool before exporting.",
+        severity: "error",
+        message: `${bodyCount} separate bodies detected — please merge into a single solid and re-export.`,
       });
     }
   }
@@ -221,16 +209,16 @@ function validateASCIISTL(text: string): MeshWarning[] {
   if (signedSum < 0) {
     warnings.push({
       code: "inverted_normals",
-      severity: "warning",
-      message: "Mesh normals appear to be inverted. Volume estimate may be inaccurate. Re-export with outward-facing normals.",
+      severity: "error",
+      message: "Inverted normals detected — please fix your file and re-export.",
     });
   }
 
   if (isFinite(minZ) && minZ > 1.0) {
     warnings.push({
       code: "floating_z",
-      severity: "warning",
-      message: `Model is floating ${minZ.toFixed(1)} mm above Z=0. Grounding to Z=0 before export is best practice.`,
+      severity: "error",
+      message: "Model is not grounded to Z=0 — please fix your file and re-export.",
     });
   }
 

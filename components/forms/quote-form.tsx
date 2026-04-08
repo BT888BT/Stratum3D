@@ -7,7 +7,7 @@ import { validateSTLArrayBuffer, type MeshWarning } from "@/lib/mesh-validate-cl
 import AddressAutocomplete, { type ParsedAddress } from "@/components/forms/address-autocomplete";
 
 const WALL_LAYERS_OPTIONS = [2, 3, 4];
-const INFILL_OPTIONS = [10, 15, 20, 30, 40, 50, 75, 100];
+const INFILL_OPTIONS = [10, 15, 20, 40, 60, 80];
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
 type Colour = { id: string; name: string; hex: string; available: boolean; materials: string[] | null };

@@ -2,7 +2,8 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { formatAud } from "@/lib/utils";
-import { extractVolumeMm3FromFile } from "@/lib/mesh-volume-client";
+import { extractVolumeMm3FromArrayBuffer } from "@/lib/mesh-volume-client";
+import { validateSTLArrayBuffer, type MeshWarning } from "@/lib/mesh-validate-client";
 import AddressAutocomplete, { type ParsedAddress } from "@/components/forms/address-autocomplete";
 
 const LAYER_OPTIONS = [
@@ -23,6 +24,7 @@ type FileItem = {
   removeSupports: boolean;
   volumeMm3: number | null;
   volumeError: string | null;
+  meshWarnings: MeshWarning[];
 };
 type ItemResult = {
   filename: string; material: string; colour: string; quantity: number;
@@ -75,16 +77,34 @@ export default function QuoteForm() {
     setAddress(a); setAddressError("");
   }, []);
 
-  async function computeVolume(file: File): Promise<{ volumeMm3: number | null; volumeError: string | null }> {
-    try {
-      const vol = await extractVolumeMm3FromFile(file);
-      if (!isFinite(vol) || vol <= 0) {
-        return { volumeMm3: null, volumeError: "Could not calculate volume — ensure mesh is a valid closed solid." };
-      }
-      return { volumeMm3: vol, volumeError: null };
-    } catch (err) {
-      return { volumeMm3: null, volumeError: err instanceof Error ? err.message : "Failed to parse file." };
-    }
+  async function computeVolume(file: File): Promise<{
+    volumeMm3: number | null;
+    volumeError: string | null;
+    meshWarnings: MeshWarning[];
+  }> {
+    const ab = await file.arrayBuffer();
+    // Run volume extraction and mesh validation in parallel — they are completely independent
+    const [volResult, warnings] = await Promise.all([
+      (async () => {
+        try {
+          const vol = extractVolumeMm3FromArrayBuffer(ab, file.name);
+          if (!isFinite(vol) || vol <= 0) {
+            return { volumeMm3: null as number | null, volumeError: "Could not calculate volume — ensure mesh is a valid closed solid." };
+          }
+          return { volumeMm3: vol, volumeError: null as string | null };
+        } catch (err) {
+          return { volumeMm3: null as number | null, volumeError: err instanceof Error ? err.message : "Failed to parse file." };
+        }
+      })(),
+      (async (): Promise<MeshWarning[]> => {
+        try {
+          return validateSTLArrayBuffer(ab);
+        } catch {
+          return [];
+        }
+      })(),
+    ]);
+    return { ...volResult, meshWarnings: warnings };
   }
 
   async function addFiles(fl: FileList | null) {
@@ -96,11 +116,11 @@ export default function QuoteForm() {
     const toAdd: FileItem[] = [];
     for (const f of stlFiles) {
       if (f.size > MAX_FILE_SIZE) { setError(`"${f.name}" exceeds 50 MB limit.`); continue; }
-      const { volumeMm3, volumeError } = await computeVolume(f);
+      const { volumeMm3, volumeError, meshWarnings } = await computeVolume(f);
       toAdd.push({
         id: makeId(), file: f, material: "PLA", colour: def, quantity: 1,
         layerHeightMm: 0.2, infillPercent: 20, removeSupports: false,
-        volumeMm3, volumeError,
+        volumeMm3, volumeError, meshWarnings,
       });
     }
     if (toAdd.length) {
@@ -349,6 +369,39 @@ export default function QuoteForm() {
                   {item.volumeError && (
                     <div style={{ padding: "8px 14px", background: "rgba(255,90,90,0.08)", borderBottom: "1px solid rgba(255,90,90,0.15)", fontSize: 12, color: "var(--red)" }}>
                       ⚠ {item.volumeError}
+                    </div>
+                  )}
+
+                  {/* Mesh validation warnings — advisory only, do not affect pricing */}
+                  {item.meshWarnings.length > 0 && (
+                    <div style={{ borderBottom: "1px solid var(--border)" }}>
+                      {item.meshWarnings.map((w, wi) => (
+                        <div key={wi} style={{
+                          padding: "8px 14px",
+                          display: "flex", alignItems: "flex-start", gap: 8,
+                          background: w.severity === "error" ? "rgba(255,90,90,0.07)" : "rgba(249,115,22,0.07)",
+                          borderBottom: wi < item.meshWarnings.length - 1 ? "1px solid var(--border)" : undefined,
+                        }}>
+                          <span style={{ flexShrink: 0, fontSize: 13, marginTop: 1 }}>
+                            {w.severity === "error" ? "⚠" : "⚠"}
+                          </span>
+                          <div>
+                            <span style={{
+                              fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em",
+                              color: w.severity === "error" ? "var(--red)" : "var(--orange)",
+                            }}>
+                              {w.code === "open_mesh" ? "Open Mesh" :
+                               w.code === "multiple_bodies" ? "Multiple Bodies" :
+                               w.code === "inverted_normals" ? "Inverted Normals" :
+                               "Model Origin"}
+                              {" "}
+                            </span>
+                            <span style={{ fontSize: 12, color: "var(--text-dim)", lineHeight: 1.5 }}>
+                              {w.message}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
 

@@ -2,9 +2,6 @@ import { NextResponse } from "next/server";
 import { isAdminAuthed } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-// Orders can only be deleted if the customer has not paid and no refund has been issued
-const LOCKED_STATUSES = ["paid", "refunded"];
-
 export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ orderId: string }> }
@@ -18,7 +15,7 @@ export async function DELETE(
 
   const { data: order } = await supabase
     .from("orders")
-    .select("id, status, order_number")
+    .select("id, status, order_number, stripe_payment_intent_id")
     .eq("id", orderId)
     .single();
 
@@ -26,9 +23,10 @@ export async function DELETE(
     return NextResponse.json({ error: "Order not found." }, { status: 404 });
   }
 
-  if (LOCKED_STATUSES.includes(order.status)) {
+  const isPaid = order.stripe_payment_intent_id != null || order.status === "refunded";
+  if (isPaid) {
     return NextResponse.json(
-      { error: `Cannot delete a ${order.status} order. Issue a refund first if payment was taken.` },
+      { error: "Cannot delete a paid or refunded order." },
       { status: 403 }
     );
   }

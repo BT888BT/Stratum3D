@@ -91,7 +91,7 @@ export interface Database {
           original_filename: string | null;
           material: string;
           colour: string | null;
-          layer_height_mm: number | null;
+          wall_layers: number | null;
           infill_percent: number | null;
           quantity: number;
           bounding_box_x_mm: number | null;
@@ -109,7 +109,7 @@ export interface Database {
           original_filename?: string | null;
           material: string;
           colour?: string | null;
-          layer_height_mm?: number | null;
+          wall_layers?: number | null;
           infill_percent?: number | null;
           quantity?: number;
           bounding_box_x_mm?: number | null;

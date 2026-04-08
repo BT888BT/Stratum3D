@@ -62,7 +62,7 @@ create table public.quote_inputs (
   original_filename            text,
   material                     text not null,
   colour                       text,
-  layer_height_mm              numeric(4,2),
+  wall_layers                  integer,
   infill_percent               integer,
   quantity                     integer not null default 1,
   bounding_box_x_mm            numeric(10,2),

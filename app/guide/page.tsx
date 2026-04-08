@@ -45,38 +45,38 @@ export default function GuidePage() {
 
       <div style={{ display: "flex", flexDirection: "column", gap: 48 }}>
 
-        {/* ── Layer Height ── */}
-        <Section id="layer-height" icon="📐" title="LAYER HEIGHT">
-          <p>Layer height is the thickness of each horizontal layer the printer puts down. Think of it like slicing a loaf of bread — thinner slices give more detail, thicker slices are faster.</p>
+        {/* ── Wall Layers ── */}
+        <Section id="wall-layers" icon="🧱" title="WALL LAYERS">
+          <p>Wall layers (also called perimeters or shells) are the solid outer rings that form the surface of your print. More walls means a stronger, more solid exterior — fewer walls prints faster with less material.</p>
 
           <Visual>
-            <div style={{ display: "flex", gap: 32, alignItems: "flex-end" }}>
+            <div style={{ display: "flex", gap: 32, alignItems: "center" }}>
               {[
-                { label: "0.10mm Fine", count: 16, color: "var(--orange)" },
-                { label: "0.20mm Standard", count: 8, color: "var(--orange)" },
-                { label: "0.30mm Draft", count: 5, color: "var(--orange)" },
+                { label: "2 Walls", rings: 2 },
+                { label: "3 Walls", rings: 3 },
+                { label: "4 Walls", rings: 4 },
               ].map(opt => (
                 <div key={opt.label} style={{ textAlign: "center" }}>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 1, alignItems: "center" }}>
-                    {Array.from({ length: opt.count }).map((_, i) => (
+                  <div style={{ position: "relative", width: 60, height: 60, margin: "0 auto" }}>
+                    {Array.from({ length: opt.rings }).map((_, i) => (
                       <div key={i} style={{
-                        width: 50, height: Math.max(2, 40 / opt.count),
-                        background: opt.color,
-                        opacity: 0.4 + (i / opt.count) * 0.6,
-                        borderRadius: 1,
+                        position: "absolute",
+                        inset: i * 8,
+                        borderRadius: "50%",
+                        border: `3px solid var(--orange)`,
+                        opacity: 0.4 + (i / opt.rings) * 0.6,
                       }} />
                     ))}
                   </div>
-                  <p className="font-mono" style={{ fontSize: 9, color: "var(--muted)", marginTop: 8 }}>{opt.label}</p>
+                  <p className="font-mono" style={{ fontSize: 9, color: "var(--muted)", marginTop: 10 }}>{opt.label}</p>
                 </div>
               ))}
             </div>
           </Visual>
 
-          <p><strong style={{ color: "var(--text)" }}>0.10mm — Fine:</strong> Smoothest surface, barely visible layers. Best for detailed models, figurines, or display pieces. Takes the longest to print.</p>
-          <p><strong style={{ color: "var(--text)" }}>0.15mm — High:</strong> Good balance of detail and speed. Great for most hobby prints.</p>
-          <p><strong style={{ color: "var(--text)" }}>0.20mm — Standard:</strong> The default. Layers are visible up close but fine for functional parts, prototypes, and general use. Most popular choice.</p>
-          <p><strong style={{ color: "var(--text)" }}>0.30mm — Draft:</strong> Fastest print, most visible layers. Good for testing fit or when appearance doesn&apos;t matter.</p>
+          <p><strong style={{ color: "var(--text)" }}>2 Walls:</strong> Fastest and lightest. Good for decorative prints or prototypes where strength isn&apos;t critical.</p>
+          <p><strong style={{ color: "var(--text)" }}>3 Walls:</strong> The recommended default. A solid balance of strength, surface quality, and print time for most parts.</p>
+          <p><strong style={{ color: "var(--text)" }}>4 Walls:</strong> Maximum wall thickness. Best for functional or load-bearing parts that need extra rigidity.</p>
         </Section>
 
         {/* ── Infill ── */}

@@ -59,7 +59,11 @@ export default async function AdminOrderDetailPage({
         {/* Actions */}
         <div className="card">
           <p className="eyebrow" style={{ marginBottom: 16 }}>Actions</p>
-          <OrderStatusActions orderId={order.id} currentStatus={order.status} />
+          <OrderStatusActions
+            orderId={order.id}
+            currentStatus={order.status}
+            isPaid={order.stripe_payment_intent_id != null || order.status === "refunded"}
+          />
         </div>
 
         {/* Customer */}
@@ -209,7 +213,7 @@ export default async function AdminOrderDetailPage({
                   }}>
                     <SpecCell label="Material" value={qi.material || "—"} />
                     <SpecCell label="Colour" value={qi.colour || "—"} />
-                    <SpecCell label="Layer height" value={qi.layer_height_mm ? `${qi.layer_height_mm} mm` : "—"} />
+                    <SpecCell label="Wall layers" value={qi.wall_layers != null ? String(qi.wall_layers) : "—"} />
                     <SpecCell label="Infill" value={qi.infill_percent != null ? `${qi.infill_percent}%` : "—"} />
                     <SpecCell label="Quantity" value={String(qi.quantity ?? "—")} />
                     <SpecCell label="Est. volume" value={qi.estimated_volume_cm3 ? `${qi.estimated_volume_cm3} cm³` : "—"} />

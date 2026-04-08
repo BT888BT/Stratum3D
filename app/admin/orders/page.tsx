@@ -117,7 +117,7 @@ export default async function AdminOrdersPage() {
               }}>
                 View →
               </Link>
-              <OrderRowActions orderId={order.id} status={order.status} />
+              <OrderRowActions orderId={order.id} isPaid={order.stripe_payment_intent_id != null || order.status === "refunded"} />
             </div>
           ))}
 

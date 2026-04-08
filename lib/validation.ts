@@ -8,7 +8,7 @@ export const fileItemSchema = z.object({
   material: z.enum(["PLA", "PETG", "ABS"]),
   colour: z.string().min(1).max(50),
   quantity: z.coerce.number().int().min(1).max(100),
-  layerHeightMm: z.coerce.number().min(0.08).max(0.4),
+  wallLayers: z.coerce.number().int().min(2).max(4),
   infillPercent: z.coerce.number().int().min(5).max(100),
   removeSupports: z.boolean().default(false),
 });

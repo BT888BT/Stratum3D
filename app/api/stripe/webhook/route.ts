@@ -90,7 +90,7 @@ export async function POST(request: Request) {
             filename: qi.original_filename ?? "Unknown file",
             material: qi.material ?? "—",
             colour: qi.colour ?? "—",
-            layerHeightMm: qi.layer_height_mm ?? 0.2,
+            wallLayers: qi.wall_layers ?? 3,
             infillPercent: qi.infill_percent ?? 20,
             quantity: qi.quantity ?? 1,
             // #10: Use explicit remove_supports field (fall back to old method for existing orders)
@@ -99,7 +99,7 @@ export async function POST(request: Request) {
           }));
 
           if (items.length === 0) {
-            items.push({ filename: "3D Print", material: "—", colour: "—", layerHeightMm: 0.2, infillPercent: 20, quantity: 1, removeSupports: false, lineTotalCents: 0 });
+            items.push({ filename: "3D Print", material: "—", colour: "—", wallLayers: 3, infillPercent: 20, quantity: 1, removeSupports: false, lineTotalCents: 0 });
           }
 
           // #10: Use explicit delivery_method field (fall back to shipping_cents for existing orders)

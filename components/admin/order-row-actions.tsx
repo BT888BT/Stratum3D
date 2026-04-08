@@ -3,14 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const LOCKED_STATUSES = ["paid", "refunded"];
-
-export default function OrderRowActions({ orderId, status }: { orderId: string; status: string }) {
+export default function OrderRowActions({ orderId, isPaid }: { orderId: string; isPaid: boolean }) {
   const [confirm, setConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const locked = LOCKED_STATUSES.includes(status);
+  const locked = isPaid;
 
   if (locked) {
     return (

@@ -16,7 +16,7 @@ interface QuoteFileItem {
   material: string;
   colour: string;
   quantity: number;
-  layerHeightMm: number;
+  wallLayers: number;
   infillPercent: number;
   removeSupports: boolean;
 }
@@ -155,7 +155,7 @@ export async function POST(request: Request) {
         material: item.material,
         colour: item.colour,
         quantity: item.quantity,
-        layerHeightMm: item.layerHeightMm,
+        wallLayers: item.wallLayers,
         infillPercent: item.infillPercent,
         removeSupports: item.removeSupports ?? false,
       });
@@ -234,8 +234,7 @@ export async function POST(request: Request) {
       const { item, settings, volumeMm3, heightMm, surfaceAreaMm2, actualSizeBytes } = validatedItems[i];
       const q = itemQuotes[i];
       const surfAreaCm2 = surfaceAreaMm2 / 100;
-      const layerScale  = settings.layerHeightMm / 0.2;
-      const layerCount  = heightMm > 0 ? Math.ceil(heightMm / settings.layerHeightMm) : 0;
+      const layerCount  = heightMm > 0 ? Math.ceil(heightMm / 0.2) : 0;
       const matCostPerG = settings.material === "ABS" ? "$0.05" : "$0.04";
       const heightPct   = heightMm <= 50 ? "0" : heightMm <= 100 ? "5" : heightMm <= 200 ? "10" : "15";
       const saPct       = surfAreaCm2 <= 100 ? "0" : surfAreaCm2 <= 300 ? "5" : surfAreaCm2 <= 600 ? "10" : "15";
@@ -243,13 +242,13 @@ export async function POST(request: Request) {
       console.log(`[quote:debug]   ── Mesh data ──`);
       console.log(`[quote:debug]   File size            : ${(actualSizeBytes / 1024).toFixed(1)} KB`);
       console.log(`[quote:debug]   Solid volume         : ${q.solidVolumeCm3.toFixed(3)} cm³  (${volumeMm3.toFixed(1)} mm³)`);
-      console.log(`[quote:debug]   Height (Z-extent)    : ${heightMm.toFixed(2)} mm  →  ${layerCount} layers @ ${settings.layerHeightMm} mm`);
+      console.log(`[quote:debug]   Height (Z-extent)    : ${heightMm.toFixed(2)} mm  →  ${layerCount} layers @ 0.2 mm`);
       console.log(`[quote:debug]   Surface area         : ${surfAreaCm2.toFixed(2)} cm²  (${surfaceAreaMm2.toFixed(1)} mm²)`);
       console.log(`[quote:debug]   ── Settings ──`);
       console.log(`[quote:debug]   Material             : ${settings.material}  |  Colour: ${settings.colour}  |  Qty: ${settings.quantity}`);
-      console.log(`[quote:debug]   Layer height         : ${settings.layerHeightMm} mm  |  Infill: ${settings.infillPercent}%  |  Support removal labour: ${settings.removeSupports}`);
+      console.log(`[quote:debug]   Wall layers          : ${settings.wallLayers}  |  Infill: ${settings.infillPercent}%  |  Support removal labour: ${settings.removeSupports}`);
       console.log(`[quote:debug]   ── Volume breakdown (per unit) ──`);
-      console.log(`[quote:debug]   Shell volume         : ${q.shellVolumeCm3.toFixed(3)} cm³  (${surfaceAreaMm2.toFixed(0)} mm² × 0.8 mm shell / 1000)`);
+      console.log(`[quote:debug]   Shell volume         : ${q.shellVolumeCm3.toFixed(3)} cm³  (${surfaceAreaMm2.toFixed(0)} mm² × ${settings.wallLayers * 0.4} mm shell / 1000)`);
       console.log(`[quote:debug]   Infill volume        : ${q.infillVolumeCm3.toFixed(3)} cm³  ((solid − shell) × ${settings.infillPercent}%)`);
       console.log(`[quote:debug]   Model volume         : ${q.modelVolumeCm3.toFixed(3)} cm³`);
       console.log(`[quote:debug]   Support volume       : ${q.supportVolumeCm3.toFixed(3)} cm³  (model × 10% — Bambu tree supports @ 15% density)`);
@@ -259,9 +258,9 @@ export async function POST(request: Request) {
       console.log(`[quote:debug]   Support weight       : ${q.supportWeightGrams.toFixed(2)} g`);
       console.log(`[quote:debug]   Total weight/unit    : ${q.estimatedWeightGrams.toFixed(2)} g`);
       console.log(`[quote:debug]   ── Print time (per unit) ──`);
-      console.log(`[quote:debug]   Shell time           : ${Math.round((q.shellVolumeCm3 * 1000) / (7.7 * layerScale))} s  (7.7 mm³/s × ${layerScale.toFixed(2)} scale)`);
-      console.log(`[quote:debug]   Infill time          : ${Math.round((q.infillVolumeCm3 * 1000) / (14 * layerScale))} s  (14 mm³/s × ${layerScale.toFixed(2)} scale)`);
-      console.log(`[quote:debug]   Support time         : ${q.supportPrintTimeMinutes} min  (${Math.round((q.supportVolumeCm3 * 1000) / (14 * layerScale))} s at infill speed)`);
+      console.log(`[quote:debug]   Shell time           : ${Math.round((q.shellVolumeCm3 * 1000) / 7.7)} s  (7.7 mm³/s)`);
+      console.log(`[quote:debug]   Infill time          : ${Math.round((q.infillVolumeCm3 * 1000) / 14)} s  (14 mm³/s)`);
+      console.log(`[quote:debug]   Support time         : ${q.supportPrintTimeMinutes} min  (${Math.round((q.supportVolumeCm3 * 1000) / 14)} s at infill speed)`);
       console.log(`[quote:debug]   Layer overhead       : ${layerCount} layers × 3 s = ${Math.round(layerCount * 3 / 60)} min`);
       console.log(`[quote:debug]   Startup              : 3 min`);
       console.log(`[quote:debug]   Model time/unit      : ${q.modelPrintTimeMinutes} min`);
@@ -351,7 +350,7 @@ export async function POST(request: Request) {
         original_filename: item.originalFilename,
         material: settings.material,
         colour: settings.colour,
-        layer_height_mm: settings.layerHeightMm,
+        wall_layers: settings.wallLayers,
         infill_percent: settings.infillPercent,
         quantity: settings.quantity,
         // #10: Store remove_supports explicitly instead of encoding in shipping_method

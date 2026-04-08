@@ -6,12 +6,7 @@ import { extractVolumeMm3FromArrayBuffer } from "@/lib/mesh-volume-client";
 import { validateSTLArrayBuffer, type MeshWarning } from "@/lib/mesh-validate-client";
 import AddressAutocomplete, { type ParsedAddress } from "@/components/forms/address-autocomplete";
 
-const LAYER_OPTIONS = [
-  { value: 0.1,  label: "0.10 mm — Fine" },
-  { value: 0.15, label: "0.15 mm — High" },
-  { value: 0.2,  label: "0.20 mm — Standard" },
-  { value: 0.3,  label: "0.30 mm — Draft" },
-];
+const WALL_LAYERS_OPTIONS = [2, 3, 4];
 const INFILL_OPTIONS = [10, 15, 20, 30, 40, 50, 75, 100];
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
@@ -20,7 +15,7 @@ type FileItem = {
   id: string; file: File;
   material: "PLA" | "PETG" | "ABS";
   colour: string; quantity: number;
-  layerHeightMm: number; infillPercent: number;
+  wallLayers: number; infillPercent: number;
   removeSupports: boolean;
   volumeMm3: number | null;
   volumeError: string | null;
@@ -119,7 +114,7 @@ export default function QuoteForm() {
       const { volumeMm3, volumeError, meshWarnings } = await computeVolume(f);
       toAdd.push({
         id: makeId(), file: f, material: "PLA", colour: def, quantity: 1,
-        layerHeightMm: 0.2, infillPercent: 20, removeSupports: false,
+        wallLayers: 3, infillPercent: 20, removeSupports: false,
         volumeMm3, volumeError, meshWarnings,
       });
     }
@@ -223,7 +218,7 @@ export default function QuoteForm() {
             material: item.material,
             colour: item.colour,
             quantity: item.quantity,
-            layerHeightMm: item.layerHeightMm,
+            wallLayers: item.wallLayers,
             infillPercent: item.infillPercent,
             removeSupports: item.removeSupports,
           })),
@@ -415,9 +410,9 @@ export default function QuoteForm() {
                           {colours.length === 0 && <option value="Black">Black</option>}
                         </select>
                       )},
-                      { label: "Layer", helpId: "layer-height", content: (
-                        <select value={item.layerHeightMm} onChange={e => updateItem(item.id, { layerHeightMm: parseFloat(e.target.value) })} className="input-field" style={{ fontSize: 12 }}>
-                          {LAYER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      { label: "Walls", helpId: "wall-layers", content: (
+                        <select value={item.wallLayers} onChange={e => updateItem(item.id, { wallLayers: parseInt(e.target.value) })} className="input-field" style={{ fontSize: 12 }}>
+                          {WALL_LAYERS_OPTIONS.map(v => <option key={v} value={v}>{v}</option>)}
                         </select>
                       )},
                       { label: "Infill", helpId: "infill", content: (

@@ -10,14 +10,14 @@ const ACTIONS = [
   { label: "Completed",       status: "completed",       color: "var(--green)" },
 ] as const;
 
-const LOCKED_DELETE = ["paid", "refunded"];
-
 export default function OrderStatusActions({
   orderId,
   currentStatus,
+  isPaid,
 }: {
   orderId: string;
   currentStatus: string;
+  isPaid: boolean;
 }) {
   const [loading, setLoading] = useState<string | null>(null);
   const [note, setNote] = useState("");
@@ -64,7 +64,7 @@ export default function OrderStatusActions({
     }
   }
 
-  const isLocked = LOCKED_DELETE.includes(currentStatus);
+  const isLocked = isPaid;
   const isRefunded = currentStatus === "refunded";
 
   return (

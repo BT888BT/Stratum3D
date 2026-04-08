@@ -5,7 +5,7 @@ import type { QuoteInputParsed } from "@/lib/validation";
  *
  * ── Model material ─────────────────────────────────────────────────────────────
  *   Shell volume   = surfaceAreaMm2 × shellThicknessMm / 1000          → cm³
- *                    shellThickness = WALL_COUNT(2) × LINE_WIDTH(0.4mm) = 0.8 mm
+ *                    shellThickness = wallLayers × LINE_WIDTH(0.4mm)  (2–4 walls)
  *   Infill volume  = max(0, solidVolume − shellVolume) × (infillPercent / 100)
  *   Model volume   = shellVolume + infillVolume
  *
@@ -17,13 +17,12 @@ import type { QuoteInputParsed } from "@/lib/validation";
  *   Total volume   = modelVolume + supportVolume
  *   Weight/unit    = totalVolume × materialDensity
  *
- * ── Print time (Bambu effective flow, 0.2 mm baseline) ────────────────────────
- *   Shell time     = shellVolumeMm3  / (SHELL_FLOW  × layerScale)
- *   Infill time    = infillVolumeMm3 / (INFILL_FLOW × layerScale)
- *   Support time   = supportVolumeMm3 / (INFILL_FLOW × layerScale)
- *   Layer overhead = (heightMm / layerHeight) × 3 s
+ * ── Print time (Bambu effective flow, fixed 0.2 mm layer height) ─────────────
+ *   Shell time     = shellVolumeMm3  / SHELL_FLOW
+ *   Infill time    = infillVolumeMm3 / INFILL_FLOW
+ *   Support time   = supportVolumeMm3 / INFILL_FLOW
+ *   Layer overhead = (heightMm / 0.2 mm) × 3 s
  *   Startup        = 3 min fixed
- *   layerScale     = layerHeightMm / 0.2
  *   SHELL_FLOW     = 11 mm³/s  (effective outer wall)
  *   INFILL_FLOW    = 20 mm³/s  (effective infill / support)
  *
@@ -43,9 +42,8 @@ import type { QuoteInputParsed } from "@/lib/validation";
  */
 
 // ── Bambu Lab print parameters ────────────────────────────────────────────────
-const WALL_COUNT      = 2;    // outer + 1 inner wall (Bambu default)
-const LINE_WIDTH_MM   = 0.4;  // 0.4 mm nozzle
-const SHELL_THICK_MM  = WALL_COUNT * LINE_WIDTH_MM; // 0.8 mm
+const LINE_WIDTH_MM        = 0.4;  // 0.4 mm nozzle
+const LAYER_HEIGHT_MM      = 0.2;  // fixed standard layer height
 
 const SHELL_FLOW_MM3_PER_SEC  = 7.7; // effective shell  flow at 0.2 mm layer height (11 × 0.70)
 const INFILL_FLOW_MM3_PER_SEC = 14;  // effective infill / support flow at 0.2 mm layer height (20 × 0.70)
@@ -81,13 +79,15 @@ const MATERIALS: Record<string, MaterialConfig> = {
 function calcModelVolumes(
   solidVolumeCm3: number,
   surfaceAreaMm2: number,
-  infillPercent: number
+  infillPercent: number,
+  wallLayers: number
 ): { shellVolumeCm3: number; infillVolumeCm3: number; modelVolumeCm3: number } {
+  const shellThickMm = wallLayers * LINE_WIDTH_MM;
   let shellVolumeCm3: number;
   let infillVolumeCm3: number;
 
   if (surfaceAreaMm2 > 0) {
-    shellVolumeCm3 = (surfaceAreaMm2 * SHELL_THICK_MM) / 1000;
+    shellVolumeCm3 = (surfaceAreaMm2 * shellThickMm) / 1000;
     const interiorCm3 = Math.max(0, solidVolumeCm3 - shellVolumeCm3);
     infillVolumeCm3 = interiorCm3 * (infillPercent / 100);
   } else {
@@ -115,18 +115,13 @@ function estimatePrintTime(
   shellVolumeCm3: number,
   infillVolumeCm3: number,
   supportVolumeCm3: number,
-  layerHeightMm: number,
   heightMm: number
 ): PrintTimeBreakdown {
-  const layerScale     = layerHeightMm / 0.2;
-  const shellFlow      = SHELL_FLOW_MM3_PER_SEC  * layerScale;
-  const infillFlow     = INFILL_FLOW_MM3_PER_SEC * layerScale;
+  const shellSec       = (shellVolumeCm3   * 1000) / SHELL_FLOW_MM3_PER_SEC;
+  const infillSec      = (infillVolumeCm3  * 1000) / INFILL_FLOW_MM3_PER_SEC;
+  const supportSec     = (supportVolumeCm3 * 1000) / INFILL_FLOW_MM3_PER_SEC; // supports at infill speed
 
-  const shellSec       = (shellVolumeCm3   * 1000) / shellFlow;
-  const infillSec      = (infillVolumeCm3  * 1000) / infillFlow;
-  const supportSec     = (supportVolumeCm3 * 1000) / infillFlow; // supports at infill speed
-
-  const layerCount         = heightMm > 0 ? Math.ceil(heightMm / layerHeightMm) : 0;
+  const layerCount         = heightMm > 0 ? Math.ceil(heightMm / LAYER_HEIGHT_MM) : 0;
   const layerOverheadSec   = layerCount * LAYER_OVERHEAD_SECONDS;
 
   const modelTimeMins   = Math.max(0, Math.round((STARTUP_SECONDS + shellSec + infillSec + layerOverheadSec) / 60));
@@ -213,7 +208,8 @@ export function calculateItemQuote(
   const { shellVolumeCm3, infillVolumeCm3, modelVolumeCm3 } = calcModelVolumes(
     solidVolumeCm3,
     surfaceAreaMm2,
-    input.infillPercent
+    input.infillPercent,
+    input.wallLayers
   );
 
   const supportVolumeCm3    = calcSupportVolumeCm3(modelVolumeCm3);
@@ -232,7 +228,6 @@ export function calculateItemQuote(
     shellVolumeCm3,
     infillVolumeCm3,
     supportVolumeCm3,
-    input.layerHeightMm,
     heightMm
   );
 

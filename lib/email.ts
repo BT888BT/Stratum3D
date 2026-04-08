@@ -70,7 +70,7 @@ export type OrderLineItem = {
   filename: string;
   material: string;
   colour: string;
-  layerHeightMm: number;
+  wallLayers: number;
   infillPercent: number;
   quantity: number;
   removeSupports: boolean;
@@ -107,7 +107,7 @@ export async function sendOrderConfirmationEmail(order: {
       <td style="padding:14px 0;border-top:1px solid #f0ece6;vertical-align:top">
         <p style="margin:0;font-weight:600;font-size:14px;color:#1a1a1a">${esc(item.filename)}</p>
         <p style="margin:4px 0 0 0;font-size:12px;color:#888">
-          ${esc(item.material)} · ${esc(item.colour)} · ${item.layerHeightMm}mm · ${item.infillPercent}% infill${item.removeSupports ? " · supports removed" : ""}
+          ${esc(item.material)} · ${esc(item.colour)} · ${item.wallLayers} walls · ${item.infillPercent}% infill${item.removeSupports ? " · supports removed" : ""}
         </p>
       </td>
       <td style="padding:14px 0;border-top:1px solid #f0ece6;text-align:center;vertical-align:top;font-size:13px;color:#666;width:44px">×${item.quantity}</td>

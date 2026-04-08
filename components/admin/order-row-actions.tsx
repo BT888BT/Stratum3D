@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const LOCKED_STATUSES = ["paid", "printing", "order_ready", "pickup_ready", "completed"];
+const LOCKED_STATUSES = ["paid", "refunded"];
 
 export default function OrderRowActions({ orderId, status }: { orderId: string; status: string }) {
   const [confirm, setConfirm] = useState(false);
@@ -14,7 +14,7 @@ export default function OrderRowActions({ orderId, status }: { orderId: string; 
 
   if (locked) {
     return (
-      <span title="Locked — order has been paid" style={{ fontSize: 16, opacity: 0.4, cursor: "default" }}>🔒</span>
+      <span title="Locked — order has been paid or refunded" style={{ fontSize: 12, opacity: 0.4, cursor: "default", fontStyle: "italic" }}>Locked</span>
     );
   }
 

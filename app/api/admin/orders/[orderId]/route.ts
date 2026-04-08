@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { isAdminAuthed } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-// Statuses that lock an order from deletion (paid orders are protected)
-const LOCKED_STATUSES = ["paid", "printing", "order_ready", "pickup_ready", "completed"];
+// Orders can only be deleted if the customer has not paid and no refund has been issued
+const LOCKED_STATUSES = ["paid", "refunded"];
 
 export async function DELETE(
   _request: Request,

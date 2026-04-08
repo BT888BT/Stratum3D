@@ -10,7 +10,7 @@ const ACTIONS = [
   { label: "Completed",       status: "completed",       color: "var(--green)" },
 ] as const;
 
-const LOCKED_DELETE = ["order_received", "printing", "order_shipped", "completed", "paid"];
+const LOCKED_DELETE = ["paid", "refunded"];
 
 export default function OrderStatusActions({
   orderId,
@@ -137,7 +137,7 @@ export default function OrderStatusActions({
         <p style={{ fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Danger Zone</p>
         {isLocked ? (
           <div style={{ fontSize: 12, color: "var(--muted)", padding: "8px 12px", border: "1px solid var(--border)", borderRadius: 8 }}>
-            🔒 Order is locked — cannot be deleted once payment is received.
+            Order is locked — cannot be deleted once payment has been received or a refund issued.
           </div>
         ) : !showDeleteConfirm ? (
           <button

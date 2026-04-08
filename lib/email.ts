@@ -121,11 +121,11 @@ export async function sendOrderConfirmationEmail(order: {
 
   const deliveryBlock = order.shippingMethod === "pickup"
     ? `<div style="background:#fef7f0;border:1px solid #fde0c4;border-radius:8px;padding:14px 16px;margin-top:20px">
-        <p style="margin:0;font-size:13px;color:#c2590a;font-weight:600">📍 PARCEL LOCKER PICKUP</p>
+        <p style="margin:0;font-size:13px;color:#c2590a;font-weight:600">PARCEL LOCKER PICKUP</p>
         <p style="margin:6px 0 0 0;font-size:13px;color:#666;line-height:1.5">Stirling Central Shopping Centre, 478 Wanneroo Rd, Westminster WA 6061 — we'll email you when it's ready for collection.</p>
       </div>`
     : `<div style="background:#f0faf5;border:1px solid #c4edda;border-radius:8px;padding:14px 16px;margin-top:20px">
-        <p style="margin:0;font-size:13px;color:#0a7c42;font-weight:600">📦 SHIPPING — AUSTRALIA POST</p>
+        <p style="margin:0;font-size:13px;color:#0a7c42;font-weight:600">SHIPPING — AUSTRALIA POST</p>
         <p style="margin:6px 0 0 0;font-size:13px;color:#666;line-height:1.5">${esc(order.shippingAddress)}</p>
       </div>`;
 
@@ -197,7 +197,7 @@ export async function sendOrderConfirmationEmail(order: {
   // Admin notification
   if (ADMIN) {
     const itemSummary = order.items.map(i => `${esc(i.filename)} (${esc(i.material)} ${esc(i.colour)} ×${i.quantity}${i.removeSupports ? " +supports removed" : ""})`).join(", ");
-    const deliveryInfo = order.shippingMethod === "pickup" ? "📍 Parcel locker pickup" : `📦 Ship to: ${esc(order.shippingAddress)}`;
+    const deliveryInfo = order.shippingMethod === "pickup" ? "Parcel locker pickup" : `Ship to: ${esc(order.shippingAddress)}`;
     const { error: adminErr } = await resend.emails.send({
       from: FROM,
       to: ADMIN,
@@ -221,15 +221,15 @@ export async function sendOrderConfirmationEmail(order: {
 
 // ─── Customer: status update ──────────────────────────────────────────────────
 
-const STATUS_CONFIG: Record<string, { label: string; emoji: string; colour: string; bg: string; border: string }> = {
-  order_received: { label: "Order received — payment confirmed", emoji: "✓", colour: "#0a7c42", bg: "#f0faf5", border: "#c4edda" },
-  printing:       { label: "Your order is now printing",         emoji: "⚙", colour: "#c2590a", bg: "#fef7f0", border: "#fde0c4" },
-  order_shipped:  { label: "Your order has been shipped",        emoji: "📦", colour: "#0a7c42", bg: "#f0faf5", border: "#c4edda" },
-  completed:      { label: "Your order is complete",             emoji: "✓", colour: "#0a7c42", bg: "#f0faf5", border: "#c4edda" },
-  cancelled:      { label: "Your order has been cancelled",      emoji: "✕", colour: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
-  refunded:       { label: "Your order has been refunded",       emoji: "↩", colour: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
+const STATUS_CONFIG: Record<string, { label: string; colour: string; bg: string; border: string }> = {
+  order_received: { label: "Order received — payment confirmed", colour: "#0a7c42", bg: "#f0faf5", border: "#c4edda" },
+  printing:       { label: "Your order is now printing",         colour: "#c2590a", bg: "#fef7f0", border: "#fde0c4" },
+  order_shipped:  { label: "Your order has been shipped",        colour: "#0a7c42", bg: "#f0faf5", border: "#c4edda" },
+  completed:      { label: "Your order is complete",             colour: "#0a7c42", bg: "#f0faf5", border: "#c4edda" },
+  cancelled:      { label: "Your order has been cancelled",      colour: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
+  refunded:       { label: "Your order has been refunded",       colour: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
   // legacy
-  paid:           { label: "Payment confirmed",                  emoji: "✓", colour: "#0a7c42", bg: "#f0faf5", border: "#c4edda" },
+  paid:           { label: "Payment confirmed",                  colour: "#0a7c42", bg: "#f0faf5", border: "#c4edda" },
 };
 
 export async function sendStatusUpdateEmail(order: {
@@ -256,7 +256,6 @@ export async function sendStatusUpdateEmail(order: {
   const content = `
     <!-- Status banner -->
     <div style="background:${cfg.bg};border:1px solid ${cfg.border};border-radius:8px;padding:20px 22px;text-align:center;margin-bottom:24px">
-      <div style="font-size:28px;margin-bottom:8px">${cfg.emoji}</div>
       <p style="margin:0;font-size:18px;font-weight:700;color:${cfg.colour}">${cfg.label}</p>
       <p style="margin:8px 0 0 0;font-size:13px;color:#888">Order ${shortId}</p>
     </div>

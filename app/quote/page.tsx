@@ -11,19 +11,19 @@ const DESIGN_WARNINGS = [
     src: "/overhang.png",
     alt: "3D printing overhang comparison — good vs steep",
     title: "Steep Overhangs",
-    body: "Overhangs beyond ~60° need supports or may print poorly. Redesign with chamfers or splits where possible.",
+    body: "Avoid steep overhangs as it can result in less clean prints and add support material.",
   },
   {
     src: "/warping.png",
     alt: "3D print warping diagram with shrinkage arrows",
     title: "Shrinkage & Warping",
-    body: "Large flat or long parts can warp as plastic cools and shrinks. ABS is most prone; PLA and PETG are better.",
+    body: "Large flat or long prints can be prone to warping as the part layers cool.\nRecommended to consider PLA or PETG over ABS.",
   },
   {
-    src: "/clearance.png",
-    alt: "Clearance gap diagram showing 0.2mm between housing and insert",
+    src: "/clearance.svg",
+    alt: "Clearance gap diagram showing 0.1mm per side between housing and insert",
     title: "0.2mm Tolerance Gap",
-    body: "For parts that fit together, leave at least 0.2mm clearance per side in your CAD model. Tight fits will bind.",
+    body: "For parts that fit together, leave at least 0.2mm clearance in your CAD model.",
   },
 ];
 

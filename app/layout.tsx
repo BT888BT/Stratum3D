@@ -40,6 +40,12 @@ const jsonLd = {
     addressRegion: "WA",
     addressCountry: "AU",
   },
+  logo: {
+    "@type": "ImageObject",
+    url: "https://www.stratum3d.com.au/logo.png",
+    width: 512,
+    height: 512,
+  },
   priceRange: "$",
   serviceType: ["3D Printing", "FDM Printing", "Rapid Prototyping", "Custom 3D Prints"],
   hasOfferCatalog: {

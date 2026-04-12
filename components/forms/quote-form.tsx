@@ -385,22 +385,54 @@ export default function QuoteForm() {
             <span className="eyebrow" style={{ marginBottom: 14 }}>Step 1 — Upload &amp; Configure</span>
 
             {/* Drop zone */}
-            <label style={{
-              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-              gap: 8, padding: "clamp(20px, 4vw, 32px) 20px",
-              border: "2px dashed var(--border-hi)", borderRadius: 10,
-              cursor: "pointer", background: "var(--bg2)",
-              transition: "border-color 0.15s, background 0.15s",
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--orange)"; e.currentTarget.style.background = "rgba(249,115,22,0.04)"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border-hi)"; e.currentTarget.style.background = "var(--bg2)"; }}
-            >
-              <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 28, opacity: 0.5 }}>⬆</span> Click or drop STL files
-              </span>
-              <span style={{ fontSize: 11, color: "var(--muted)", textAlign: "center" }}>STL only · max 50 MB per file · multiple files OK</span>
-              <input type="file" accept=".stl" multiple onChange={e => addFiles(e.target.files)} style={{ display: "none" }} />
-            </label>
+            <div style={{ position: "relative" }}>
+              <label style={{
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                gap: 8, padding: "clamp(20px, 4vw, 32px) 20px",
+                border: "2px dashed var(--border-hi)", borderRadius: 10,
+                cursor: "pointer", background: "var(--bg2)",
+                transition: "border-color 0.15s, background 0.15s",
+              }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--orange)"; e.currentTarget.style.background = "rgba(249,115,22,0.04)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border-hi)"; e.currentTarget.style.background = "var(--bg2)"; }}
+              >
+                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 28, opacity: 0.5 }}>⬆</span> Click or drop STL files
+                </span>
+                <span style={{ fontSize: 11, color: "var(--muted)", textAlign: "center" }}>STL only · max 50 MB per file · multiple files OK</span>
+                <input type="file" accept=".stl" multiple onChange={e => addFiles(e.target.files)} style={{ display: "none" }} />
+              </label>
+
+              {/* Rejection toasts — centered over the drop zone */}
+              {toasts.length > 0 && (
+                <div style={{
+                  position: "absolute", inset: 0, zIndex: 10,
+                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                  gap: 6, padding: 12, pointerEvents: "none",
+                }}>
+                  {toasts.map(t => (
+                    <div key={t.id} className="file-toast" style={{
+                      width: "100%", maxWidth: 420,
+                      background: "rgba(10,6,3,0.93)",
+                      border: "1px solid rgba(239,68,68,0.4)",
+                      borderLeft: "3px solid #ef4444",
+                      borderRadius: 8,
+                      padding: "10px 14px",
+                      boxShadow: "0 6px 24px rgba(0,0,0,0.5)",
+                      backdropFilter: "blur(6px)",
+                      pointerEvents: "auto",
+                    }}>
+                      <p style={{ margin: "0 0 3px 0", fontSize: 12, fontWeight: 700, color: "#f5f0eb", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {t.filename}
+                      </p>
+                      <p style={{ margin: 0, fontSize: 11, color: "#b0a898", lineHeight: 1.5 }}>
+                        {t.message}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* File cards */}
@@ -707,34 +739,6 @@ export default function QuoteForm() {
         </div>
       </div>
 
-      {/* ── File rejection toasts ── */}
-      {toasts.length > 0 && (
-        <div style={{
-          position: "fixed", bottom: 24, right: 24, zIndex: 9999,
-          display: "flex", flexDirection: "column", gap: 8,
-          pointerEvents: "none",
-        }}>
-          {toasts.map(t => (
-            <div key={t.id} className="file-toast" style={{
-              background: "var(--surface, #1a1a1a)",
-              border: "1px solid rgba(255,90,90,0.25)",
-              borderLeft: "3px solid #ef4444",
-              borderRadius: 8,
-              padding: "10px 14px",
-              maxWidth: 320,
-              boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
-              pointerEvents: "auto",
-            }}>
-              <p style={{ margin: "0 0 3px 0", fontSize: 12, fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {t.filename}
-              </p>
-              <p style={{ margin: 0, fontSize: 11, color: "var(--text-dim)", lineHeight: 1.5 }}>
-                {t.message}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

@@ -11,7 +11,7 @@ const DESIGN_WARNINGS = [
     src: "/overhang.png",
     alt: "3D printing overhang comparison — good vs steep",
     title: "Steep Overhangs",
-    body: "Avoid steep overhangs as it can result in less clean prints and add support material.",
+    body: "Overhangs steeper than 45° require support material and may leave rougher surfaces. Where possible, orient your model to minimise unsupported faces.",
   },
   {
     src: "/warping.png",

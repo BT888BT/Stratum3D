@@ -5,7 +5,7 @@
  * heightMm is the Z-axis extent (max Z − min Z), used for height-based pricing.
  */
 
-export type MeshData = { volumeMm3: number; heightMm: number; surfaceAreaMm2: number };
+export type MeshData = { volumeMm3: number; widthMm: number; depthMm: number; heightMm: number; surfaceAreaMm2: number };
 
 function signedTriVolume(
   ax: number, ay: number, az: number,
@@ -38,6 +38,8 @@ function meshDataFromBinarySTL(buf: ArrayBuffer): MeshData {
   const view = new DataView(buf);
   const triCount = view.getUint32(80, true);
   let vol = 0, sa = 0;
+  let minX = Infinity, maxX = -Infinity;
+  let minY = Infinity, maxY = -Infinity;
   let minZ = Infinity, maxZ = -Infinity;
   let offset = 84;
   for (let i = 0; i < triCount; i++) {
@@ -48,11 +50,23 @@ function meshDataFromBinarySTL(buf: ArrayBuffer): MeshData {
     offset += 36 + 2;
     vol += signedTriVolume(ax, ay, az, bx, by, bz, cx, cy, cz);
     sa  += triArea(ax, ay, az, bx, by, bz, cx, cy, cz);
+    if (ax < minX) minX = ax; if (ax > maxX) maxX = ax;
+    if (bx < minX) minX = bx; if (bx > maxX) maxX = bx;
+    if (cx < minX) minX = cx; if (cx > maxX) maxX = cx;
+    if (ay < minY) minY = ay; if (ay > maxY) maxY = ay;
+    if (by < minY) minY = by; if (by > maxY) maxY = by;
+    if (cy < minY) minY = cy; if (cy > maxY) maxY = cy;
     if (az < minZ) minZ = az; if (az > maxZ) maxZ = az;
     if (bz < minZ) minZ = bz; if (bz > maxZ) maxZ = bz;
     if (cz < minZ) minZ = cz; if (cz > maxZ) maxZ = cz;
   }
-  return { volumeMm3: Math.abs(vol), heightMm: isFinite(maxZ) ? maxZ - minZ : 0, surfaceAreaMm2: sa };
+  return {
+    volumeMm3: Math.abs(vol),
+    widthMm: isFinite(maxX) ? maxX - minX : 0,
+    depthMm: isFinite(maxY) ? maxY - minY : 0,
+    heightMm: isFinite(maxZ) ? maxZ - minZ : 0,
+    surfaceAreaMm2: sa,
+  };
 }
 
 function volumeFromBinarySTL(buf: ArrayBuffer): number {
@@ -64,12 +78,15 @@ function meshDataFromASCIISTL(text: string): MeshData {
   const re = /vertex\s+([\d.eE+\-]+)\s+([\d.eE+\-]+)\s+([\d.eE+\-]+)/g;
   const verts: [number, number, number][] = [];
   let m: RegExpExecArray | null;
+  let minX = Infinity, maxX = -Infinity;
+  let minY = Infinity, maxY = -Infinity;
   let minZ = Infinity, maxZ = -Infinity;
   while ((m = re.exec(text)) !== null) {
-    const z = parseFloat(m[3]);
-    if (z < minZ) minZ = z;
-    if (z > maxZ) maxZ = z;
-    verts.push([parseFloat(m[1]), parseFloat(m[2]), z]);
+    const x = parseFloat(m[1]), y = parseFloat(m[2]), z = parseFloat(m[3]);
+    if (x < minX) minX = x; if (x > maxX) maxX = x;
+    if (y < minY) minY = y; if (y > maxY) maxY = y;
+    if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+    verts.push([x, y, z]);
   }
   let vol = 0, sa = 0;
   for (let i = 0; i + 2 < verts.length; i += 3) {
@@ -79,7 +96,13 @@ function meshDataFromASCIISTL(text: string): MeshData {
     vol += signedTriVolume(ax, ay, az, bx, by, bz, cx, cy, cz);
     sa  += triArea(ax, ay, az, bx, by, bz, cx, cy, cz);
   }
-  return { volumeMm3: Math.abs(vol), heightMm: isFinite(maxZ) ? maxZ - minZ : 0, surfaceAreaMm2: sa };
+  return {
+    volumeMm3: Math.abs(vol),
+    widthMm: isFinite(maxX) ? maxX - minX : 0,
+    depthMm: isFinite(maxY) ? maxY - minY : 0,
+    heightMm: isFinite(maxZ) ? maxZ - minZ : 0,
+    surfaceAreaMm2: sa,
+  };
 }
 
 function volumeFromASCIISTL(text: string): number {
@@ -170,8 +193,8 @@ export function extractMeshDataFromBuffer(buffer: Buffer, filename: string): Mes
       : meshDataFromASCIISTL(new TextDecoder().decode(ab));
   }
 
-  // For OBJ/3MF, height/SA extraction is not implemented — fall back to volume only
-  return { volumeMm3: extractVolumeMm3FromBuffer(buffer, filename), heightMm: 0, surfaceAreaMm2: 0 };
+  // For OBJ/3MF, bounding box extraction is not implemented — fall back to volume only
+  return { volumeMm3: extractVolumeMm3FromBuffer(buffer, filename), widthMm: 0, depthMm: 0, heightMm: 0, surfaceAreaMm2: 0 };
 }
 
 export function extractVolumeMm3FromBuffer(buffer: Buffer, filename: string): number {

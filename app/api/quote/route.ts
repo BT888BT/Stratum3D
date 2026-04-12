@@ -10,6 +10,24 @@ import { getTrustedIp, buildRateLimitKey } from "@/lib/trusted-ip";
 
 export const dynamic = "force-dynamic";
 
+// Bambu Lab P1S build volume
+const BED_XY_MM = 256;
+const BED_Z_MM = 256;
+
+// A rectangle L×W fits inside a BED_XY×BED_XY square at some rotation iff:
+//   - L ≤ BED_XY AND W ≤ BED_XY  (fits flat), OR
+//   - W ≤ BED_XY AND L+W ≤ BED_XY×√2  (fits diagonally at ≤45°)
+// Derived from the bounding-box projection at angle θ:
+//   L·cosθ + W·sinθ ≤ BED_XY  AND  L·sinθ + W·cosθ ≤ BED_XY
+// Adding both sides: (L+W)(cosθ+sinθ) ≤ 2·BED_XY, maximised at θ=45°.
+function fitsOnBed(widthMm: number, depthMm: number): { fits: boolean; diagonal: boolean } {
+  const L = Math.max(widthMm, depthMm);
+  const W = Math.min(widthMm, depthMm);
+  if (L <= BED_XY_MM && W <= BED_XY_MM) return { fits: true, diagonal: false };
+  const diagonal = W <= BED_XY_MM && (L + W) <= BED_XY_MM * Math.SQRT2;
+  return { fits: diagonal, diagonal };
+}
+
 interface QuoteFileItem {
   originalFilename: string;
   storagePath: string;
@@ -144,6 +162,8 @@ export async function POST(request: Request) {
       item: QuoteFileItem;
       settings: ReturnType<typeof fileItemSchema.parse>;
       volumeMm3: number;
+      widthMm: number;
+      depthMm: number;
       heightMm: number;
       surfaceAreaMm2: number;
       actualSizeBytes: number;
@@ -195,8 +215,10 @@ export async function POST(request: Request) {
         );
       }
 
-      // #1: Recalculate volume + height SERVER-SIDE — ignore any client-supplied values
+      // #1: Recalculate volume + bounding box SERVER-SIDE — ignore any client-supplied values
       let volumeMm3: number;
+      let widthMm: number;
+      let depthMm: number;
       let heightMm: number;
       let surfaceAreaMm2: number;
       try {
@@ -204,12 +226,31 @@ export async function POST(request: Request) {
         const buffer = Buffer.from(arrayBuf);
         const meshData = extractMeshDataFromBuffer(buffer, item.originalFilename);
         volumeMm3 = meshData.volumeMm3;
+        widthMm = meshData.widthMm;
+        depthMm = meshData.depthMm;
         heightMm = meshData.heightMm;
         surfaceAreaMm2 = meshData.surfaceAreaMm2;
 
         if (!isFinite(volumeMm3) || volumeMm3 <= 0) {
           return NextResponse.json(
             { error: `"${item.originalFilename}": could not calculate volume. Ensure it is a valid closed mesh.` },
+            { status: 422 }
+          );
+        }
+
+        // ── Build volume check (Bambu Lab P1S: 256×256×256mm) ──
+        if (heightMm > BED_Z_MM) {
+          return NextResponse.json(
+            { error: `"${item.originalFilename}": part is ${heightMm.toFixed(1)}mm tall — exceeds the ${BED_Z_MM}mm build height.` },
+            { status: 422 }
+          );
+        }
+        const bedCheck = fitsOnBed(widthMm, depthMm);
+        if (!bedCheck.fits) {
+          const L = Math.max(widthMm, depthMm), W = Math.min(widthMm, depthMm);
+          const diagMax = Math.floor(BED_XY_MM * Math.SQRT2);
+          return NextResponse.json(
+            { error: `"${item.originalFilename}": footprint ${widthMm.toFixed(1)}×${depthMm.toFixed(1)}mm does not fit the ${BED_XY_MM}×${BED_XY_MM}mm bed (L+W=${(L+W).toFixed(1)}mm exceeds diagonal limit of ${diagMax}mm).` },
             { status: 422 }
           );
         }
@@ -220,7 +261,7 @@ export async function POST(request: Request) {
         );
       }
 
-      validatedItems.push({ item, settings: settingsParsed.data, volumeMm3, heightMm, surfaceAreaMm2, actualSizeBytes });
+      validatedItems.push({ item, settings: settingsParsed.data, volumeMm3, widthMm, depthMm, heightMm, surfaceAreaMm2, actualSizeBytes });
     }
 
     // ── Calculate quote from server-derived volumes ─────────

@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { formatAud } from "@/lib/utils";
-import { extractVolumeMm3FromArrayBuffer } from "@/lib/mesh-volume-client";
+import { extractMeshDataFromArrayBuffer } from "@/lib/mesh-volume-client";
 import { validateSTLArrayBuffer, type MeshWarning } from "@/lib/mesh-validate-client";
 import AddressAutocomplete, { type ParsedAddress } from "@/components/forms/address-autocomplete";
 
@@ -11,6 +11,17 @@ const INFILL_OPTIONS = [10, 15, 20, 40, 60, 80];
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
 type Colour = { id: string; name: string; hex: string; available: boolean; materials: string[] | null };
+const BED_XY_MM = 256;
+const BED_Z_MM = 256;
+
+function bedFit(widthMm: number, depthMm: number): { fits: boolean; diagonal: boolean } {
+  const L = Math.max(widthMm, depthMm);
+  const W = Math.min(widthMm, depthMm);
+  if (L <= BED_XY_MM && W <= BED_XY_MM) return { fits: true, diagonal: false };
+  const diagonal = W <= BED_XY_MM && (L + W) <= BED_XY_MM * Math.SQRT2;
+  return { fits: diagonal, diagonal };
+}
+
 type FileItem = {
   id: string; file: File;
   material: "PLA" | "PETG" | "ABS";
@@ -18,6 +29,9 @@ type FileItem = {
   wallLayers: number; infillPercent: number;
   removeSupports: boolean;
   volumeMm3: number | null;
+  widthMm: number | null;
+  depthMm: number | null;
+  heightMm: number | null;
   volumeError: string | null;
   meshWarnings: MeshWarning[];
 };
@@ -74,21 +88,24 @@ export default function QuoteForm() {
 
   async function computeVolume(file: File): Promise<{
     volumeMm3: number | null;
+    widthMm: number | null;
+    depthMm: number | null;
+    heightMm: number | null;
     volumeError: string | null;
     meshWarnings: MeshWarning[];
   }> {
     const ab = await file.arrayBuffer();
-    // Run volume extraction and mesh validation in parallel — they are completely independent
-    const [volResult, warnings] = await Promise.all([
+    // Run mesh extraction and validation in parallel — they are completely independent
+    const [meshResult, warnings] = await Promise.all([
       (async () => {
         try {
-          const vol = extractVolumeMm3FromArrayBuffer(ab, file.name);
-          if (!isFinite(vol) || vol <= 0) {
-            return { volumeMm3: null as number | null, volumeError: "Could not calculate volume — ensure mesh is a valid closed solid." };
+          const data = extractMeshDataFromArrayBuffer(ab, file.name);
+          if (!isFinite(data.volumeMm3) || data.volumeMm3 <= 0) {
+            return { volumeMm3: null as number | null, widthMm: null as number | null, depthMm: null as number | null, heightMm: null as number | null, volumeError: "Could not calculate volume — ensure mesh is a valid closed solid." };
           }
-          return { volumeMm3: vol, volumeError: null as string | null };
+          return { volumeMm3: data.volumeMm3, widthMm: data.widthMm, depthMm: data.depthMm, heightMm: data.heightMm, volumeError: null as string | null };
         } catch (err) {
-          return { volumeMm3: null as number | null, volumeError: err instanceof Error ? err.message : "Failed to parse file." };
+          return { volumeMm3: null as number | null, widthMm: null as number | null, depthMm: null as number | null, heightMm: null as number | null, volumeError: err instanceof Error ? err.message : "Failed to parse file." };
         }
       })(),
       (async (): Promise<MeshWarning[]> => {
@@ -99,7 +116,7 @@ export default function QuoteForm() {
         }
       })(),
     ]);
-    return { ...volResult, meshWarnings: warnings };
+    return { ...meshResult, meshWarnings: warnings };
   }
 
   async function addFiles(fl: FileList | null) {
@@ -111,11 +128,11 @@ export default function QuoteForm() {
     const toAdd: FileItem[] = [];
     for (const f of stlFiles) {
       if (f.size > MAX_FILE_SIZE) { setError(`"${f.name}" exceeds 50 MB limit.`); continue; }
-      const { volumeMm3, volumeError, meshWarnings } = await computeVolume(f);
+      const { volumeMm3, widthMm, depthMm, heightMm, volumeError, meshWarnings } = await computeVolume(f);
       toAdd.push({
         id: makeId(), file: f, material: "PLA", colour: def, quantity: 1,
         wallLayers: 3, infillPercent: 20, removeSupports: false,
-        volumeMm3, volumeError, meshWarnings,
+        volumeMm3, widthMm, depthMm, heightMm, volumeError, meshWarnings,
       });
     }
     if (toAdd.length) {
@@ -359,6 +376,11 @@ export default function QuoteForm() {
                       ) : item.volumeError ? (
                         <span className="font-mono" style={{ fontSize: 10, color: "var(--red)", flexShrink: 0 }}>⚠ parse error</span>
                       ) : null}
+                      {item.widthMm != null && item.depthMm != null && item.heightMm != null && (
+                        <span className="font-mono" style={{ fontSize: 10, color: "var(--muted)", flexShrink: 0 }}>
+                          {item.widthMm.toFixed(0)}×{item.depthMm.toFixed(0)}×{item.heightMm.toFixed(0)}mm
+                        </span>
+                      )}
                     </div>
                     <button type="button" onClick={() => removeItem(item.id)}
                       style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: 18, padding: "0 4px", lineHeight: 1, flexShrink: 0 }}
@@ -386,6 +408,39 @@ export default function QuoteForm() {
                       {w.message}
                     </div>
                   ))}
+
+                  {/* Build volume warnings */}
+                  {(() => {
+                    if (item.widthMm == null || item.depthMm == null || item.heightMm == null) return null;
+                    const overZ = item.heightMm > BED_Z_MM;
+                    const { fits, diagonal } = bedFit(item.widthMm, item.depthMm);
+                    const overXY = !fits;
+                    if (!overZ && !overXY) {
+                      // Show info banner only if part needs diagonal placement
+                      if (!diagonal) return null;
+                      const L = Math.max(item.widthMm, item.depthMm);
+                      const W = Math.min(item.widthMm, item.depthMm);
+                      return (
+                        <div style={{ padding: "7px 14px", fontSize: 12, color: "#d97706", background: "rgba(245,158,11,0.07)", borderBottom: "1px solid rgba(245,158,11,0.15)", display: "flex", alignItems: "flex-start", gap: 6 }}>
+                          <span style={{ flexShrink: 0 }}>↗</span>
+                          <span>This part ({L.toFixed(0)}×{W.toFixed(0)}mm) will be printed diagonally on the bed — fits within the {Math.floor(BED_XY_MM * Math.SQRT2)}mm diagonal limit (L+W = {(L+W).toFixed(0)}mm).</span>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div style={{ padding: "7px 14px", fontSize: 12, color: "var(--red)", background: "rgba(255,90,90,0.07)", borderBottom: "1px solid rgba(255,90,90,0.12)", display: "flex", alignItems: "flex-start", gap: 6 }}>
+                        <span style={{ flexShrink: 0 }}>⚠</span>
+                        <span>
+                          {overZ && `Height ${item.heightMm.toFixed(0)}mm exceeds the ${BED_Z_MM}mm build height. `}
+                          {overXY && (() => {
+                            const L = Math.max(item.widthMm!, item.depthMm!);
+                            const W = Math.min(item.widthMm!, item.depthMm!);
+                            return `Footprint ${L.toFixed(0)}×${W.toFixed(0)}mm is too large — even diagonally, L+W=${(L+W).toFixed(0)}mm exceeds the ${Math.floor(BED_XY_MM * Math.SQRT2)}mm limit.`;
+                          })()}
+                        </span>
+                      </div>
+                    );
+                  })()}
 
                   {/* Settings grid */}
                   <div className="file-settings-grid" style={{ padding: 14, display: "grid", gridTemplateColumns: "1fr 1fr 1fr 70px 70px", gap: 10 }}>
@@ -444,20 +499,18 @@ export default function QuoteForm() {
                   </div>
 
                   {/* Support removal toggle */}
-                  <div style={{ padding: "10px 14px", borderTop: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                    <div>
-                      <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13 }}>
-                        <input type="checkbox" checked={item.removeSupports}
-                          onChange={e => updateItem(item.id, { removeSupports: e.target.checked })}
-                          style={{ accentColor: "var(--orange)", width: 16, height: 16 }} />
-                        <span style={{ color: "var(--text)" }}>Remove support material</span>
-                      </label>
-                      <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 4, lineHeight: 1.5 }}>
-                        {item.removeSupports
-                          ? "We'll clean and remove all support structures before shipping. A 20% surcharge applies for support removal and cleanup on this item."
-                          : "Supports left on — faster processing, lower cost. You remove them yourself."}
-                      </p>
-                    </div>
+                  <div style={{ padding: "10px 14px", borderTop: "1px solid var(--border)" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13 }}>
+                      <input type="checkbox" checked={item.removeSupports}
+                        onChange={e => updateItem(item.id, { removeSupports: e.target.checked })}
+                        style={{ accentColor: "var(--orange)", width: 16, height: 16 }} />
+                      <span style={{ color: "var(--text)" }}>Remove support material</span>
+                    </label>
+                    <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 4, lineHeight: 1.5 }}>
+                      {item.removeSupports
+                        ? "We'll clean and remove all support structures before shipping. A 20% surcharge applies for support removal and cleanup on this item."
+                        : "Supports left on — faster processing, lower cost. You remove them yourself."}
+                    </p>
                   </div>
                 </div>
               ))}

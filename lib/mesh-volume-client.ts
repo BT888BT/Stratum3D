@@ -19,11 +19,16 @@ function signedTriVolume(
   ) / 6;
 }
 
+export type ClientMeshData = { volumeMm3: number; widthMm: number; depthMm: number; heightMm: number };
+
 // ── Binary STL ───────────────────────────────────────────────────────────────
-function volumeFromBinarySTL(ab: ArrayBuffer): number {
+function meshDataFromBinarySTL(ab: ArrayBuffer): ClientMeshData {
   const view = new DataView(ab);
   const triCount = view.getUint32(80, true);
   let vol = 0;
+  let minX = Infinity, maxX = -Infinity;
+  let minY = Infinity, maxY = -Infinity;
+  let minZ = Infinity, maxZ = -Infinity;
   let offset = 84;
   for (let i = 0; i < triCount; i++) {
     offset += 12; // skip normal
@@ -32,17 +37,42 @@ function volumeFromBinarySTL(ab: ArrayBuffer): number {
     const cx = view.getFloat32(offset + 24, true); const cy = view.getFloat32(offset + 28, true); const cz = view.getFloat32(offset + 32, true);
     offset += 36 + 2;
     vol += signedTriVolume(ax, ay, az, bx, by, bz, cx, cy, cz);
+    if (ax < minX) minX = ax; if (ax > maxX) maxX = ax;
+    if (bx < minX) minX = bx; if (bx > maxX) maxX = bx;
+    if (cx < minX) minX = cx; if (cx > maxX) maxX = cx;
+    if (ay < minY) minY = ay; if (ay > maxY) maxY = ay;
+    if (by < minY) minY = by; if (by > maxY) maxY = by;
+    if (cy < minY) minY = cy; if (cy > maxY) maxY = cy;
+    if (az < minZ) minZ = az; if (az > maxZ) maxZ = az;
+    if (bz < minZ) minZ = bz; if (bz > maxZ) maxZ = bz;
+    if (cz < minZ) minZ = cz; if (cz > maxZ) maxZ = cz;
   }
-  return Math.abs(vol);
+  return {
+    volumeMm3: Math.abs(vol),
+    widthMm: isFinite(maxX) ? maxX - minX : 0,
+    depthMm: isFinite(maxY) ? maxY - minY : 0,
+    heightMm: isFinite(maxZ) ? maxZ - minZ : 0,
+  };
+}
+
+function volumeFromBinarySTL(ab: ArrayBuffer): number {
+  return meshDataFromBinarySTL(ab).volumeMm3;
 }
 
 // ── ASCII STL ────────────────────────────────────────────────────────────────
-function volumeFromASCIISTL(text: string): number {
+function meshDataFromASCIISTL(text: string): ClientMeshData {
   const re = /vertex\s+([\d.eE+\-]+)\s+([\d.eE+\-]+)\s+([\d.eE+\-]+)/g;
   const verts: [number, number, number][] = [];
   let m: RegExpExecArray | null;
+  let minX = Infinity, maxX = -Infinity;
+  let minY = Infinity, maxY = -Infinity;
+  let minZ = Infinity, maxZ = -Infinity;
   while ((m = re.exec(text)) !== null) {
-    verts.push([parseFloat(m[1]), parseFloat(m[2]), parseFloat(m[3])]);
+    const x = parseFloat(m[1]), y = parseFloat(m[2]), z = parseFloat(m[3]);
+    if (x < minX) minX = x; if (x > maxX) maxX = x;
+    if (y < minY) minY = y; if (y > maxY) maxY = y;
+    if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+    verts.push([x, y, z]);
   }
   let vol = 0;
   for (let i = 0; i + 2 < verts.length; i += 3) {
@@ -51,7 +81,16 @@ function volumeFromASCIISTL(text: string): number {
     const [cx, cy, cz] = verts[i + 2];
     vol += signedTriVolume(ax, ay, az, bx, by, bz, cx, cy, cz);
   }
-  return Math.abs(vol);
+  return {
+    volumeMm3: Math.abs(vol),
+    widthMm: isFinite(maxX) ? maxX - minX : 0,
+    depthMm: isFinite(maxY) ? maxY - minY : 0,
+    heightMm: isFinite(maxZ) ? maxZ - minZ : 0,
+  };
+}
+
+function volumeFromASCIISTL(text: string): number {
+  return meshDataFromASCIISTL(text).volumeMm3;
 }
 
 /**
@@ -59,21 +98,25 @@ function volumeFromASCIISTL(text: string): number {
  * Works in the browser — no Node dependencies.
  */
 export function extractVolumeMm3FromArrayBuffer(ab: ArrayBuffer, filename: string): number {
+  return extractMeshDataFromArrayBuffer(ab, filename).volumeMm3;
+}
+
+/**
+ * Calculate volume + bounding box dimensions from an STL ArrayBuffer.
+ * Works in the browser — no Node dependencies.
+ */
+export function extractMeshDataFromArrayBuffer(ab: ArrayBuffer, filename: string): ClientMeshData {
   const ext = filename.split(".").pop()?.toLowerCase();
 
   if (ext === "stl") {
-    // Check if binary or ASCII STL
     const view = new DataView(ab);
     const triCount = view.getUint32(80, true);
     const expectedBinarySize = 84 + triCount * 50;
     const isBinary = Math.abs(ab.byteLength - expectedBinarySize) < 100;
 
-    if (isBinary) {
-      return volumeFromBinarySTL(ab);
-    } else {
-      const text = new TextDecoder().decode(ab);
-      return volumeFromASCIISTL(text);
-    }
+    return isBinary
+      ? meshDataFromBinarySTL(ab)
+      : meshDataFromASCIISTL(new TextDecoder().decode(ab));
   }
 
   throw new Error(`Unsupported file type: .${ext}`);

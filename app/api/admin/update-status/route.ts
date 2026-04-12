@@ -68,6 +68,8 @@ export async function POST(request: Request) {
       .eq("id", orderId)
       .single();
 
+    console.log(`[update-status] Order ${orderId} → ${status}${note ? ` (note: ${note})` : ""}`);
+
     let emailSent = false;
     let emailError: string | null = null;
 

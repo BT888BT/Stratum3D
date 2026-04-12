@@ -32,16 +32,17 @@ export default async function AdminOrdersPage() {
   const { data: orders, error } = await supabase
     .from("orders")
     .select("*")
+    .not("status", "in", '("draft","checkout_pending")')
     .order("created_at", { ascending: false })
-    .limit(100);
+    .limit(200);
 
   if (error) {
     return <div className="error-box">Failed to load orders: {error.message}</div>;
   }
 
   const counts = {
-    total: orders?.length ?? 0,
-    paid: orders?.filter(o => o.status === "paid").length ?? 0,
+    total: orders?.filter(o => !["draft", "checkout_pending"].includes(o.status)).length ?? 0,
+    paid: orders?.filter(o => o.status === "order_received" || o.status === "paid").length ?? 0,
     printing: orders?.filter(o => o.status === "printing").length ?? 0,
     completed: orders?.filter(o => o.status === "completed").length ?? 0,
   };

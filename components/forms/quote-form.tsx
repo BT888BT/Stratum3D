@@ -14,12 +14,25 @@ type Colour = { id: string; name: string; hex: string; available: boolean; mater
 const BED_XY_MM = 256;
 const BED_Z_MM = 256;
 
-function bedFit(widthMm: number, depthMm: number): { fits: boolean; diagonal: boolean } {
-  const L = Math.max(widthMm, depthMm);
-  const W = Math.min(widthMm, depthMm);
+function fitsInOrientation(a: number, b: number, c: number): { fits: boolean; diagonal: boolean } {
+  if (c > BED_Z_MM) return { fits: false, diagonal: false };
+  const L = Math.max(a, b), W = Math.min(a, b);
   if (L <= BED_XY_MM && W <= BED_XY_MM) return { fits: true, diagonal: false };
   const diagonal = W <= BED_XY_MM && (L + W) <= BED_XY_MM * Math.SQRT2;
   return { fits: diagonal, diagonal };
+}
+
+function bedFit(widthMm: number, depthMm: number, heightMm: number): { fits: boolean; diagonal: boolean } {
+  const orientations = [
+    fitsInOrientation(widthMm, depthMm, heightMm),
+    fitsInOrientation(widthMm, heightMm, depthMm),
+    fitsInOrientation(depthMm, heightMm, widthMm),
+  ];
+  return (
+    orientations.find(o => o.fits && !o.diagonal) ??
+    orientations.find(o => o.fits) ??
+    { fits: false, diagonal: false }
+  );
 }
 
 type FileItem = {
@@ -49,11 +62,14 @@ type QuoteApiResponse = {
   displayPrintTimeMinutes: number;
 };
 
+type Toast = { id: string; filename: string; message: string };
+
 function makeId() { return Math.random().toString(36).slice(2); }
 
 export default function QuoteForm() {
   const [colours, setColours] = useState<Colour[]>([]);
   const [items, setItems] = useState<FileItem[]>([]);
+  const [toasts, setToasts] = useState<Toast[]>([]);
   const [pickupEnabled, setPickupEnabled] = useState(true);
 
   // Phase 2 fields — only shown after quote is calculated
@@ -119,25 +135,57 @@ export default function QuoteForm() {
     return { ...meshResult, meshWarnings: warnings };
   }
 
+  function addToast(filename: string, message: string) {
+    const id = makeId();
+    setToasts(prev => [...prev, { id, filename, message }]);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 10000);
+  }
+
   async function addFiles(fl: FileList | null) {
     if (!fl) return;
     const def = colours.find(c => c.available && (c.materials === null || c.materials.includes("PLA")))?.name ?? "Black";
-    const stlFiles = Array.from(fl).filter(f => f.name.toLowerCase().endsWith(".stl"));
-    if (stlFiles.length === 0) { setError("Only .stl files are accepted."); return; }
+    const allFiles = Array.from(fl);
+    const nonStl = allFiles.filter(f => !f.name.toLowerCase().endsWith(".stl"));
+    nonStl.forEach(f => addToast(f.name, "Only .stl files are accepted."));
 
     const toAdd: FileItem[] = [];
-    for (const f of stlFiles) {
-      if (f.size > MAX_FILE_SIZE) { setError(`"${f.name}" exceeds 50 MB limit.`); continue; }
+    for (const f of allFiles.filter(f => f.name.toLowerCase().endsWith(".stl"))) {
+      if (f.size > MAX_FILE_SIZE) {
+        addToast(f.name, "File exceeds the 50 MB size limit.");
+        continue;
+      }
+
       const { volumeMm3, widthMm, depthMm, heightMm, volumeError, meshWarnings } = await computeVolume(f);
+
+      if (volumeError) {
+        addToast(f.name, volumeError);
+        continue;
+      }
+
+      if (meshWarnings.length > 0) {
+        addToast(f.name, meshWarnings.map(w => w.message).join(" "));
+        continue;
+      }
+
+      if (widthMm != null && depthMm != null && heightMm != null) {
+        const { fits } = bedFit(widthMm, depthMm, heightMm);
+        if (!fits) {
+          const diagMax = Math.floor(BED_XY_MM * Math.SQRT2);
+          addToast(f.name, `Part (${widthMm.toFixed(0)}×${depthMm.toFixed(0)}×${heightMm.toFixed(0)}mm) does not fit the ${BED_XY_MM}×${BED_XY_MM}×${BED_Z_MM}mm build volume in any orientation. Maximum diagonal L+W is ${diagMax}mm.`);
+          continue;
+        }
+      }
+
       toAdd.push({
         id: makeId(), file: f, material: "PLA", colour: def, quantity: 1,
         wallLayers: 3, infillPercent: 20, removeSupports: false,
-        volumeMm3, widthMm, depthMm, heightMm, volumeError, meshWarnings,
+        volumeMm3, widthMm, depthMm, heightMm, volumeError: null, meshWarnings: [],
       });
     }
+
     if (toAdd.length) {
       setItems(p => [...p, ...toAdd]);
-      setQuote(null); // Clear any existing quote when files change
+      setQuote(null);
     }
   }
 
@@ -170,18 +218,6 @@ export default function QuoteForm() {
     setQuote(null);
 
     if (items.length === 0) { setError("Upload at least one STL file."); return; }
-
-    const badVolume = items.find(i => !i.volumeMm3);
-    if (badVolume) {
-      setError(`"${badVolume.file.name}": ${badVolume.volumeError || "volume calculation failed."}`);
-      return;
-    }
-
-    const badMesh = items.find(i => i.meshWarnings.length > 0);
-    if (badMesh) {
-      setError(`"${badMesh.file.name}" has mesh issues that must be fixed before quoting.`);
-      return;
-    }
 
     try {
       setLoadingQuote(true);
@@ -331,6 +367,13 @@ export default function QuoteForm() {
           .file-settings-grid { grid-template-columns: 1fr !important; }
           .contact-grid { grid-template-columns: 1fr !important; }
         }
+        @keyframes toast-in-out {
+          0%   { opacity: 0; transform: translateX(12px); }
+          6%   { opacity: 1; transform: translateX(0); }
+          80%  { opacity: 1; }
+          100% { opacity: 0; transform: translateX(6px); }
+        }
+        .file-toast { animation: toast-in-out 10s ease forwards; }
       `}</style>
 
       {/* ── Left column ── */}
@@ -371,11 +414,9 @@ export default function QuoteForm() {
                       <span className="font-mono" style={{ fontSize: 10, color: "var(--orange)", flexShrink: 0 }}>#{idx + 1}</span>
                       <span style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.file.name}</span>
                       <span className="font-mono" style={{ fontSize: 10, color: "var(--muted)", flexShrink: 0 }}>{(item.file.size / 1024).toFixed(0)}KB</span>
-                      {item.volumeMm3 ? (
+                      {item.volumeMm3 != null && (
                         <span className="font-mono" style={{ fontSize: 10, color: "var(--green)", flexShrink: 0 }}>{(item.volumeMm3 / 1000).toFixed(1)} cm³</span>
-                      ) : item.volumeError ? (
-                        <span className="font-mono" style={{ fontSize: 10, color: "var(--red)", flexShrink: 0 }}>⚠ parse error</span>
-                      ) : null}
+                      )}
                       {item.widthMm != null && item.depthMm != null && item.heightMm != null && (
                         <span className="font-mono" style={{ fontSize: 10, color: "var(--muted)", flexShrink: 0 }}>
                           {item.widthMm.toFixed(0)}×{item.depthMm.toFixed(0)}×{item.heightMm.toFixed(0)}mm
@@ -389,31 +430,11 @@ export default function QuoteForm() {
                     >×</button>
                   </div>
 
-                  {item.volumeError && (
-                    <div style={{ padding: "8px 14px", background: "rgba(255,90,90,0.08)", borderBottom: "1px solid rgba(255,90,90,0.15)", fontSize: 12, color: "var(--red)" }}>
-                      ⚠ {item.volumeError}
-                    </div>
-                  )}
-
-                  {/* Mesh warnings — blocks quoting until fixed */}
-                  {item.meshWarnings.map((w, wi) => (
-                    <div key={wi} style={{
-                      padding: "7px 14px",
-                      fontSize: 12, color: "var(--red)",
-                      background: "rgba(255,90,90,0.07)",
-                      borderBottom: "1px solid rgba(255,90,90,0.12)",
-                      display: "flex", alignItems: "center", gap: 6,
-                    }}>
-                      <span style={{ flexShrink: 0 }}>⚠</span>
-                      {w.message}
-                    </div>
-                  ))}
-
-                  {/* Build volume warnings */}
+                  {/* Build volume info (diagonal) */}
                   {(() => {
                     if (item.widthMm == null || item.depthMm == null || item.heightMm == null) return null;
-                    const overZ = item.heightMm > BED_Z_MM;
-                    const { fits, diagonal } = bedFit(item.widthMm, item.depthMm);
+                    const { fits, diagonal } = bedFit(item.widthMm, item.depthMm, item.heightMm);
+                    const overZ = false; // handled inside bedFit across all orientations
                     const overXY = !fits;
                     if (!overZ && !overXY) {
                       // Show info banner only if part needs diagonal placement
@@ -431,11 +452,10 @@ export default function QuoteForm() {
                       <div style={{ padding: "7px 14px", fontSize: 12, color: "var(--red)", background: "rgba(255,90,90,0.07)", borderBottom: "1px solid rgba(255,90,90,0.12)", display: "flex", alignItems: "flex-start", gap: 6 }}>
                         <span style={{ flexShrink: 0 }}>⚠</span>
                         <span>
-                          {overZ && `Height ${item.heightMm.toFixed(0)}mm exceeds the ${BED_Z_MM}mm build height. `}
-                          {overXY && (() => {
-                            const L = Math.max(item.widthMm!, item.depthMm!);
-                            const W = Math.min(item.widthMm!, item.depthMm!);
-                            return `Footprint ${L.toFixed(0)}×${W.toFixed(0)}mm is too large — even diagonally, L+W=${(L+W).toFixed(0)}mm exceeds the ${Math.floor(BED_XY_MM * Math.SQRT2)}mm limit.`;
+                          {(() => {
+                            const dims = [item.widthMm!, item.depthMm!, item.heightMm!].map(d => d.toFixed(0));
+                            const diagMax = Math.floor(BED_XY_MM * Math.SQRT2);
+                            return `Part (${dims.join("×")}mm) does not fit the ${BED_XY_MM}×${BED_XY_MM}×${BED_Z_MM}mm build volume in any orientation. Maximum diagonal footprint is L+W=${diagMax}mm.`;
                           })()}
                         </span>
                       </div>
@@ -686,6 +706,35 @@ export default function QuoteForm() {
           )}
         </div>
       </div>
+
+      {/* ── File rejection toasts ── */}
+      {toasts.length > 0 && (
+        <div style={{
+          position: "fixed", bottom: 24, right: 24, zIndex: 9999,
+          display: "flex", flexDirection: "column", gap: 8,
+          pointerEvents: "none",
+        }}>
+          {toasts.map(t => (
+            <div key={t.id} className="file-toast" style={{
+              background: "var(--surface, #1a1a1a)",
+              border: "1px solid rgba(255,90,90,0.25)",
+              borderLeft: "3px solid #ef4444",
+              borderRadius: 8,
+              padding: "10px 14px",
+              maxWidth: 320,
+              boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
+              pointerEvents: "auto",
+            }}>
+              <p style={{ margin: "0 0 3px 0", fontSize: 12, fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {t.filename}
+              </p>
+              <p style={{ margin: 0, fontSize: 11, color: "var(--text-dim)", lineHeight: 1.5 }}>
+                {t.message}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -14,18 +14,29 @@ export const dynamic = "force-dynamic";
 const BED_XY_MM = 256;
 const BED_Z_MM = 256;
 
-// A rectangle L×W fits inside a BED_XY×BED_XY square at some rotation iff:
-//   - L ≤ BED_XY AND W ≤ BED_XY  (fits flat), OR
-//   - W ≤ BED_XY AND L+W ≤ BED_XY×√2  (fits diagonally at ≤45°)
-// Derived from the bounding-box projection at angle θ:
-//   L·cosθ + W·sinθ ≤ BED_XY  AND  L·sinθ + W·cosθ ≤ BED_XY
-// Adding both sides: (L+W)(cosθ+sinθ) ≤ 2·BED_XY, maximised at θ=45°.
-function fitsOnBed(widthMm: number, depthMm: number): { fits: boolean; diagonal: boolean } {
-  const L = Math.max(widthMm, depthMm);
-  const W = Math.min(widthMm, depthMm);
+// Check if a footprint (a×b on bed, c tall) fits the build volume.
+// Flat: both bed dims ≤ BED_XY. Diagonal: shorter ≤ BED_XY AND L+W ≤ BED_XY×√2.
+function fitsInOrientation(a: number, b: number, c: number): { fits: boolean; diagonal: boolean } {
+  if (c > BED_Z_MM) return { fits: false, diagonal: false };
+  const L = Math.max(a, b), W = Math.min(a, b);
   if (L <= BED_XY_MM && W <= BED_XY_MM) return { fits: true, diagonal: false };
   const diagonal = W <= BED_XY_MM && (L + W) <= BED_XY_MM * Math.SQRT2;
   return { fits: diagonal, diagonal };
+}
+
+// Try all 3 axis orientations (each dimension as the vertical axis).
+// Prefers flat fit over diagonal fit.
+function fitsOnBed(widthMm: number, depthMm: number, heightMm: number): { fits: boolean; diagonal: boolean } {
+  const orientations = [
+    fitsInOrientation(widthMm, depthMm, heightMm),
+    fitsInOrientation(widthMm, heightMm, depthMm),
+    fitsInOrientation(depthMm, heightMm, widthMm),
+  ];
+  return (
+    orientations.find(o => o.fits && !o.diagonal) ??
+    orientations.find(o => o.fits) ??
+    { fits: false, diagonal: false }
+  );
 }
 
 interface QuoteFileItem {
@@ -238,19 +249,13 @@ export async function POST(request: Request) {
           );
         }
 
-        // ── Build volume check (Bambu Lab P1S: 256×256×256mm) ──
-        if (heightMm > BED_Z_MM) {
-          return NextResponse.json(
-            { error: `"${item.originalFilename}": part is ${heightMm.toFixed(1)}mm tall — exceeds the ${BED_Z_MM}mm build height.` },
-            { status: 422 }
-          );
-        }
-        const bedCheck = fitsOnBed(widthMm, depthMm);
+        // ── Build volume check (Bambu Lab P1S: 256×256×256mm, all orientations) ──
+        const bedCheck = fitsOnBed(widthMm, depthMm, heightMm);
         if (!bedCheck.fits) {
-          const L = Math.max(widthMm, depthMm), W = Math.min(widthMm, depthMm);
+          const dims = [widthMm, depthMm, heightMm].map(d => d.toFixed(1)).join("×");
           const diagMax = Math.floor(BED_XY_MM * Math.SQRT2);
           return NextResponse.json(
-            { error: `"${item.originalFilename}": footprint ${widthMm.toFixed(1)}×${depthMm.toFixed(1)}mm does not fit the ${BED_XY_MM}×${BED_XY_MM}mm bed (L+W=${(L+W).toFixed(1)}mm exceeds diagonal limit of ${diagMax}mm).` },
+            { error: `"${item.originalFilename}": part (${dims}mm) does not fit the ${BED_XY_MM}×${BED_XY_MM}×${BED_Z_MM}mm build volume in any orientation (max diagonal L+W=${diagMax}mm).` },
             { status: 422 }
           );
         }

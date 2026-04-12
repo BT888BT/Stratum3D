@@ -352,7 +352,7 @@ export async function sendStatusUpdateEmail(order: {
 
   const cfg = STATUS_CONFIG[order.status];
   if (!cfg) {
-    return { sent: false, reason: `No email template for status "${order.status}" — only printing/completed/cancelled/paid trigger emails.` };
+    return { sent: false, reason: `No email template for status "${order.status}" — only order_shipped/completed/cancelled/refunded trigger emails.` };
   }
 
   const shortId = order.orderNumber

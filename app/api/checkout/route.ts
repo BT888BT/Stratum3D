@@ -35,6 +35,26 @@ export async function POST(request: Request) {
       );
     }
 
+    // ── Atomic claim: nullify the token BEFORE calling Stripe ────────────────
+    // This is a compare-and-swap — only one concurrent request can win.
+    // We match on both id AND checkout_token so a second simultaneous request
+    // (token already nullified) gets 0 rows and is rejected before Stripe is called.
+    const { data: claimed, error: claimError } = await supabase
+      .from("orders")
+      .update({ checkout_token: null, status: "checkout_pending" })
+      .eq("id", order.id)
+      .eq("checkout_token", checkoutToken)
+      .eq("status", "draft")
+      .select("id")
+      .single();
+
+    if (claimError || !claimed) {
+      return NextResponse.json(
+        { error: "Checkout already in progress or order is no longer available." },
+        { status: 409 }
+      );
+    }
+
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!;
 
     const session = await stripe.checkout.sessions.create({
@@ -61,18 +81,14 @@ export async function POST(request: Request) {
       ]
     });
 
-    // Nullify checkout_token so it can't be reused
-    const { error: updateError } = await supabase
+    // Store the session ID now that Stripe has confirmed it
+    const { error: sessionError } = await supabase
       .from("orders")
-      .update({
-        stripe_checkout_session_id: session.id,
-        status: "checkout_pending",
-        checkout_token: null,
-      })
+      .update({ stripe_checkout_session_id: session.id })
       .eq("id", order.id);
 
-    if (updateError) {
-      throw new Error(updateError.message);
+    if (sessionError) {
+      console.error(`[checkout] Failed to store session ID for order ${order.id}:`, sessionError.message);
     }
 
     await supabase.from("order_status_history").insert({

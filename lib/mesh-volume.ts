@@ -232,10 +232,3 @@ export function extractVolumeMm3FromBuffer(buffer: Buffer, filename: string): nu
 
   throw new Error(`Unsupported file type: .${ext}`);
 }
-
-// Keep async version for backwards compat if needed elsewhere
-export async function extractVolumeMm3(file: File): Promise<number> {
-  const ab = await file.arrayBuffer();
-  const buffer = Buffer.from(ab);
-  return extractVolumeMm3FromBuffer(buffer, file.name);
-}

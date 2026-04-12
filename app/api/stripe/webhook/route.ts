@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   try {
     const supabase = createAdminClient();
 
-    // #9: Idempotency — check if we've already processed this event
+    // Idempotency check — bail early if already processed
     const { data: existingEvent } = await supabase
       .from("processed_webhook_events")
       .select("id")
@@ -38,15 +38,8 @@ export async function POST(request: Request) {
       .single();
 
     if (existingEvent) {
-      // Already processed — return 200 so Stripe stops retrying
       return new Response("ok (duplicate)", { status: 200 });
     }
-
-    // Record this event as being processed
-    await supabase.from("processed_webhook_events").insert({
-      stripe_event_id: event.id,
-      event_type: event.type,
-    });
 
     // ── Payment authorised — move to pending approval + notify customer ─────
     if (event.type === "checkout.session.completed") {
@@ -176,8 +169,21 @@ export async function POST(request: Request) {
       console.log(`[webhook] Cleaned up ${staleOrders.length} stale unpaid orders`);
     }
 
+    // Record event as processed only after all work succeeds.
+    // If this insert fails we log it but still return 200 — the work is done
+    // and we don't want Stripe to retry and double-process.
+    const { error: idempotencyError } = await supabase
+      .from("processed_webhook_events")
+      .insert({ stripe_event_id: event.id, event_type: event.type });
+
+    if (idempotencyError) {
+      console.error(`[webhook] Failed to record processed event ${event.id}:`, idempotencyError.message);
+    }
+
     return new Response("ok", { status: 200 });
   } catch (err) {
+    // Do NOT record the event here — let Stripe retry so the work gets another chance
+    console.error(`[webhook] Unhandled error for event ${event.id}:`, err instanceof Error ? err.message : err);
     return new Response(
       `Webhook processing error: ${
         err instanceof Error ? err.message : "Unknown error"

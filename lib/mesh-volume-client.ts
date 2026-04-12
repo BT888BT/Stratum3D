@@ -55,10 +55,6 @@ function meshDataFromBinarySTL(ab: ArrayBuffer): ClientMeshData {
   };
 }
 
-function volumeFromBinarySTL(ab: ArrayBuffer): number {
-  return meshDataFromBinarySTL(ab).volumeMm3;
-}
-
 // ── ASCII STL ────────────────────────────────────────────────────────────────
 function meshDataFromASCIISTL(text: string): ClientMeshData {
   const re = /vertex\s+([\d.eE+\-]+)\s+([\d.eE+\-]+)\s+([\d.eE+\-]+)/g;
@@ -87,10 +83,6 @@ function meshDataFromASCIISTL(text: string): ClientMeshData {
     depthMm: isFinite(maxY) ? maxY - minY : 0,
     heightMm: isFinite(maxZ) ? maxZ - minZ : 0,
   };
-}
-
-function volumeFromASCIISTL(text: string): number {
-  return meshDataFromASCIISTL(text).volumeMm3;
 }
 
 /**
@@ -122,10 +114,3 @@ export function extractMeshDataFromArrayBuffer(ab: ArrayBuffer, filename: string
   throw new Error(`Unsupported file type: .${ext}`);
 }
 
-/**
- * Calculate volume from a File object (async — reads file first).
- */
-export async function extractVolumeMm3FromFile(file: File): Promise<number> {
-  const ab = await file.arrayBuffer();
-  return extractVolumeMm3FromArrayBuffer(ab, file.name);
-}

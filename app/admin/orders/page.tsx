@@ -42,7 +42,8 @@ export default async function AdminOrdersPage() {
 
   const counts = {
     total: orders?.filter(o => !["draft", "checkout_pending"].includes(o.status)).length ?? 0,
-    paid: orders?.filter(o => o.status === "order_received" || o.status === "paid").length ?? 0,
+    pendingApproval: orders?.filter(o => o.status === "pending_approval").length ?? 0,
+    awaitingPrint: orders?.filter(o => o.status === "order_received" || o.status === "paid").length ?? 0,
     printing: orders?.filter(o => o.status === "printing").length ?? 0,
     completed: orders?.filter(o => o.status === "completed").length ?? 0,
   };
@@ -67,12 +68,13 @@ export default async function AdminOrdersPage() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
         {[
-          { label: "Total Orders", value: counts.total, color: "var(--text)" },
-          { label: "Awaiting Print", value: counts.paid, color: "var(--accent)" },
-          { label: "Printing", value: counts.printing, color: "var(--amber)" },
-          { label: "Completed", value: counts.completed, color: "var(--green)" },
+          { label: "Total Orders",     value: counts.total,           color: "var(--text)" },
+          { label: "Pending Approval", value: counts.pendingApproval, color: "var(--accent)" },
+          { label: "Awaiting Print",   value: counts.awaitingPrint,   color: "var(--accent)" },
+          { label: "Printing",         value: counts.printing,        color: "var(--amber)" },
+          { label: "Completed",        value: counts.completed,       color: "var(--green)" },
         ].map(s => (
           <div key={s.label} className="card" style={{ textAlign: "center" }}>
             <p className="font-display" style={{ fontSize: 32, fontWeight: 700, color: s.color }}>{s.value}</p>

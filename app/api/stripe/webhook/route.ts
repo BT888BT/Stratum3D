@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendOrderConfirmationEmail } from "@/lib/email";
+import { sendOrderUnderReviewEmail } from "@/lib/email";
 import type Stripe from "stripe";
 
 export async function POST(request: Request) {
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
       event_type: event.type,
     });
 
-    // ── Payment completed — confirm order + send email ─────
+    // ── Payment authorised — move to pending approval + notify customer ─────
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       const orderId =
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
         await supabase
           .from("orders")
           .update({
-            status: "order_received",
+            status: "pending_approval",
             stripe_payment_intent_id:
               typeof session.payment_intent === "string"
                 ? session.payment_intent
@@ -68,66 +68,29 @@ export async function POST(request: Request) {
 
         await supabase.from("order_status_history").insert({
           order_id: orderId,
-          status: "order_received",
-          note: "Stripe payment completed"
+          status: "pending_approval",
+          note: "Payment authorised — awaiting admin review"
         });
 
-        // Fetch order + ALL quote inputs to build the confirmation email
         const { data: order } = await supabase
           .from("orders")
           .select("*")
           .eq("id", orderId)
           .single();
 
-        const { data: quoteInputs } = await supabase
-          .from("quote_inputs")
-          .select("*")
-          .eq("order_id", orderId)
-          .order("original_filename");
-
         if (order) {
-          const items = (quoteInputs ?? []).map(qi => ({
-            filename: qi.original_filename ?? "Unknown file",
-            material: qi.material ?? "—",
-            colour: qi.colour ?? "—",
-            wallLayers: qi.wall_layers ?? 3,
-            infillPercent: qi.infill_percent ?? 20,
-            quantity: qi.quantity ?? 1,
-            // #10: Use explicit remove_supports field (fall back to old method for existing orders)
-            removeSupports: qi.remove_supports ?? (qi.shipping_method === "supports_removed"),
-            lineTotalCents: qi.line_total_cents ?? 0,
-          }));
-
-          if (items.length === 0) {
-            // Print settings missing — log for admin to investigate, but don't expose to customer
-            console.error(`[webhook] MISSING quote_inputs for order ${orderId} — customer email will omit item table`);
-          }
-
-          // #10: Use explicit delivery_method field (fall back to shipping_cents for existing orders)
-          const isPickup = order.delivery_method
-            ? order.delivery_method === "pickup"
-            : order.shipping_cents === 500;
-
-          await sendOrderConfirmationEmail({
+          await sendOrderUnderReviewEmail({
             id: order.id,
             orderNumber: order.order_number ?? undefined,
             customerName: order.customer_name,
             email: order.email,
             totalCents: order.total_cents,
-            subtotalCents: order.subtotal_cents,
-            shippingCents: order.shipping_cents,
-            gstCents: order.gst_cents,
-            items,
-            shippingMethod: isPickup ? "pickup" : "shipping",
-            shippingAddress: [
-              order.shipping_address_line1,
-              order.shipping_address_line2,
-              order.shipping_city && `${order.shipping_city} ${order.shipping_state} ${order.shipping_postcode}`
-            ].filter(Boolean).join(", "),
           }).catch((err) =>
-            console.error("[email] order confirmation failed:", err)
+            console.error("[email] under-review email failed:", err)
           );
         }
+
+        console.log(`[webhook] Order ${orderId} moved to pending_approval`);
       }
     }
 

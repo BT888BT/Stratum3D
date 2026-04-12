@@ -77,7 +77,113 @@ export type OrderLineItem = {
   lineTotalCents: number;
 };
 
-// ─── Customer: order confirmation ────────────────────────────────────────────
+// ─── Customer: under review (payment authorised, not yet captured) ────────────
+
+export async function sendOrderUnderReviewEmail(order: {
+  id: string;
+  orderNumber?: number;
+  customerName: string;
+  email: string;
+  totalCents: number;
+}) {
+  if (!process.env.RESEND_API_KEY) return;
+
+  const shortId = order.orderNumber
+    ? `S3D-${String(order.orderNumber).padStart(4, "0")}`
+    : order.id.slice(0, 8).toUpperCase();
+
+  const content = `
+    <h2 style="margin:0 0 4px 0;font-size:22px;color:#1a1a1a">Thanks, ${esc(order.customerName)}!</h2>
+    <p style="margin:0 0 24px 0;font-size:14px;color:#888">We've received your order and your payment has been authorised.</p>
+
+    <div style="display:inline-block;background:#0e0a06;color:#f97316;font-size:13px;font-weight:700;padding:6px 14px;border-radius:6px;letter-spacing:0.08em;margin-bottom:20px">${shortId}</div>
+
+    <div style="background:#fef7f0;border:1px solid #fde0c4;border-radius:8px;padding:16px 18px;margin-bottom:20px">
+      <p style="margin:0;font-size:14px;font-weight:600;color:#c2590a">ORDER UNDER REVIEW</p>
+      <p style="margin:8px 0 0 0;font-size:13px;color:#666;line-height:1.7">We're reviewing your print files to make sure everything looks good before we start. <strong>No charge has been made to your card yet</strong> — we'll confirm and capture payment once approved.</p>
+    </div>
+
+    <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+      <tr>
+        <td style="padding:6px 0;font-size:13px;color:#888">Order total</td>
+        <td style="padding:6px 0;text-align:right;font-size:14px;font-weight:700;color:#1a1a1a">${formatAud(order.totalCents)}</td>
+      </tr>
+    </table>
+
+    <p style="margin:0;font-size:13px;color:#888;line-height:1.7">You'll receive another email as soon as we've reviewed your files — usually within a few hours. If you have any questions, just reply to this email.</p>
+    <p style="margin:8px 0 0 0;font-size:13px;color:#888">— The Stratum3D team</p>
+  `;
+
+  const { error } = await resend.emails.send({
+    from: FROM,
+    replyTo: REPLY_TO || undefined,
+    to: order.email,
+    subject: `Stratum3D — Order ${shortId} received — under review`,
+    html: emailWrapper(content),
+  });
+
+  if (error) {
+    console.error(`[email] under-review email error for ${order.email}:`, JSON.stringify(error));
+    throw new Error(`Resend: ${error.message || JSON.stringify(error)}`);
+  }
+
+  console.log(`[email] Under-review email sent to ${order.email} for ${shortId}`);
+}
+
+// ─── Customer: order rejected ─────────────────────────────────────────────────
+
+export async function sendOrderRejectedEmail(order: {
+  id: string;
+  orderNumber?: number;
+  customerName: string;
+  email: string;
+  totalCents: number;
+  rejectNote?: string | null;
+}) {
+  if (!process.env.RESEND_API_KEY) return;
+
+  const shortId = order.orderNumber
+    ? `S3D-${String(order.orderNumber).padStart(4, "0")}`
+    : order.id.slice(0, 8).toUpperCase();
+
+  const content = `
+    <h2 style="margin:0 0 4px 0;font-size:22px;color:#1a1a1a">Hi ${esc(order.customerName)},</h2>
+    <p style="margin:0 0 24px 0;font-size:14px;color:#888">We have an update on your recent order.</p>
+
+    <div style="display:inline-block;background:#0e0a06;color:#f97316;font-size:13px;font-weight:700;padding:6px 14px;border-radius:6px;letter-spacing:0.08em;margin-bottom:20px">${shortId}</div>
+
+    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px 18px;margin-bottom:20px">
+      <p style="margin:0;font-size:14px;font-weight:600;color:#dc2626">ORDER CANCELLED</p>
+      <p style="margin:8px 0 0 0;font-size:13px;color:#666;line-height:1.7">Unfortunately we're unable to process this order. <strong>No charge has been made to your card</strong> — the payment authorisation has been released.</p>
+    </div>
+
+    ${order.rejectNote ? `
+    <div style="background:#faf8f5;border-left:3px solid #f97316;padding:12px 16px;border-radius:0 6px 6px 0;margin:16px 0">
+      <p style="margin:0 0 4px 0;font-size:11px;font-weight:700;color:#a09890;text-transform:uppercase;letter-spacing:0.08em">Note from our team</p>
+      <p style="margin:0;font-size:13px;color:#555;line-height:1.6">${esc(order.rejectNote)}</p>
+    </div>` : ""}
+
+    <p style="margin:20px 0 0 0;font-size:13px;color:#888;line-height:1.7">If you have any questions or would like to resubmit with changes, just reply to this email.</p>
+    <p style="margin:8px 0 0 0;font-size:13px;color:#888">— The Stratum3D team</p>
+  `;
+
+  const { error } = await resend.emails.send({
+    from: FROM,
+    replyTo: REPLY_TO || undefined,
+    to: order.email,
+    subject: `Stratum3D — Order ${shortId} cancelled`,
+    html: emailWrapper(content),
+  });
+
+  if (error) {
+    console.error(`[email] rejection email error for ${order.email}:`, JSON.stringify(error));
+    throw new Error(`Resend: ${error.message || JSON.stringify(error)}`);
+  }
+
+  console.log(`[email] Rejection email sent to ${order.email} for ${shortId}`);
+}
+
+// ─── Customer: order confirmed (approved by admin) ────────────────────────────
 
 export async function sendOrderConfirmationEmail(order: {
   id: string;
@@ -132,8 +238,8 @@ export async function sendOrderConfirmationEmail(order: {
       </div>`;
 
   const content = `
-    <h2 style="margin:0 0 4px 0;font-size:22px;color:#1a1a1a">Thanks, ${esc(order.customerName)}!</h2>
-    <p style="margin:0 0 24px 0;font-size:14px;color:#888">Your order has been confirmed and payment received.</p>
+    <h2 style="margin:0 0 4px 0;font-size:22px;color:#1a1a1a">Great news, ${esc(order.customerName)}!</h2>
+    <p style="margin:0 0 24px 0;font-size:14px;color:#888">Your order has been approved — printing will begin soon.</p>
 
     <!-- Order number badge -->
     <div style="display:inline-block;background:#0e0a06;color:#f97316;font-size:13px;font-weight:700;padding:6px 14px;border-radius:6px;letter-spacing:0.08em;margin-bottom:20px">${shortId}</div>
@@ -177,7 +283,7 @@ export async function sendOrderConfirmationEmail(order: {
 
     ${deliveryBlock}
 
-    <p style="margin:24px 0 0 0;font-size:13px;color:#888;line-height:1.7">We'll send you another email when your print status changes. If you have any questions, just reply to this email.</p>
+    <p style="margin:24px 0 0 0;font-size:13px;color:#888;line-height:1.7">We'll send you another email when your order ships. If you have any questions, just reply to this email.</p>
     <p style="margin:8px 0 0 0;font-size:13px;color:#888">— The Stratum3D team</p>
   `;
 
@@ -185,7 +291,7 @@ export async function sendOrderConfirmationEmail(order: {
     from: FROM,
     replyTo: REPLY_TO || undefined,
     to: order.email,
-    subject: `Stratum3D — Order ${shortId} confirmed`,
+    subject: `Stratum3D — Order ${shortId} approved — printing soon`,
     html: emailWrapper(content),
   });
 
@@ -205,10 +311,10 @@ export async function sendOrderConfirmationEmail(order: {
     const { error: adminErr } = await resend.emails.send({
       from: FROM,
       to: ADMIN,
-      subject: `New paid order ${shortId} — ${order.customerName}`,
+      subject: `New order to approve ${shortId} — ${order.customerName}`,
       html: `
         <div style="font-family:sans-serif;max-width:540px;margin:auto;color:#111">
-          <h2>New order received</h2>
+          <h2>New order — pending your approval</h2>
           <p><strong>Customer:</strong> ${esc(order.customerName)} (${esc(order.email)})</p>
           <p><strong>Total:</strong> ${formatAud(order.totalCents)}</p>
           <p><strong>Delivery:</strong> ${deliveryInfo}</p>
@@ -226,14 +332,10 @@ export async function sendOrderConfirmationEmail(order: {
 // ─── Customer: status update ──────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<string, { label: string; colour: string; bg: string; border: string }> = {
-  order_received: { label: "Order received — payment confirmed", colour: "#0a7c42", bg: "#f0faf5", border: "#c4edda" },
-  printing:       { label: "Your order is now printing",         colour: "#c2590a", bg: "#fef7f0", border: "#fde0c4" },
   order_shipped:  { label: "Your order has been shipped",        colour: "#0a7c42", bg: "#f0faf5", border: "#c4edda" },
   completed:      { label: "Your order is complete",             colour: "#0a7c42", bg: "#f0faf5", border: "#c4edda" },
   cancelled:      { label: "Your order has been cancelled",      colour: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
   refunded:       { label: "Your order has been refunded",       colour: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
-  // legacy
-  paid:           { label: "Payment confirmed",                  colour: "#0a7c42", bg: "#f0faf5", border: "#c4edda" },
 };
 
 export async function sendStatusUpdateEmail(order: {

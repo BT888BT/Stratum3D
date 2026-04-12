@@ -6,6 +6,7 @@ import { sendStatusUpdateEmail } from "@/lib/email";
 const allowedStatuses = [
   "draft",
   "checkout_pending",
+  "pending_approval",
   "order_received",
   "printing",
   "order_shipped",

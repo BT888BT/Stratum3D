@@ -21,6 +21,8 @@ export default function OrderStatusActions({
 }) {
   const [loading, setLoading] = useState<string | null>(null);
   const [note, setNote] = useState("");
+  const [rejectNote, setRejectNote] = useState("");
+  const [showRejectForm, setShowRejectForm] = useState(false);
   const [emailResult, setEmailResult] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -48,6 +50,50 @@ export default function OrderStatusActions({
     }
   }
 
+  async function approveOrder() {
+    try {
+      setLoading("approve");
+      setError("");
+      setEmailResult(null);
+      const res = await fetch("/api/admin/approve-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId, action: "approve" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to approve order.");
+      setEmailResult("Order approved — payment captured, confirmation email sent.");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to approve.");
+    } finally {
+      setLoading(null);
+    }
+  }
+
+  async function rejectOrder() {
+    try {
+      setLoading("reject");
+      setError("");
+      setEmailResult(null);
+      const res = await fetch("/api/admin/approve-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId, action: "reject", rejectNote: rejectNote || undefined }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to reject order.");
+      setEmailResult("Order rejected — payment cancelled, customer notified.");
+      setShowRejectForm(false);
+      setRejectNote("");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to reject.");
+    } finally {
+      setLoading(null);
+    }
+  }
+
   async function deleteOrder() {
     try {
       setLoading("delete");
@@ -69,6 +115,73 @@ export default function OrderStatusActions({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+      {/* ── Pending Approval: Approve / Reject ── */}
+      {currentStatus === "pending_approval" && (
+        <div style={{ border: "1px solid var(--accent-dim)", borderRadius: 10, padding: "16px", background: "rgba(249,115,22,0.04)", display: "flex", flexDirection: "column", gap: 12 }}>
+          <div>
+            <p style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Pending Approval</p>
+            <p style={{ fontSize: 12, color: "var(--text-dim)", lineHeight: 1.6 }}>Review the STL files above, then approve or reject this order. Approval captures payment and sends the customer a full confirmation email.</p>
+          </div>
+          <button
+            onClick={approveOrder}
+            disabled={loading !== null}
+            style={{
+              padding: "12px 16px", borderRadius: 8, fontSize: 14, fontWeight: 700,
+              border: "none", background: "var(--green)", color: "white",
+              cursor: loading ? "default" : "pointer", opacity: loading ? 0.6 : 1,
+              transition: "opacity 0.15s",
+            }}
+          >
+            {loading === "approve" ? "Approving..." : "✓ Approve Order"}
+          </button>
+
+          {!showRejectForm ? (
+            <button
+              onClick={() => setShowRejectForm(true)}
+              disabled={loading !== null}
+              style={{
+                padding: "10px 14px", borderRadius: 8, fontSize: 13,
+                border: "1px solid rgba(255,90,90,0.4)", background: "transparent",
+                color: "var(--red)", cursor: "pointer", textAlign: "left",
+              }}
+            >
+              ✕ Reject Order →
+            </button>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: "12px 14px", border: "1px solid rgba(255,90,90,0.3)", borderRadius: 8, background: "rgba(255,90,90,0.04)" }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: "var(--red)" }}>Reject this order?</p>
+              <p style={{ fontSize: 12, color: "var(--text-dim)" }}>The payment authorisation will be cancelled — no charge to the customer.</p>
+              <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Reason (optional — shown to customer)</span>
+                <textarea
+                  value={rejectNote}
+                  onChange={e => setRejectNote(e.target.value)}
+                  className="input-field"
+                  style={{ resize: "vertical", minHeight: 60, fontSize: 13 }}
+                  placeholder="e.g. File has non-manifold geometry that can't be printed..."
+                />
+              </label>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  onClick={rejectOrder}
+                  disabled={loading !== null}
+                  style={{ flex: 1, padding: "9px 12px", borderRadius: 6, fontSize: 13, border: "none", background: "var(--red)", color: "white", cursor: loading ? "default" : "pointer", opacity: loading ? 0.6 : 1 }}
+                >
+                  {loading === "reject" ? "Rejecting..." : "Confirm Reject"}
+                </button>
+                <button
+                  onClick={() => { setShowRejectForm(false); setRejectNote(""); }}
+                  disabled={loading !== null}
+                  style={{ padding: "9px 12px", borderRadius: 6, fontSize: 13, border: "1px solid var(--border)", background: "transparent", color: "var(--text-dim)", cursor: "pointer" }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Note */}
       <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>

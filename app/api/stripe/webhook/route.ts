@@ -99,7 +99,8 @@ export async function POST(request: Request) {
           }));
 
           if (items.length === 0) {
-            items.push({ filename: "3D Print", material: "—", colour: "—", wallLayers: 3, infillPercent: 20, quantity: 1, removeSupports: false, lineTotalCents: 0 });
+            // Print settings missing — log for admin to investigate, but don't expose to customer
+            console.error(`[webhook] MISSING quote_inputs for order ${orderId} — customer email will omit item table`);
           }
 
           // #10: Use explicit delivery_method field (fall back to shipping_cents for existing orders)

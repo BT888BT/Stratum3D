@@ -145,7 +145,7 @@ export default async function AdminOrderDetailPage({
                         {new Date(h.created_at).toLocaleString("en-AU", { dateStyle: "short", timeStyle: "short" })}
                       </span>
                     </div>
-                    {h.note && <p style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 4 }}>{h.note}</p>}
+                    {h.note && <p style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 4, whiteSpace: "pre-wrap" }}>{h.note}</p>}
                   </div>
                 </div>
               ))}

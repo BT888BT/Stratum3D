@@ -317,60 +317,89 @@ export async function POST(request: Request) {
     const customerSlug = slugFileName(contact.customerName).slice(0, 30);
     const folderName = `S3D-${orderNum}_${customerSlug}`;
 
-    // ── Save files + quote inputs, mark uploads consumed ───
-    for (let i = 0; i < validatedItems.length; i++) {
-      const { item, settings, volumeMm3, actualSizeBytes } = validatedItems[i];
-      const itemQuote = itemQuotes[i];
+    // ── Save files + quote inputs ───────────────────────────
+    // Track moved storage paths so we can clean up on rollback
+    const movedPaths: string[] = [];
 
-      const safeName = slugFileName(item.originalFilename);
-      const newPath = `${folderName}/${safeName}`;
+    try {
+      for (let i = 0; i < validatedItems.length; i++) {
+        const { item, settings, volumeMm3, actualSizeBytes } = validatedItems[i];
+        const itemQuote = itemQuotes[i];
 
-      const { error: moveError } = await supabase.storage
-        .from("order-files")
-        .move(item.storagePath, newPath);
+        const safeName = slugFileName(item.originalFilename);
+        const newPath = `${folderName}/${safeName}`;
 
-      const finalPath = moveError ? item.storagePath : newPath;
+        const { error: moveError } = await supabase.storage
+          .from("order-files")
+          .move(item.storagePath, newPath);
 
-      const { data: fileRecord } = await supabase
-        .from("order_files")
-        .insert({
+        const finalPath = moveError ? item.storagePath : newPath;
+        if (!moveError) movedPaths.push(finalPath);
+
+        const { data: fileRecord, error: fileError } = await supabase
+          .from("order_files")
+          .insert({
+            order_id: order.id,
+            original_filename: item.originalFilename,
+            storage_path: finalPath,
+            mime_type: "model/stl",
+            file_size_bytes: actualSizeBytes,
+            validation_status: "accepted",
+          })
+          .select("id")
+          .single();
+
+        if (fileError || !fileRecord) {
+          throw new Error(`Failed to save file record for "${item.originalFilename}". Please try again.`);
+        }
+
+        const { error: quoteInputError } = await supabase.from("quote_inputs").insert({
           order_id: order.id,
+          file_id: fileRecord.id,
           original_filename: item.originalFilename,
-          storage_path: finalPath,
-          mime_type: "model/stl",
-          file_size_bytes: actualSizeBytes,
-          validation_status: "accepted",
-        })
-        .select("id")
-        .single();
+          material: settings.material,
+          colour: settings.colour,
+          wall_layers: settings.wallLayers,
+          infill_percent: settings.infillPercent,
+          quantity: settings.quantity,
+          remove_supports: settings.removeSupports,
+          estimated_volume_cm3: parseFloat((volumeMm3 / 1000).toFixed(2)),
+          estimated_print_time_minutes: itemQuote.estimatedPrintTimeMinutes,
+          line_total_cents: itemQuote.itemTotalCents,
+        });
 
-      await supabase.from("quote_inputs").insert({
-        order_id: order.id,
-        file_id: fileRecord?.id ?? null,
-        original_filename: item.originalFilename,
-        material: settings.material,
-        colour: settings.colour,
-        wall_layers: settings.wallLayers,
-        infill_percent: settings.infillPercent,
-        quantity: settings.quantity,
-        // #10: Store remove_supports explicitly instead of encoding in shipping_method
-        remove_supports: settings.removeSupports,
-        estimated_volume_cm3: parseFloat((volumeMm3 / 1000).toFixed(2)),
-        estimated_print_time_minutes: itemQuote.estimatedPrintTimeMinutes,
-        line_total_cents: itemQuote.itemTotalCents,
-      });
-
-      // #2: Mark this upload as consumed so it can't be reused
-      await supabase
-        .from("pending_uploads")
-        .update({ consumed: true })
-        .eq("storage_path", item.storagePath);
+        if (quoteInputError) {
+          throw new Error(`Failed to save print settings for "${item.originalFilename}": ${quoteInputError.message}`);
+        }
+      }
+    } catch (saveError) {
+      // Roll back: delete order (cascades to order_files + quote_inputs) and clean up storage
+      console.error("[quote] Rolling back order due to save error:", saveError);
+      await supabase.from("orders").delete().eq("id", order.id);
+      if (movedPaths.length) {
+        await supabase.storage.from("order-files").remove(movedPaths);
+      }
+      throw saveError;
     }
+
+    // All DB records saved — now mark uploads as consumed so they can't be reused
+    const allPendingPaths = validatedItems.map(v => v.item.storagePath);
+    await supabase
+      .from("pending_uploads")
+      .update({ consumed: true })
+      .in("storage_path", allPendingPaths);
+
+    // Build a detailed history note — acts as a permanent audit trail / settings backup
+    const itemNotes = validatedItems.map(({ item, settings }, i) => {
+      const price = (itemQuotes[i].itemTotalCents / 100).toFixed(2);
+      const supports = settings.removeSupports ? " · supports removed" : "";
+      return `• ${item.originalFilename} | ${settings.material} · ${settings.colour} · ${settings.wallLayers} walls · ${settings.infillPercent}% infill · qty ${settings.quantity}${supports} · $${price}`;
+    }).join("\n");
 
     await supabase.from("order_status_history").insert({
       order_id: order.id,
       status: "draft",
-      note: `Draft quote — ${body.items.length} file(s): ${body.items.map(i => i.originalFilename).join(", ")}`,
+      note: `Draft quote — ${body.items.length} file(s):\n${itemNotes}`,
     });
 
     return NextResponse.json({

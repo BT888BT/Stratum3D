@@ -102,7 +102,8 @@ export async function sendOrderConfirmationEmail(order: {
 
   const adminLink = `${SITE}/admin/orders/${order.id}`;
 
-  const itemRowsHtml = order.items.map((item) => `
+  const itemRowsHtml = order.items.length > 0
+    ? order.items.map((item) => `
     <tr>
       <td style="padding:14px 0;border-top:1px solid #f0ece6;vertical-align:top">
         <p style="margin:0;font-weight:600;font-size:14px;color:#1a1a1a">${esc(item.filename)}</p>
@@ -113,7 +114,8 @@ export async function sendOrderConfirmationEmail(order: {
       <td style="padding:14px 0;border-top:1px solid #f0ece6;text-align:center;vertical-align:top;font-size:13px;color:#666;width:44px">×${item.quantity}</td>
       <td style="padding:14px 0;border-top:1px solid #f0ece6;text-align:right;vertical-align:top;font-size:14px;font-weight:600;color:#1a1a1a;width:80px">${formatAud(item.lineTotalCents)}</td>
     </tr>
-  `).join("");
+  `).join("")
+    : `<tr><td colspan="3" style="padding:14px 0;border-top:1px solid #f0ece6;font-size:13px;color:#888">We have your print files and will confirm the details with you shortly.</td></tr>`;
 
   const deliveryLabel = order.shippingMethod === "pickup"
     ? "Parcel locker pickup"
@@ -196,7 +198,9 @@ export async function sendOrderConfirmationEmail(order: {
 
   // Admin notification
   if (ADMIN) {
-    const itemSummary = order.items.map(i => `${esc(i.filename)} (${esc(i.material)} ${esc(i.colour)} ×${i.quantity}${i.removeSupports ? " +supports removed" : ""})`).join(", ");
+    const itemSummary = order.items.length > 0
+      ? order.items.map(i => `${esc(i.filename)} (${esc(i.material)} ${esc(i.colour)} ×${i.quantity}${i.removeSupports ? " +supports removed" : ""})`).join(", ")
+      : "⚠️ Print settings not recorded — check order in admin";
     const deliveryInfo = order.shippingMethod === "pickup" ? "Parcel locker pickup" : `Ship to: ${esc(order.shippingAddress)}`;
     const { error: adminErr } = await resend.emails.send({
       from: FROM,

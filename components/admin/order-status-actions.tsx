@@ -141,12 +141,13 @@ export default function OrderStatusActions({
               onClick={() => setShowRejectForm(true)}
               disabled={loading !== null}
               style={{
-                padding: "10px 14px", borderRadius: 8, fontSize: 13,
-                border: "1px solid rgba(255,90,90,0.4)", background: "transparent",
-                color: "var(--red)", cursor: "pointer", textAlign: "left",
+                padding: "12px 16px", borderRadius: 8, fontSize: 14, fontWeight: 700,
+                border: "none", background: "var(--red)", color: "white",
+                cursor: loading ? "default" : "pointer", opacity: loading ? 0.6 : 1,
+                transition: "opacity 0.15s",
               }}
             >
-              ✕ Reject Order →
+              ✕ Reject Order
             </button>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: "12px 14px", border: "1px solid rgba(255,90,90,0.3)", borderRadius: 8, background: "rgba(255,90,90,0.04)" }}>

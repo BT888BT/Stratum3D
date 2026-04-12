@@ -128,6 +128,27 @@ export async function sendOrderUnderReviewEmail(order: {
   }
 
   console.log(`[email] Under-review email sent to ${order.email} for ${shortId}`);
+
+  // Admin notification — alert you to review and approve/reject
+  if (ADMIN) {
+    const adminLink = `${SITE}/admin/orders/${order.id}`;
+    const { error: adminErr } = await resend.emails.send({
+      from: FROM,
+      to: ADMIN,
+      subject: `New order to approve ${shortId} — ${order.customerName}`,
+      html: `
+        <div style="font-family:sans-serif;max-width:540px;margin:auto;color:#111">
+          <h2>New order — pending your approval</h2>
+          <p><strong>Customer:</strong> ${esc(order.customerName)} (${esc(order.email)})</p>
+          <p><strong>Total:</strong> ${formatAud(order.totalCents)}</p>
+          <p><a href="${adminLink}" style="color:#0070f3;font-weight:600">Review &amp; approve order →</a></p>
+        </div>
+      `,
+    });
+    if (adminErr) {
+      console.error("[email] Admin notification failed:", JSON.stringify(adminErr));
+    }
+  }
 }
 
 // ─── Customer: order rejected ─────────────────────────────────────────────────
@@ -163,7 +184,7 @@ export async function sendOrderRejectedEmail(order: {
       <p style="margin:0;font-size:13px;color:#555;line-height:1.6">${esc(order.rejectNote)}</p>
     </div>` : ""}
 
-    <p style="margin:20px 0 0 0;font-size:13px;color:#888;line-height:1.7">If you have any questions or would like to resubmit with changes, just reply to this email.</p>
+    <p style="margin:20px 0 0 0;font-size:13px;color:#888;line-height:1.7">If you have any questions, just reply to this email.</p>
     <p style="margin:8px 0 0 0;font-size:13px;color:#888">— The Stratum3D team</p>
   `;
 

@@ -71,13 +71,48 @@ export async function POST(request: Request) {
           .eq("id", orderId)
           .single();
 
+        const { data: quoteInputs } = await supabase
+          .from("quote_inputs")
+          .select("*")
+          .eq("order_id", orderId)
+          .order("original_filename");
+
         if (order) {
+          const items = (quoteInputs ?? []).map(qi => ({
+            filename: qi.original_filename ?? "Unknown file",
+            material: qi.material ?? "—",
+            colour: qi.colour ?? "—",
+            wallLayers: qi.wall_layers ?? 3,
+            infillPercent: qi.infill_percent ?? 20,
+            quantity: qi.quantity ?? 1,
+            removeSupports: qi.remove_supports ?? false,
+            lineTotalCents: qi.line_total_cents ?? 0,
+          }));
+
+          if (items.length === 0) {
+            console.error(`[webhook] MISSING quote_inputs for order ${orderId}`);
+          }
+
+          const isPickup = order.delivery_method
+            ? order.delivery_method === "pickup"
+            : order.shipping_cents === 500;
+
           await sendOrderUnderReviewEmail({
             id: order.id,
             orderNumber: order.order_number ?? undefined,
             customerName: order.customer_name,
             email: order.email,
             totalCents: order.total_cents,
+            subtotalCents: order.subtotal_cents,
+            shippingCents: order.shipping_cents,
+            gstCents: order.gst_cents,
+            items,
+            shippingMethod: isPickup ? "pickup" : "shipping",
+            shippingAddress: [
+              order.shipping_address_line1,
+              order.shipping_address_line2,
+              order.shipping_city && `${order.shipping_city} ${order.shipping_state} ${order.shipping_postcode}`,
+            ].filter(Boolean).join(", "),
           }).catch((err) =>
             console.error("[email] under-review email failed:", err)
           );

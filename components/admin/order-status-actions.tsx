@@ -4,10 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const ACTIONS = [
-  { label: "Order Received",  status: "order_received", color: "var(--accent)" },
-  { label: "Printing",        status: "printing",        color: "var(--amber)" },
-  { label: "Order Shipped",   status: "order_shipped",   color: "var(--green)" },
-  { label: "Completed",       status: "completed",       color: "var(--green)" },
+  { label: "Order Received", status: "order_received", color: "var(--accent)" },
+  { label: "Order Shipped",  status: "order_shipped",  color: "var(--amber)" },
+  { label: "Completed",      status: "completed",      color: "var(--green)" },
 ] as const;
 
 export default function OrderStatusActions({

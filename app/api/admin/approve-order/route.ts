@@ -56,49 +56,12 @@ export async function POST(request: Request) {
         note: "Order approved by admin — payment captured",
       });
 
-      // Fetch quote inputs for the confirmation email
-      const { data: quoteInputs } = await supabase
-        .from("quote_inputs")
-        .select("*")
-        .eq("order_id", orderId)
-        .order("original_filename");
-
-      const items = (quoteInputs ?? []).map(qi => ({
-        filename: qi.original_filename ?? "Unknown file",
-        material: qi.material ?? "—",
-        colour: qi.colour ?? "—",
-        wallLayers: qi.wall_layers ?? 3,
-        infillPercent: qi.infill_percent ?? 20,
-        quantity: qi.quantity ?? 1,
-        removeSupports: qi.remove_supports ?? false,
-        lineTotalCents: qi.line_total_cents ?? 0,
-      }));
-
-      if (items.length === 0) {
-        console.error(`[approve-order] MISSING quote_inputs for order ${orderId}`);
-      }
-
-      const isPickup = order.delivery_method
-        ? order.delivery_method === "pickup"
-        : order.shipping_cents === 500;
-
       await sendOrderConfirmationEmail({
         id: order.id,
         orderNumber: order.order_number ?? undefined,
         customerName: order.customer_name,
         email: order.email,
-        totalCents: order.total_cents,
-        subtotalCents: order.subtotal_cents,
-        shippingCents: order.shipping_cents,
-        gstCents: order.gst_cents,
-        items,
-        shippingMethod: isPickup ? "pickup" : "shipping",
-        shippingAddress: [
-          order.shipping_address_line1,
-          order.shipping_address_line2,
-          order.shipping_city && `${order.shipping_city} ${order.shipping_state} ${order.shipping_postcode}`,
-        ].filter(Boolean).join(", "),
-      }).catch(err => console.error("[approve-order] Confirmation email failed:", err));
+      }).catch(err => console.error("[approve-order] Approval email failed:", err));
 
       console.log(`[approve-order] Order ${orderId} approved and moved to order_received`);
       return NextResponse.json({ success: true, action: "approved" });

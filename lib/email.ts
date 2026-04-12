@@ -85,6 +85,12 @@ export async function sendOrderUnderReviewEmail(order: {
   customerName: string;
   email: string;
   totalCents: number;
+  subtotalCents: number;
+  shippingCents: number;
+  gstCents: number;
+  items: OrderLineItem[];
+  shippingMethod: string;
+  shippingAddress: string;
 }) {
   if (!process.env.RESEND_API_KEY) return;
 
@@ -92,25 +98,86 @@ export async function sendOrderUnderReviewEmail(order: {
     ? `S3D-${String(order.orderNumber).padStart(4, "0")}`
     : order.id.slice(0, 8).toUpperCase();
 
+  const adminLink = `${SITE}/admin/orders/${order.id}`;
+
+  const itemRowsHtml = order.items.length > 0
+    ? order.items.map((item) => `
+    <tr>
+      <td style="padding:14px 0;border-top:1px solid #f0ece6;vertical-align:top">
+        <p style="margin:0;font-weight:600;font-size:14px;color:#1a1a1a">${esc(item.filename)}</p>
+        <p style="margin:4px 0 0 0;font-size:12px;color:#888">
+          ${esc(item.material)} · ${esc(item.colour)} · ${item.wallLayers} walls · ${item.infillPercent}% infill${item.removeSupports ? " · supports removed" : ""}
+        </p>
+      </td>
+      <td style="padding:14px 0;border-top:1px solid #f0ece6;text-align:center;vertical-align:top;font-size:13px;color:#666;width:44px">×${item.quantity}</td>
+      <td style="padding:14px 0;border-top:1px solid #f0ece6;text-align:right;vertical-align:top;font-size:14px;font-weight:600;color:#1a1a1a;width:80px">${formatAud(item.lineTotalCents)}</td>
+    </tr>
+  `).join("")
+    : `<tr><td colspan="3" style="padding:14px 0;border-top:1px solid #f0ece6;font-size:13px;color:#888">Print files received — settings will be confirmed shortly.</td></tr>`;
+
+  const deliveryLabel = order.shippingMethod === "pickup" ? "Parcel locker pickup" : "Shipping (Australia Post)";
+
+  const deliveryBlock = order.shippingMethod === "pickup"
+    ? `<div style="background:#fef7f0;border:1px solid #fde0c4;border-radius:8px;padding:14px 16px;margin-top:20px">
+        <p style="margin:0;font-size:13px;color:#c2590a;font-weight:600">PARCEL LOCKER PICKUP</p>
+        <p style="margin:6px 0 0 0;font-size:13px;color:#666;line-height:1.5">Stirling Central Shopping Centre, 478 Wanneroo Rd, Westminster WA 6061 — we'll email you when it's ready for collection.</p>
+      </div>`
+    : `<div style="background:#f0faf5;border:1px solid #c4edda;border-radius:8px;padding:14px 16px;margin-top:20px">
+        <p style="margin:0;font-size:13px;color:#0a7c42;font-weight:600">SHIPPING — AUSTRALIA POST</p>
+        <p style="margin:6px 0 0 0;font-size:13px;color:#666;line-height:1.5">${esc(order.shippingAddress)}</p>
+      </div>`;
+
   const content = `
     <h2 style="margin:0 0 4px 0;font-size:22px;color:#1a1a1a">Thanks, ${esc(order.customerName)}!</h2>
     <p style="margin:0 0 24px 0;font-size:14px;color:#888">We've received your order and your payment has been authorised.</p>
 
-    <div style="display:inline-block;background:#0e0a06;color:#f97316;font-size:13px;font-weight:700;padding:6px 14px;border-radius:6px;letter-spacing:0.08em;margin-bottom:20px">${shortId}</div>
+    <div style="display:inline-block;background:#0e0a06;color:#f97316;font-size:13px;font-weight:700;padding:6px 14px;border-radius:6px;letter-spacing:0.08em;margin-bottom:16px">${shortId}</div>
 
-    <div style="background:#fef7f0;border:1px solid #fde0c4;border-radius:8px;padding:16px 18px;margin-bottom:20px">
-      <p style="margin:0;font-size:14px;font-weight:600;color:#c2590a">ORDER UNDER REVIEW</p>
-      <p style="margin:8px 0 0 0;font-size:13px;color:#666;line-height:1.7">We're reviewing your print files to make sure everything looks good before we start. <strong>No charge has been made to your card yet</strong> — we'll confirm and capture payment once approved.</p>
+    <div style="background:#fef7f0;border:1px solid #fde0c4;border-radius:8px;padding:14px 16px;margin-bottom:20px">
+      <p style="margin:0;font-size:13px;font-weight:600;color:#c2590a">ORDER UNDER REVIEW</p>
+      <p style="margin:6px 0 0 0;font-size:13px;color:#666;line-height:1.7"><strong>No charge has been made to your card yet.</strong> We're reviewing your print files before we start — you'll hear back within a few hours.</p>
     </div>
 
-    <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
-      <tr>
-        <td style="padding:6px 0;font-size:13px;color:#888">Order total</td>
-        <td style="padding:6px 0;text-align:right;font-size:14px;font-weight:700;color:#1a1a1a">${formatAud(order.totalCents)}</td>
-      </tr>
-    </table>
+    <!-- Invoice -->
+    <div style="background:#faf8f5;border:1px solid #e5e0da;border-radius:8px;padding:16px 18px;margin-bottom:4px">
+      <table style="width:100%;border-collapse:collapse">
+        <tr>
+          <td style="padding:0 0 10px 0;font-size:10px;font-weight:700;color:#a09890;text-transform:uppercase;letter-spacing:0.1em">Item</td>
+          <td style="padding:0 0 10px 0;font-size:10px;font-weight:700;color:#a09890;text-transform:uppercase;letter-spacing:0.1em;text-align:center">Qty</td>
+          <td style="padding:0 0 10px 0;font-size:10px;font-weight:700;color:#a09890;text-transform:uppercase;letter-spacing:0.1em;text-align:right">Price</td>
+        </tr>
+        ${itemRowsHtml}
+      </table>
+    </div>
 
-    <p style="margin:0;font-size:13px;color:#888;line-height:1.7">You'll receive another email as soon as we've reviewed your files — usually within a few hours. If you have any questions, just reply to this email.</p>
+    <!-- Totals -->
+    <div style="padding:14px 18px 0 18px">
+      <table style="width:100%;border-collapse:collapse">
+        <tr>
+          <td style="padding:4px 0;font-size:13px;color:#888">Subtotal</td>
+          <td style="padding:4px 0;text-align:right;font-size:13px;color:#555">${formatAud(order.subtotalCents)}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 0;font-size:13px;color:#888">${deliveryLabel}</td>
+          <td style="padding:4px 0;text-align:right;font-size:13px;color:#555">${formatAud(order.shippingCents)}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 0;font-size:13px;color:#888">GST (10%)</td>
+          <td style="padding:4px 0;text-align:right;font-size:13px;color:#555">${formatAud(order.gstCents)}</td>
+        </tr>
+        <tr>
+          <td colspan="2" style="padding:10px 0 0 0;border-top:2px solid #1a1a1a"></td>
+        </tr>
+        <tr>
+          <td style="padding:4px 0;font-size:16px;font-weight:700;color:#1a1a1a">Order total</td>
+          <td style="padding:4px 0;text-align:right;font-size:16px;font-weight:700;color:#f97316">${formatAud(order.totalCents)}</td>
+        </tr>
+      </table>
+    </div>
+
+    ${deliveryBlock}
+
+    <p style="margin:24px 0 0 0;font-size:13px;color:#888;line-height:1.7">You'll receive another email once we've reviewed your files. If you have any questions, just reply to this email.</p>
     <p style="margin:8px 0 0 0;font-size:13px;color:#888">— The Stratum3D team</p>
   `;
 
@@ -129,9 +196,12 @@ export async function sendOrderUnderReviewEmail(order: {
 
   console.log(`[email] Under-review email sent to ${order.email} for ${shortId}`);
 
-  // Admin notification — alert you to review and approve/reject
+  // Admin notification
   if (ADMIN) {
-    const adminLink = `${SITE}/admin/orders/${order.id}`;
+    const itemSummary = order.items.length > 0
+      ? order.items.map(i => `${esc(i.filename)} (${esc(i.material)} ${esc(i.colour)} ×${i.quantity}${i.removeSupports ? " +supports removed" : ""})`).join(", ")
+      : "⚠️ Print settings not recorded — check order in admin";
+    const deliveryInfo = order.shippingMethod === "pickup" ? "Parcel locker pickup" : `Ship to: ${esc(order.shippingAddress)}`;
     const { error: adminErr } = await resend.emails.send({
       from: FROM,
       to: ADMIN,
@@ -141,6 +211,8 @@ export async function sendOrderUnderReviewEmail(order: {
           <h2>New order — pending your approval</h2>
           <p><strong>Customer:</strong> ${esc(order.customerName)} (${esc(order.email)})</p>
           <p><strong>Total:</strong> ${formatAud(order.totalCents)}</p>
+          <p><strong>Delivery:</strong> ${deliveryInfo}</p>
+          <p><strong>Items:</strong> ${itemSummary}</p>
           <p><a href="${adminLink}" style="color:#0070f3;font-weight:600">Review &amp; approve order →</a></p>
         </div>
       `,
@@ -204,111 +276,36 @@ export async function sendOrderRejectedEmail(order: {
   console.log(`[email] Rejection email sent to ${order.email} for ${shortId}`);
 }
 
-// ─── Customer: order confirmed (approved by admin) ────────────────────────────
+// ─── Customer: order approved (brief notice — full details already sent) ────────
 
 export async function sendOrderConfirmationEmail(order: {
   id: string;
   orderNumber?: number;
   customerName: string;
   email: string;
-  totalCents: number;
-  subtotalCents: number;
-  shippingCents: number;
-  gstCents: number;
-  items: OrderLineItem[];
-  shippingAddress: string;
-  shippingMethod: string;
 }) {
-  if (!process.env.RESEND_API_KEY) {
-    throw new Error("RESEND_API_KEY is not set. Add it to your Vercel environment variables.");
-  }
+  if (!process.env.RESEND_API_KEY) return;
 
   const shortId = order.orderNumber
     ? `S3D-${String(order.orderNumber).padStart(4, "0")}`
     : order.id.slice(0, 8).toUpperCase();
 
-  const adminLink = `${SITE}/admin/orders/${order.id}`;
-
-  const itemRowsHtml = order.items.length > 0
-    ? order.items.map((item) => `
-    <tr>
-      <td style="padding:14px 0;border-top:1px solid #f0ece6;vertical-align:top">
-        <p style="margin:0;font-weight:600;font-size:14px;color:#1a1a1a">${esc(item.filename)}</p>
-        <p style="margin:4px 0 0 0;font-size:12px;color:#888">
-          ${esc(item.material)} · ${esc(item.colour)} · ${item.wallLayers} walls · ${item.infillPercent}% infill${item.removeSupports ? " · supports removed" : ""}
-        </p>
-      </td>
-      <td style="padding:14px 0;border-top:1px solid #f0ece6;text-align:center;vertical-align:top;font-size:13px;color:#666;width:44px">×${item.quantity}</td>
-      <td style="padding:14px 0;border-top:1px solid #f0ece6;text-align:right;vertical-align:top;font-size:14px;font-weight:600;color:#1a1a1a;width:80px">${formatAud(item.lineTotalCents)}</td>
-    </tr>
-  `).join("")
-    : `<tr><td colspan="3" style="padding:14px 0;border-top:1px solid #f0ece6;font-size:13px;color:#888">We have your print files and will confirm the details with you shortly.</td></tr>`;
-
-  const deliveryLabel = order.shippingMethod === "pickup"
-    ? "Parcel locker pickup"
-    : "Shipping (Australia Post)";
-
-  const deliveryBlock = order.shippingMethod === "pickup"
-    ? `<div style="background:#fef7f0;border:1px solid #fde0c4;border-radius:8px;padding:14px 16px;margin-top:20px">
-        <p style="margin:0;font-size:13px;color:#c2590a;font-weight:600">PARCEL LOCKER PICKUP</p>
-        <p style="margin:6px 0 0 0;font-size:13px;color:#666;line-height:1.5">Stirling Central Shopping Centre, 478 Wanneroo Rd, Westminster WA 6061 — we'll email you when it's ready for collection.</p>
-      </div>`
-    : `<div style="background:#f0faf5;border:1px solid #c4edda;border-radius:8px;padding:14px 16px;margin-top:20px">
-        <p style="margin:0;font-size:13px;color:#0a7c42;font-weight:600">SHIPPING — AUSTRALIA POST</p>
-        <p style="margin:6px 0 0 0;font-size:13px;color:#666;line-height:1.5">${esc(order.shippingAddress)}</p>
-      </div>`;
-
   const content = `
     <h2 style="margin:0 0 4px 0;font-size:22px;color:#1a1a1a">Great news, ${esc(order.customerName)}!</h2>
-    <p style="margin:0 0 24px 0;font-size:14px;color:#888">Your order has been approved — printing will begin soon.</p>
+    <p style="margin:0 0 24px 0;font-size:14px;color:#888">Your order has been reviewed and approved.</p>
 
-    <!-- Order number badge -->
     <div style="display:inline-block;background:#0e0a06;color:#f97316;font-size:13px;font-weight:700;padding:6px 14px;border-radius:6px;letter-spacing:0.08em;margin-bottom:20px">${shortId}</div>
 
-    <!-- Invoice -->
-    <div style="background:#faf8f5;border:1px solid #e5e0da;border-radius:8px;padding:16px 18px;margin-bottom:4px">
-      <table style="width:100%;border-collapse:collapse">
-        <tr>
-          <td style="padding:0 0 10px 0;font-size:10px;font-weight:700;color:#a09890;text-transform:uppercase;letter-spacing:0.1em">Item</td>
-          <td style="padding:0 0 10px 0;font-size:10px;font-weight:700;color:#a09890;text-transform:uppercase;letter-spacing:0.1em;text-align:center">Qty</td>
-          <td style="padding:0 0 10px 0;font-size:10px;font-weight:700;color:#a09890;text-transform:uppercase;letter-spacing:0.1em;text-align:right">Price</td>
-        </tr>
-        ${itemRowsHtml}
-      </table>
+    <div style="background:#f0faf5;border:1px solid #c4edda;border-radius:8px;padding:16px 18px;margin-bottom:20px">
+      <p style="margin:0;font-size:14px;font-weight:600;color:#0a7c42">ORDER APPROVED</p>
+      <p style="margin:8px 0 0 0;font-size:13px;color:#666;line-height:1.7">Your payment has been confirmed and we'll be starting on your print soon.</p>
     </div>
 
-    <!-- Totals -->
-    <div style="padding:14px 18px 0 18px">
-      <table style="width:100%;border-collapse:collapse">
-        <tr>
-          <td style="padding:4px 0;font-size:13px;color:#888">Subtotal</td>
-          <td style="padding:4px 0;text-align:right;font-size:13px;color:#555">${formatAud(order.subtotalCents)}</td>
-        </tr>
-        <tr>
-          <td style="padding:4px 0;font-size:13px;color:#888">${deliveryLabel}</td>
-          <td style="padding:4px 0;text-align:right;font-size:13px;color:#555">${formatAud(order.shippingCents)}</td>
-        </tr>
-        <tr>
-          <td style="padding:4px 0;font-size:13px;color:#888">GST (10%)</td>
-          <td style="padding:4px 0;text-align:right;font-size:13px;color:#555">${formatAud(order.gstCents)}</td>
-        </tr>
-        <tr>
-          <td colspan="2" style="padding:10px 0 0 0;border-top:2px solid #1a1a1a"></td>
-        </tr>
-        <tr>
-          <td style="padding:4px 0;font-size:16px;font-weight:700;color:#1a1a1a">Total paid</td>
-          <td style="padding:4px 0;text-align:right;font-size:16px;font-weight:700;color:#f97316">${formatAud(order.totalCents)}</td>
-        </tr>
-      </table>
-    </div>
-
-    ${deliveryBlock}
-
-    <p style="margin:24px 0 0 0;font-size:13px;color:#888;line-height:1.7">We'll send you another email when your order ships. If you have any questions, just reply to this email.</p>
+    <p style="margin:0;font-size:13px;color:#888;line-height:1.7">We'll send you another email when your order ships. If you have any questions, just reply to this email.</p>
     <p style="margin:8px 0 0 0;font-size:13px;color:#888">— The Stratum3D team</p>
   `;
 
-  const { data, error } = await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: FROM,
     replyTo: REPLY_TO || undefined,
     to: order.email,
@@ -317,46 +314,19 @@ export async function sendOrderConfirmationEmail(order: {
   });
 
   if (error) {
-    console.error(`[email] Resend API error for ${order.email}:`, JSON.stringify(error));
+    console.error(`[email] Approval email error for ${order.email}:`, JSON.stringify(error));
     throw new Error(`Resend: ${error.message || JSON.stringify(error)}`);
   }
 
-  console.log(`[email] Order confirmation sent to ${order.email} for ${shortId} (id: ${data?.id})`);
-
-  // Admin notification
-  if (ADMIN) {
-    const itemSummary = order.items.length > 0
-      ? order.items.map(i => `${esc(i.filename)} (${esc(i.material)} ${esc(i.colour)} ×${i.quantity}${i.removeSupports ? " +supports removed" : ""})`).join(", ")
-      : "⚠️ Print settings not recorded — check order in admin";
-    const deliveryInfo = order.shippingMethod === "pickup" ? "Parcel locker pickup" : `Ship to: ${esc(order.shippingAddress)}`;
-    const { error: adminErr } = await resend.emails.send({
-      from: FROM,
-      to: ADMIN,
-      subject: `New order to approve ${shortId} — ${order.customerName}`,
-      html: `
-        <div style="font-family:sans-serif;max-width:540px;margin:auto;color:#111">
-          <h2>New order — pending your approval</h2>
-          <p><strong>Customer:</strong> ${esc(order.customerName)} (${esc(order.email)})</p>
-          <p><strong>Total:</strong> ${formatAud(order.totalCents)}</p>
-          <p><strong>Delivery:</strong> ${deliveryInfo}</p>
-          <p><strong>Items:</strong> ${itemSummary}</p>
-          <p><a href="${adminLink}" style="color:#0070f3">View order in admin →</a></p>
-        </div>
-      `
-    });
-    if (adminErr) {
-      console.error("[email] Admin notification failed:", JSON.stringify(adminErr));
-    }
-  }
+  console.log(`[email] Approval email sent to ${order.email} for ${shortId}`);
 }
 
 // ─── Customer: status update ──────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<string, { label: string; colour: string; bg: string; border: string }> = {
-  order_shipped:  { label: "Your order has been shipped",        colour: "#0a7c42", bg: "#f0faf5", border: "#c4edda" },
-  completed:      { label: "Your order is complete",             colour: "#0a7c42", bg: "#f0faf5", border: "#c4edda" },
-  cancelled:      { label: "Your order has been cancelled",      colour: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
-  refunded:       { label: "Your order has been refunded",       colour: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
+  order_shipped:  { label: "Your order has been shipped",   colour: "#0a7c42", bg: "#f0faf5", border: "#c4edda" },
+  cancelled:      { label: "Your order has been cancelled", colour: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
+  refunded:       { label: "Your order has been refunded",  colour: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
 };
 
 export async function sendStatusUpdateEmail(order: {

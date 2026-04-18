@@ -7,35 +7,35 @@ type QA = { q: string; a: string };
 const faqs: QA[] = [
   {
     q: "How is the price worked out?",
-    a: "From the actual mesh volume of your STL, plus material cost and rough print time. You see the whole breakdown before you pay. No setup fees, no minimum order.",
+    a: "Quotes are generated from your actual mesh volume, plus material cost and print time — no setup fees, no minimums. You see the full breakdown before you pay.",
   },
   {
-    q: "How long does it take?",
-    a: "A few business days for most small jobs. If the queue is busy or the print is big, I'll tell you up front and you can decide from there. I'd rather be honest than optimistic.",
+    q: "How fast is turnaround?",
+    a: "Most jobs print and ship within 2 – 4 business days of payment. Larger or multi-part batches take a little longer, with an estimate confirmed alongside your quote.",
   },
   {
-    q: "What if it fails or arrives broken?",
-    a: "Send me a photo and I'll reprint it. If you'd rather have your money back, that's fine too. No forms, no debate.",
+    q: "What happens if a print isn't right?",
+    a: "Every print is inspected before it leaves the bench. If something's off — a bad layer, damaged in transit — send a photo within 7 days and it'll be reprinted or refunded.",
   },
   {
-    q: "What file formats work?",
-    a: "STL is easiest. If you've only got a STEP or OBJ I can usually work with it — just ask. Most CAD tools (Fusion 360, Tinkercad, Blender, SolidWorks) export STL.",
+    q: "Which file formats work?",
+    a: "STL is ideal, up to 50 MB per file. STEP and OBJ can also be worked with on request. Most CAD tools — Fusion 360, Tinkercad, Blender, SolidWorks — export STL directly.",
   },
   {
     q: "Can I pick up in Perth?",
-    a: "Yeah — free pickup in the Perth metro area once it's ready, or tracked post anywhere in Australia. Pick whichever suits when you check out.",
+    a: "Yes. Free local pickup across the Perth metro area, or tracked courier Australia-wide. Choose at checkout.",
   },
   {
     q: "Which material should I pick?",
-    a: "PLA unless there's a reason not to — it looks good and prints reliably. PETG if it'll live outside or take some abuse. ABS if you really need the heat and impact resistance. Happy to give an opinion if you're not sure.",
+    a: "PLA for display and detail, PETG for durability and outdoor use, ABS for engineering and heat-resistant parts. Not sure? Mention what the part is for in the notes and it'll be matched for you.",
   },
   {
-    q: "Is payment safe?",
-    a: "Checkout goes through Stripe. I never see your card details.",
+    q: "Is payment secure?",
+    a: "Checkout is handled by Stripe — the same infrastructure behind most major online retailers. Card details are never seen or stored by Stratum3D.",
   },
   {
-    q: "Can I send a bigger or multi-part job?",
-    a: "Yes. Upload as many files as you like in one quote, mix materials and colours per file. For anything unusually large or fiddly, just message me and we'll sort it out.",
+    q: "Can I order large or multi-part jobs?",
+    a: "Absolutely. Upload as many STLs as you like in a single quote, mix materials and colours per file, and jobs are batched for efficiency.",
   },
 ];
 

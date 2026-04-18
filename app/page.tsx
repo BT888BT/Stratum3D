@@ -8,27 +8,39 @@ const materials = [
     name: "PLA",
     colour: "#fb923c",
     tag: "Everyday",
-    desc: "The default. Good for display pieces, cosplay, tabletop, enclosures that don't live in a car.",
+    temp: "210°C",
+    desc: "Crisp detail, wide colour range. Display pieces, tabletop, enclosures, cosplay.",
   },
   {
     name: "PETG",
     colour: "#f97316",
-    tag: "Tougher",
-    desc: "More flex, handles heat and moisture better. Outdoor stuff, brackets, things that get dropped.",
+    tag: "Durable",
+    temp: "240°C",
+    desc: "Tougher and heat-tolerant. Outdoor parts, brackets, things that take a knock.",
   },
   {
     name: "ABS",
     colour: "#ea580c",
     tag: "Engineering",
-    desc: "Impact and heat resistance. Takes longer, costs more, worth it when you need it.",
+    temp: "250°C",
+    desc: "Impact and heat resistance for mechanical work. Printed in an enclosed chamber.",
   },
 ];
 
 const steps = [
-  { n: "01", title: "Send the STL", desc: "Drop a file on the quote page. Multiple files is fine." },
-  { n: "02", title: "Pick settings", desc: "Material, colour, layer height, infill. Ask if you're not sure." },
-  { n: "03", title: "See the price", desc: "It's based on the actual volume of your model. No minimums." },
-  { n: "04", title: "I print it", desc: "Usually a few days. Pickup in Perth or tracked post." },
+  { n: "01", title: "Upload your STL", desc: "Drop one file or a whole batch on the quote page." },
+  { n: "02", title: "Dial in the spec", desc: "Material, colour, layer height, infill — per file." },
+  { n: "03", title: "Instant quote", desc: "Priced from your actual mesh volume. No minimums." },
+  { n: "04", title: "Printed & shipped", desc: "Pickup in Perth metro or tracked post Australia-wide." },
+];
+
+const specs = [
+  { k: "Build volume", v: "250 × 250 × 250 mm" },
+  { k: "Layer heights", v: "0.12 – 0.28 mm" },
+  { k: "Wall count", v: "3 perimeters default" },
+  { k: "Infill", v: "10 – 80% gyroid" },
+  { k: "Nozzle", v: "0.4 mm hardened" },
+  { k: "Tolerance", v: "±0.2 mm typical" },
 ];
 
 export default function HomePage() {
@@ -38,25 +50,46 @@ export default function HomePage() {
       <section className="hero-quiet">
         <div className="hero-quiet-copy">
           <Reveal>
-            <span className="eyebrow-quiet">Perth · small-batch 3D printing</span>
+            <span className="eyebrow-quiet">
+              <span className="eyebrow-dot" /> Perth · FDM print shop
+            </span>
           </Reveal>
           <Reveal delay={80}>
             <h1 className="hero-heading">
-              I print things<br />for people who make things.
+              Clean prints.<br />
+              <span className="hero-heading-accent">Dialled in.</span>
             </h1>
           </Reveal>
           <Reveal delay={180}>
             <p className="hero-lede">
-              Stratum3D is one person, a couple of well-tuned FDM printers, and
-              a workbench in Perth. Hobby projects, prototypes, replacement
-              parts, the occasional weird idea — send the file and I'll print it.
+              Small-batch FDM printing in PLA, PETG and ABS — tuned for crisp
+              detail and accurate fit. Upload an STL, get a volumetric quote,
+              and have your part in hand within a few days.
             </p>
           </Reveal>
           <Reveal delay={260}>
             <div className="hero-actions">
-              <Link href="/quote" className="btn-quiet-primary">Get a quote</Link>
-              <Link href="/gallery" className="btn-quiet-ghost">See past prints</Link>
+              <Link href="/quote" className="btn-quiet-primary">
+                Get an instant quote <span className="btn-arrow">→</span>
+              </Link>
+              <Link href="/gallery" className="btn-quiet-ghost">Recent prints</Link>
             </div>
+          </Reveal>
+          <Reveal delay={340}>
+            <ul className="signal-row">
+              <li>
+                <span className="signal-key">Turnaround</span>
+                <span className="signal-val">2 – 4 days</span>
+              </li>
+              <li>
+                <span className="signal-key">Quote</span>
+                <span className="signal-val">Under 60 sec</span>
+              </li>
+              <li>
+                <span className="signal-key">Pickup</span>
+                <span className="signal-val">Perth metro</span>
+              </li>
+            </ul>
           </Reveal>
         </div>
 
@@ -67,16 +100,18 @@ export default function HomePage() {
         </Reveal>
       </section>
 
-      {/* WHAT I PRINT */}
+      {/* MATERIALS */}
       <section className="section-quiet">
         <Reveal>
-          <h2 className="h2-quiet">What I print</h2>
+          <div className="section-head-quiet">
+            <h2 className="h2-quiet">Materials I keep stocked</h2>
+            <span className="section-index">01 / 04</span>
+          </div>
         </Reveal>
         <Reveal delay={80}>
           <p className="lede-quiet">
-            Small to medium FDM work — under 25 × 25 × 25 cm per piece, larger
-            things split into parts. Three materials I keep stocked and actually
-            know how to dial in.
+            Three filaments, all genuine brand-name stock. Profiles tuned and
+            test-printed so you don&apos;t get a machine-default result.
           </p>
         </Reveal>
 
@@ -84,11 +119,14 @@ export default function HomePage() {
           {materials.map((m, i) => (
             <Reveal key={m.name} delay={i * 80}>
               <article className="material-quiet">
-                <div
-                  className="material-quiet-dot"
-                  style={{ background: m.colour }}
-                  aria-hidden
-                />
+                <div className="material-quiet-topline">
+                  <div
+                    className="material-quiet-dot"
+                    style={{ background: m.colour, boxShadow: `0 0 10px ${m.colour}66` }}
+                    aria-hidden
+                  />
+                  <span className="material-quiet-temp">{m.temp}</span>
+                </div>
                 <div className="material-quiet-head">
                   <span className="material-quiet-name">{m.name}</span>
                   <span className="material-quiet-tag">{m.tag}</span>
@@ -103,7 +141,10 @@ export default function HomePage() {
       {/* HOW IT WORKS */}
       <section className="section-quiet" id="how-it-works">
         <Reveal>
-          <h2 className="h2-quiet">How it works</h2>
+          <div className="section-head-quiet">
+            <h2 className="h2-quiet">From file to finished part</h2>
+            <span className="section-index">02 / 04</span>
+          </div>
         </Reveal>
 
         <ol className="steps-quiet">
@@ -115,54 +156,68 @@ export default function HomePage() {
                   <h3 className="step-quiet-title">{s.title}</h3>
                   <p className="step-quiet-desc">{s.desc}</p>
                 </div>
+                <span className="step-quiet-mark" aria-hidden>
+                  {i === steps.length - 1 ? "■" : "─"}
+                </span>
               </li>
             </Reveal>
           ))}
         </ol>
       </section>
 
-      {/* HONEST BIT */}
+      {/* SPECS / CRAFT */}
       <section className="section-quiet">
         <Reveal>
-          <h2 className="h2-quiet">The honest bit</h2>
+          <div className="section-head-quiet">
+            <h2 className="h2-quiet">The shop, in numbers</h2>
+            <span className="section-index">03 / 04</span>
+          </div>
         </Reveal>
         <Reveal delay={80}>
-          <div className="honest-quiet">
-            <p>
-              I'm not an industrial print farm. Turnaround depends on the queue —
-              most orders ship within a few business days, bigger jobs take
-              longer and I'll tell you up front.
-            </p>
-            <p>
-              Prices are worked out from the actual mesh volume of your file,
-              plus material cost and print time. No setup fees, no minimum
-              order, no &ldquo;complexity surcharge&rdquo; nonsense.
-            </p>
-            <p>
-              If a print fails on my end, or it arrives damaged, send me a photo
-              and I'll reprint it. That's it — no forms, no 14-day runaround.
-            </p>
-          </div>
+          <p className="lede-quiet">
+            Runs on well-maintained FDM hardware with enclosed builds for ABS.
+            Every profile is calibrated — flow, pressure advance, retraction —
+            so parts leave the bed looking like they were meant to.
+          </p>
+        </Reveal>
+
+        <Reveal delay={140}>
+          <dl className="specs-grid">
+            {specs.map((s) => (
+              <div key={s.k} className="spec-cell">
+                <dt className="spec-key">{s.k}</dt>
+                <dd className="spec-val">{s.v}</dd>
+              </div>
+            ))}
+          </dl>
         </Reveal>
       </section>
 
       {/* FAQ */}
       <section className="section-quiet">
         <Reveal>
-          <h2 className="h2-quiet">Common questions</h2>
+          <div className="section-head-quiet">
+            <h2 className="h2-quiet">Common questions</h2>
+            <span className="section-index">04 / 04</span>
+          </div>
         </Reveal>
         <Reveal delay={80}>
           <FAQAccordion />
         </Reveal>
       </section>
 
-      {/* SIMPLE CTA */}
+      {/* CTA */}
       <section className="cta-quiet">
         <Reveal>
-          <p className="cta-quiet-line">Got a file? I&apos;ll take a look.</p>
-        </Reveal>
-        <Reveal delay={80}>
-          <Link href="/quote" className="btn-quiet-primary">Start a quote</Link>
+          <div className="cta-quiet-inner">
+            <div>
+              <p className="cta-quiet-eyebrow">Ready when you are</p>
+              <p className="cta-quiet-line">Send the file. I&apos;ll take care of the rest.</p>
+            </div>
+            <Link href="/quote" className="btn-quiet-primary btn-quiet-lg">
+              Start a quote <span className="btn-arrow">→</span>
+            </Link>
+          </div>
         </Reveal>
       </section>
     </div>

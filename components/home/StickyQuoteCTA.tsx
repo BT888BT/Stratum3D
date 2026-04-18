@@ -1,12 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function StickyQuoteCTA() {
+  const pathname = usePathname();
   const [visible, setVisible] = useState(false);
 
+  const hideOnRoute =
+    pathname?.startsWith("/quote") ||
+    pathname?.startsWith("/checkout") ||
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/login");
+
   useEffect(() => {
+    if (hideOnRoute) { setVisible(false); return; }
     const onScroll = () => {
       const triggered = window.scrollY > 800;
       const nearBottom =
@@ -17,7 +26,9 @@ export default function StickyQuoteCTA() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [hideOnRoute]);
+
+  if (hideOnRoute) return null;
 
   return (
     <div

@@ -1,6 +1,7 @@
 import "./globals.css";
 import Link from "next/link";
 import type { Metadata } from "next";
+import ScrollPrintRail from "@/components/home/ScrollPrintRail";
 
 export const metadata: Metadata = {
   title: "Stratum3D — Affordable 3D Printing in Perth | Fast Local FDM Service",
@@ -73,6 +74,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         />
       </head>
       <body>
+        <ScrollPrintRail />
         <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
 
           {/* Header */}

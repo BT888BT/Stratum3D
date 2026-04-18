@@ -5,17 +5,16 @@
  * Never throws. Never modifies calculation results.
  * Returns advisory warnings shown to the customer before they submit.
  *
- * Checks performed (binary STL only — ASCII gets Z-float check only):
+ * Checks performed (binary STL only — ASCII gets inverted-normals check only):
  *   1. Inverted normals   — signed volume sum is negative
- *   2. Floating above Z=0 — minZ > 1mm (height surcharge tier may be wrong)
- *   3. Open mesh          — any edge shared by ≠ 2 triangles (non-watertight)
- *   4. Multiple bodies    — disconnected shells (union-find on vertices)
+ *   2. Open mesh          — any edge shared by ≠ 2 triangles (non-watertight)
+ *   3. Multiple bodies    — disconnected shells (union-find on vertices)
  *
- * For files > MAX_TRIS_FULL_ANALYSIS triangles we skip 3 & 4 to avoid
- * freezing the browser tab — only 1 & 2 are checked.
+ * For files > MAX_TRIS_FULL_ANALYSIS triangles we skip 2 & 3 to avoid
+ * freezing the browser tab — only 1 is checked.
  */
 
-export type MeshWarningCode = "inverted_normals" | "floating_z" | "open_mesh" | "multiple_bodies";
+export type MeshWarningCode = "inverted_normals" | "open_mesh" | "multiple_bodies";
 export type MeshWarningSeverity = "warning" | "error";
 
 export type MeshWarning = {
@@ -74,7 +73,6 @@ function validateBinarySTL(ab: ArrayBuffer): MeshWarning[] {
   }
 
   let signedSum = 0;
-  let minZ = Infinity;
   let offset = 84;
 
   for (let i = 0; i < triCount; i++) {
@@ -83,11 +81,6 @@ function validateBinarySTL(ab: ArrayBuffer): MeshWarning[] {
     const bx = view.getFloat32(offset + 12, true), by = view.getFloat32(offset + 16, true), bz = view.getFloat32(offset + 20, true);
     const cx = view.getFloat32(offset + 24, true), cy = view.getFloat32(offset + 28, true), cz = view.getFloat32(offset + 32, true);
     offset += 36 + 2;
-
-    // Track min Z across all vertices
-    if (az < minZ) minZ = az;
-    if (bz < minZ) minZ = bz;
-    if (cz < minZ) minZ = cz;
 
     // Signed volume sum (direction of normals)
     signedSum +=
@@ -126,18 +119,9 @@ function validateBinarySTL(ab: ArrayBuffer): MeshWarning[] {
     });
   }
 
-  // ── 2. Floating above Z=0 ─────────────────────────────────────────────────
-  if (isFinite(minZ) && minZ > 1.0) {
-    warnings.push({
-      code: "floating_z",
-      severity: "error",
-      message: "Model is not grounded to Z=0 — please fix your file and re-export.",
-    });
-  }
-
   if (!fullAnalysis) return warnings; // large file — skip manifold checks
 
-  // ── 3. Open mesh (non-watertight) ─────────────────────────────────────────
+  // ── 2. Open mesh (non-watertight) ─────────────────────────────────────────
   if (edgeCount) {
     let openEdges = 0;
     for (const count of edgeCount.values()) {
@@ -152,7 +136,7 @@ function validateBinarySTL(ab: ArrayBuffer): MeshWarning[] {
     }
   }
 
-  // ── 4. Multiple separate bodies ───────────────────────────────────────────
+  // ── 3. Multiple separate bodies ───────────────────────────────────────────
   if (uf && nextVertexId > 0) {
     // Rebuild union-find scoped to actual vertex count (not the triCount*3 upper bound)
     const scopedUf = new UnionFind(nextVertexId);
@@ -186,19 +170,16 @@ function validateBinarySTL(ab: ArrayBuffer): MeshWarning[] {
   return warnings;
 }
 
-// ── ASCII STL (limited — just Z-float and normal direction) ──────────────────
+// ── ASCII STL (limited — inverted normals only) ───────────────────────────────
 function validateASCIISTL(text: string): MeshWarning[] {
   const warnings: MeshWarning[] = [];
   const re = /vertex\s+([\d.eE+\-]+)\s+([\d.eE+\-]+)\s+([\d.eE+\-]+)/g;
-  let minZ = Infinity;
   let signedSum = 0;
   const verts: [number, number, number][] = [];
   let m: RegExpExecArray | null;
 
   while ((m = re.exec(text)) !== null) {
-    const z = parseFloat(m[3]);
-    if (z < minZ) minZ = z;
-    verts.push([parseFloat(m[1]), parseFloat(m[2]), z]);
+    verts.push([parseFloat(m[1]), parseFloat(m[2]), parseFloat(m[3])]);
   }
 
   for (let i = 0; i + 2 < verts.length; i += 3) {
@@ -211,14 +192,6 @@ function validateASCIISTL(text: string): MeshWarning[] {
       code: "inverted_normals",
       severity: "error",
       message: "Inverted normals detected — please fix your file and re-export.",
-    });
-  }
-
-  if (isFinite(minZ) && minZ > 1.0) {
-    warnings.push({
-      code: "floating_z",
-      severity: "error",
-      message: "Model is not grounded to Z=0 — please fix your file and re-export.",
     });
   }
 

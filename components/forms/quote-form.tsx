@@ -476,7 +476,7 @@ export default function QuoteForm() {
                       return (
                         <div style={{ padding: "7px 14px", fontSize: 12, color: "#d97706", background: "rgba(245,158,11,0.07)", borderBottom: "1px solid rgba(245,158,11,0.15)", display: "flex", alignItems: "flex-start", gap: 6 }}>
                           <span style={{ flexShrink: 0 }}>↗</span>
-                          <span>This part ({L.toFixed(0)}×{W.toFixed(0)}mm) will be printed diagonally on the bed — fits within the {Math.floor(BED_XY_MM * Math.SQRT2)}mm diagonal limit (L+W = {(L+W).toFixed(0)}mm).</span>
+                          <span>Large print — requires diagonal bed placement.</span>
                         </div>
                       );
                     }

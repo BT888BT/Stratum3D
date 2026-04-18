@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { motion, useMotionValue, useSpring } from "motion/react";
 import { ReactNode, useRef } from "react";
 
 type Props = {
@@ -10,6 +11,8 @@ type Props = {
   strength?: number;
 };
 
+const MotionLink = motion(Link);
+
 export default function MagneticButton({
   href,
   children,
@@ -18,33 +21,35 @@ export default function MagneticButton({
 }: Props) {
   const ref = useRef<HTMLAnchorElement>(null);
 
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const sx = useSpring(x, { stiffness: 220, damping: 18, mass: 0.4 });
+  const sy = useSpring(y, { stiffness: 220, damping: 18, mass: 0.4 });
+
   const onMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
     const el = ref.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    el.style.setProperty("--tx", `${(x * strength).toFixed(2)}px`);
-    el.style.setProperty("--ty", `${(y * strength).toFixed(2)}px`);
+    x.set((e.clientX - rect.left - rect.width / 2) * strength);
+    y.set((e.clientY - rect.top - rect.height / 2) * strength);
   };
 
   const onLeave = () => {
-    const el = ref.current;
-    if (!el) return;
-    el.style.setProperty("--tx", `0px`);
-    el.style.setProperty("--ty", `0px`);
+    x.set(0);
+    y.set(0);
   };
 
   return (
-    <Link
+    <MotionLink
       ref={ref}
       href={href}
       className={`magnetic-btn ${className ?? ""}`}
+      style={{ x: sx, y: sy }}
       onMouseMove={onMove}
       onMouseLeave={onLeave}
     >
       <span className="magnetic-btn-inner">{children}</span>
       <span className="magnetic-btn-glow" aria-hidden />
-    </Link>
+    </MotionLink>
   );
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import BuildPlateHero from "@/components/home/BuildPlateHero";
 import Reveal from "@/components/home/Reveal";
 import FAQAccordion from "@/components/home/FAQAccordion";
+import HomeGallery from "@/components/home/HomeGallery";
 
 const materials = [
   {
@@ -99,6 +100,11 @@ export default function HomePage() {
           </div>
         </Reveal>
       </section>
+
+      {/* GALLERY */}
+      <Reveal>
+        <HomeGallery />
+      </Reveal>
 
       {/* MATERIALS */}
       <section className="section-quiet">

@@ -1,6 +1,6 @@
 # Stratum3D
 
-Production-ready starter for 3D print quotes and orders.
+Production-ready starter for 3D print quotes and orders
 
 ## Stack
 - Next.js

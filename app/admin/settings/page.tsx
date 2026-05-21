@@ -10,6 +10,7 @@ export default async function AdminSettingsPage() {
   const settings = Object.fromEntries((data ?? []).map(r => [r.key, r.value]));
 
   const pickupEnabled = settings["pickup_enabled"] !== "false";
+  const orderingEnabled = settings["ordering_enabled"] !== "false";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
@@ -24,8 +25,8 @@ export default async function AdminSettingsPage() {
       </div>
 
       <div className="card" style={{ maxWidth: 480 }}>
-        <p className="eyebrow" style={{ marginBottom: 16 }}>Delivery Options</p>
-        <SettingsClient pickupEnabled={pickupEnabled} />
+        <p className="eyebrow" style={{ marginBottom: 16 }}>Site</p>
+        <SettingsClient pickupEnabled={pickupEnabled} orderingEnabled={orderingEnabled} />
       </div>
     </div>
   );

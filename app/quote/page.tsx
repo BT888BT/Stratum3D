@@ -1,12 +1,23 @@
+import { redirect } from "next/navigation";
+import { createAdminClient } from "@/lib/supabase/admin";
 import QuoteForm from "@/components/forms/quote-form";
 import type { Metadata } from "next";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Get a Quote — Stratum3D",
   robots: { index: false, follow: false },
 };
 
-export default function QuotePage() {
+export default async function QuotePage() {
+  const supabase = createAdminClient();
+  const { data } = await supabase.from("site_settings").select("key, value");
+  const settings = Object.fromEntries((data ?? []).map(r => [r.key, r.value]));
+  const orderingEnabled = settings["ordering_enabled"] !== "false";
+
+  if (!orderingEnabled) redirect("/");
+
   return (
     <div>
       <div style={{ marginBottom: "clamp(20px, 3vw, 36px)" }}>

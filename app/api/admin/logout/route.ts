@@ -10,7 +10,7 @@ export async function POST() {
     await revokeSession(token);
   }
 
-  const response = NextResponse.json({ success: true });
+  const response = NextResponse.redirect(new URL("/", process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.stratum3d.com.au"));
 
   response.cookies.set("stratum3d_admin", "", {
     httpOnly: true,

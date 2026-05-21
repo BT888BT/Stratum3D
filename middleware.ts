@@ -30,8 +30,8 @@ async function isValidAdminSession(token: string): Promise<boolean> {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Admin login is public
-  if (pathname === "/login" || pathname === "/admin/login" || pathname === "/api/admin/login") {
+  // Login is public
+  if (pathname === "/login" || pathname === "/api/admin/login") {
     return NextResponse.next();
   }
 

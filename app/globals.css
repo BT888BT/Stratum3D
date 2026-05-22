@@ -56,6 +56,11 @@ input, select, textarea, button { font: inherit; }
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 20px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.card:hover {
+  border-color: var(--border-hi);
+  box-shadow: 0 6px 28px rgba(0,0,0,0.3);
 }
 .card-lg {
   background: var(--surface);
@@ -289,4 +294,47 @@ input, select, textarea, button { font: inherit; }
   .order-row > *:nth-child(3),
   .order-row > *:nth-child(5),
   .order-row > *:nth-child(6) { display: none; }
+}
+
+/* ── Announce bar ────────────────────────────── */
+.announce-bar {
+  background: rgba(249,115,22,0.03);
+  border-bottom: 1px solid rgba(249,115,22,0.07);
+  padding: 7px clamp(16px, 4vw, 32px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ── Trust items ─────────────────────────────── */
+.trust-item {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.trust-item::before {
+  content: '';
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--orange);
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+/* ── Strata visual animations ────────────────── */
+@keyframes nozzlePulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(249,115,22,0.7),  0 0 16px rgba(249,115,22,0.2); }
+  50%       { box-shadow: 0 0 16px rgba(249,115,22,1.0), 0 0 30px rgba(249,115,22,0.45); }
+}
+@keyframes buildPulse {
+  0%, 100% { opacity: 0.18; }
+  50%       { opacity: 0.82; }
 }

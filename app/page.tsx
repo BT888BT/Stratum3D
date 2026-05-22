@@ -4,23 +4,55 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export const dynamic = "force-dynamic";
 
 const materials = [
-  { name: "PLA",  colour: "#fb923c", desc: "Great for hobby projects, display models & cosplay props", temp: "190–220°C", strength: "Good",      use: "Hobby / General" },
-  { name: "PETG", colour: "#f97316", desc: "Durable, moisture resistant — ideal for outdoor or functional parts",          temp: "230–250°C", strength: "Very Good", use: "Functional" },
-  { name: "ABS",  colour: "#ea580c", desc: "Heat resistant, impact tough — suited for mechanical or engineering use",             temp: "230–260°C", strength: "Excellent", use: "Engineering" },
+  {
+    name: "PLA",
+    colour: "#fb923c",
+    desc: "The go-to for display models, props, figures and hobby builds. Affordable, available in the widest range of colours, and the most forgiving material to work with.",
+    temp: "190–220°C",
+    strength: "Good",
+    use: "Hobby / Display",
+  },
+  {
+    name: "PETG",
+    colour: "#f97316",
+    desc: "Tougher, moisture-resistant, and slightly flexible. Best for outdoor parts, functional enclosures, or anything that needs to outlast PLA.",
+    temp: "230–250°C",
+    strength: "Very Good",
+    use: "Functional / Outdoor",
+  },
+  {
+    name: "ABS",
+    colour: "#ea580c",
+    desc: "Heat-resistant and impact-tough. Built for mechanical parts, enclosures, and components that need to handle real-world stress.",
+    temp: "230–260°C",
+    strength: "Excellent",
+    use: "Engineering / Mechanical",
+  },
 ];
 
 const steps = [
-  { n: "01", icon: "⬆", title: "Upload STL",       desc: "Drop one or more STL files — up to 50 MB each" },
-  { n: "02", icon: "⚙", title: "Configure",        desc: "Pick material, colour, layer height and infill for each file" },
-  { n: "03", icon: "💲", title: "Instant Quote",    desc: "Pricing calculated from your actual mesh volume — no hidden fees" },
-  { n: "04", icon: "✓", title: "Pay & Track",      desc: "Secure checkout, then email updates until it's at your door" },
+  { n: "01", title: "Upload STL", desc: "Drop your STL files — up to 50 MB each. Multiple files handled in a single order." },
+  { n: "02", title: "Configure", desc: "Set material, colour, layer height and infill. Hover any option for an explanation, or read the print guide first." },
+  { n: "03", title: "Instant Quote", desc: "Your price is calculated from the actual volume of your model — no estimates, no waiting, no surprise invoices." },
+  { n: "04", title: "Pay & Track", desc: "Secure checkout via Stripe. Email updates from print start through to delivery at your door." },
 ];
 
 const perks = [
-  { title: "Local & Australian", desc: "Based in Perth, WA — shorter shipping times, local support, no overseas delays" },
-  { title: "Fast Turnaround", desc: "Most orders printed and shipped within a few business days" },
-  { title: "Hobbyist Friendly", desc: "Low-cost pricing built for makers, hobbyists and small projects" },
-  { title: "Honest Pricing", desc: "Pay for what you print — volume-based quotes with no minimum order" },
+  { title: "Perth-Made", desc: "Handled locally in Perth, WA — not routed through a warehouse interstate or overseas. Shorter transit, direct contact, real accountability." },
+  { title: "48-Hour Turnaround", desc: "Most orders are printed and dispatched within two business days. If anything changes, you'll hear from us before it affects you." },
+  { title: "No Minimum Order", desc: "Print one part or twenty — your order is priced the same either way, based only on what you're actually printing." },
+  { title: "Volume-Based Pricing", desc: "Your quote is calculated from your model's real mesh volume — no per-file fees, no flat rates, and no estimates that might change before you pay." },
+];
+
+// Cross-section widths for the strata visual (top → bottom, lens profile)
+const strataWidths = [22, 30, 40, 52, 66, 78, 86, 90, 90, 86, 78, 66, 52, 40, 30, 22];
+
+const trustItems = [
+  "Perth, WA",
+  "No minimum order",
+  "Ships Australia-wide",
+  "Volume-based pricing",
+  "PLA · PETG · ABS",
 ];
 
 function MaintenancePage() {
@@ -34,7 +66,6 @@ function MaintenancePage() {
       textAlign: "center",
       padding: "clamp(48px, 8vw, 96px) clamp(24px, 4vw, 48px)",
     }}>
-      {/* Logo mark */}
       <div style={{ marginBottom: 40 }}>
         <svg width="56" height="56" viewBox="0 0 32 32" fill="none">
           <polygon points="16,2 29,9 29,23 16,30 3,23 3,9"
@@ -45,12 +76,10 @@ function MaintenancePage() {
         </svg>
       </div>
 
-      {/* Stacked layer lines — top */}
       <div style={{ width: "100%", maxWidth: 280, marginBottom: 52 }}>
         {[100, 82, 64, 46, 28].map((w, i) => (
           <div key={i} style={{
-            height: 2,
-            borderRadius: 1,
+            height: 2, borderRadius: 1,
             background: "var(--orange)",
             opacity: 0.08 + i * 0.05,
             width: `${w}%`,
@@ -79,16 +108,14 @@ function MaintenancePage() {
         maxWidth: 400,
         marginBottom: 56,
       }}>
-        We're temporarily not accepting new orders.<br />
-        Check back shortly — we'll be printing again soon.
+        We&apos;re temporarily not accepting new orders.<br />
+        Check back shortly — we&apos;ll be printing again soon.
       </p>
 
-      {/* Stacked layer lines — bottom */}
       <div style={{ width: "100%", maxWidth: 280 }}>
         {[28, 46, 64, 82, 100].map((w, i) => (
           <div key={i} style={{
-            height: 2,
-            borderRadius: 1,
+            height: 2, borderRadius: 1,
             background: "var(--orange)",
             opacity: 0.28 - i * 0.05,
             width: `${w}%`,
@@ -120,8 +147,8 @@ export default async function HomePage() {
           position: "absolute", top: "50%", right: "-10%",
           transform: "translateY(-50%)",
           width: "clamp(300px, 50vw, 600px)", height: "clamp(300px, 50vw, 600px)",
-          background: "radial-gradient(circle, rgba(249,115,22,0.12) 0%, transparent 70%)",
-          pointerEvents: "none"
+          background: "radial-gradient(circle, rgba(249,115,22,0.10) 0%, transparent 70%)",
+          pointerEvents: "none",
         }} />
 
         <div style={{
@@ -133,17 +160,23 @@ export default async function HomePage() {
           background: "var(--surface)",
           border: "1px solid var(--border)",
           borderRadius: 20,
-          position: "relative"
+          position: "relative",
         }}>
           <div style={{ position: "relative", zIndex: 1 }}>
-            <span className="eyebrow fade-up" style={{ marginBottom: 16, display: "block" }}>
-              Local 3D Printing — Australia
+            {/* Eyebrow with live status dot */}
+            <span className="eyebrow fade-up" style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{
+                width: 6, height: 6, borderRadius: "50%",
+                background: "var(--green)", display: "inline-block",
+                boxShadow: "0 0 8px var(--green)", flexShrink: 0,
+              }} />
+              Perth, WA · FDM Printing Service
             </span>
             <h1 className="font-display fade-up-2" style={{
               fontSize: "clamp(52px, 8vw, 100px)",
               lineHeight: 0.95,
               marginBottom: "clamp(16px, 3vw, 28px)",
-              color: "var(--text)"
+              color: "var(--text)",
             }}>
               UPLOAD.<br />
               QUOTE.<br />
@@ -154,9 +187,9 @@ export default async function HomePage() {
               color: "var(--text-dim)",
               lineHeight: 1.75,
               maxWidth: 480,
-              marginBottom: "clamp(24px, 4vw, 40px)"
+              marginBottom: "clamp(24px, 4vw, 40px)",
             }}>
-              Affordable FDM printing for hobbyists and makers in Perth. PLA, PETG & ABS — priced from your actual mesh volume with fast local turnaround.
+              Volume-based pricing means you pay for exactly what you print — no estimates, no minimums, no surprises. Perth-based FDM service with fast local dispatch.
             </p>
             <div className="fade-up-4" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Link href="/quote" className="btn-primary glow-pulse" style={{ fontSize: 16 }}>
@@ -166,51 +199,43 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* 3D visual — hidden on small screens */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
-            className="hidden-mobile">
-            <div style={{ perspective: 800 }}>
-              <div className="float-anim" style={{ width: 160, height: 160, position: "relative", transformStyle: "preserve-3d" }}>
-                {/* Outer cube */}
-                {["front","back","left","right","top","bottom"].map(face => (
-                  <div key={face} style={{
-                    position: "absolute", width: 160, height: 160,
-                    border: "1.5px solid rgba(249,115,22,0.5)",
-                    background: "rgba(249,115,22,0.03)",
-                    transform: {
-                      front:  "translateZ(80px)",
-                      back:   "rotateY(180deg) translateZ(80px)",
-                      left:   "rotateY(-90deg) translateZ(80px)",
-                      right:  "rotateY(90deg) translateZ(80px)",
-                      top:    "rotateX(90deg) translateZ(80px)",
-                      bottom: "rotateX(-90deg) translateZ(80px)",
-                    }[face]
-                  }} />
-                ))}
-                {/* Inner cube */}
-                {["front","back","left","right","top","bottom"].map(face => (
-                  <div key={`i-${face}`} style={{
-                    position: "absolute",
-                    width: 80, height: 80,
-                    top: 40, left: 40,
-                    border: "1px solid rgba(249,115,22,0.8)",
-                    background: "rgba(249,115,22,0.08)",
-                    transform: {
-                      front:  "translateZ(40px)",
-                      back:   "rotateY(180deg) translateZ(40px)",
-                      left:   "rotateY(-90deg) translateZ(40px)",
-                      right:  "rotateY(90deg) translateZ(40px)",
-                      top:    "rotateX(90deg) translateZ(40px)",
-                      bottom: "rotateX(-90deg) translateZ(40px)",
-                    }[face]
-                  }} />
-                ))}
-              </div>
-            </div>
+          {/* Strata layer visual */}
+          <div className="hidden-mobile"
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px 40px" }}>
+            {/* Print nozzle */}
+            <div style={{
+              width: 10, height: 10, borderRadius: "50%",
+              background: "var(--orange-hi)",
+              animation: "nozzlePulse 1.8s ease-in-out infinite",
+            }} />
+            {/* Wire from nozzle to top layer */}
+            <div style={{ width: 1, height: 10, background: "rgba(249,115,22,0.2)" }} />
+            {/* Layer bars — top to bottom, lens cross-section */}
+            {strataWidths.map((w, i) => (
+              <div key={i} style={{
+                width: w * 2,
+                height: 5,
+                borderRadius: 2.5,
+                background: "var(--orange)",
+                marginTop: 3,
+                animation: `buildPulse 3s ${(i * 0.16).toFixed(2)}s ease-in-out infinite`,
+              }} />
+            ))}
+            {/* Print bed */}
+            <div style={{
+              width: 196, height: 3, borderRadius: 1.5,
+              background: "rgba(249,115,22,0.1)",
+              marginTop: 5,
+            }} />
+            <span className="font-mono" style={{
+              fontSize: 9, color: "var(--muted)", letterSpacing: "0.1em", marginTop: 12,
+            }}>
+              FDM · LAYER BY LAYER
+            </span>
           </div>
         </div>
 
-        {/* Layer lines visual below hero */}
+        {/* Layer lines strip below hero card */}
         <div style={{ marginTop: 12, padding: "12px 24px", display: "flex", alignItems: "center", gap: 16 }}>
           <span className="eyebrow" style={{ color: "var(--muted)", whiteSpace: "nowrap" }}>Printing</span>
           <div className="layer-visual" style={{ flex: 1 }}>
@@ -220,23 +245,42 @@ export default async function HomePage() {
           </div>
           <span className="font-mono" style={{ fontSize: 10, color: "var(--orange)", whiteSpace: "nowrap" }}>Layer by layer</span>
         </div>
+
+        {/* Trust items */}
+        <div style={{
+          borderTop: "1px solid var(--border)",
+          marginTop: 16,
+          padding: "14px 24px 0",
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px 24px",
+        }}>
+          {trustItems.map((item, i) => (
+            <span key={i} className="trust-item">{item}</span>
+          ))}
+        </div>
       </section>
 
       {/* ── Why Stratum3D ── */}
       <section>
-        <span className="eyebrow" style={{ marginBottom: 12 }}>Why Us</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+          <div style={{ width: 20, height: 1, background: "var(--orange)", flexShrink: 0 }} />
+          <span className="eyebrow" style={{ display: "inline", margin: 0 }}>Why Us</span>
+        </div>
         <h2 className="font-display" style={{ fontSize: "clamp(32px, 5vw, 52px)", marginBottom: "clamp(12px, 2vw, 20px)" }}>
-          BUILT FOR MAKERS
+          WHAT SETS US APART
         </h2>
         <div style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))",
-          gap: 12
+          gap: 12,
         }}>
           {perks.map((p) => (
-            <div key={p.title} className="card">
-              <h3 className="font-display" style={{ fontSize: 20, color: "var(--orange)", marginBottom: 8 }}>{p.title}</h3>
-              <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.65 }}>{p.desc}</p>
+            <div key={p.title} className="card" style={{ borderLeft: "2px solid rgba(249,115,22,0.22)" }}>
+              <h3 className="font-display" style={{ fontSize: 22, color: "var(--orange)", marginBottom: 10 }}>{p.title}</h3>
+              <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7 }}>{p.desc}</p>
             </div>
           ))}
         </div>
@@ -244,14 +288,17 @@ export default async function HomePage() {
 
       {/* ── How it works ── */}
       <section id="how-it-works">
-        <span className="eyebrow" style={{ marginBottom: 12 }}>Process</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+          <div style={{ width: 20, height: 1, background: "var(--orange)", flexShrink: 0 }} />
+          <span className="eyebrow" style={{ display: "inline", margin: 0 }}>Process</span>
+        </div>
         <h2 className="font-display" style={{ fontSize: "clamp(32px, 5vw, 52px)", marginBottom: "clamp(12px, 2vw, 20px)" }}>
           HOW IT WORKS
         </h2>
         <div style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))",
-          gap: 12
+          gap: 12,
         }}>
           {steps.map((s) => (
             <div key={s.n} className="card" style={{ position: "relative", overflow: "hidden" }}>
@@ -260,11 +307,14 @@ export default async function HomePage() {
                 fontFamily: "Bebas Neue, sans-serif",
                 fontSize: 72, color: "rgba(249,115,22,0.06)",
                 lineHeight: 1, letterSpacing: "0.04em",
-                pointerEvents: "none"
+                pointerEvents: "none",
               }}>{s.n}</div>
-              <div style={{ fontSize: 24, marginBottom: 12 }}>{s.icon}</div>
-              <h3 className="font-display" style={{ fontSize: 22, color: "var(--orange)", marginBottom: 8 }}>{s.title}</h3>
-              <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.65 }}>{s.desc}</p>
+              <span className="font-mono" style={{
+                fontSize: 10, color: "var(--orange)", letterSpacing: "0.12em",
+                textTransform: "uppercase", display: "block", marginBottom: 10,
+              }}>Step {s.n}</span>
+              <h3 className="font-display" style={{ fontSize: 22, color: "var(--text)", marginBottom: 8 }}>{s.title}</h3>
+              <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7 }}>{s.desc}</p>
             </div>
           ))}
         </div>
@@ -272,35 +322,37 @@ export default async function HomePage() {
 
       {/* ── Materials ── */}
       <section>
-        <span className="eyebrow" style={{ marginBottom: 12 }}>Materials</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+          <div style={{ width: 20, height: 1, background: "var(--orange)", flexShrink: 0 }} />
+          <span className="eyebrow" style={{ display: "inline", margin: 0 }}>Materials</span>
+        </div>
         <h2 className="font-display" style={{ fontSize: "clamp(32px, 5vw, 52px)", marginBottom: "clamp(12px, 2vw, 20px)" }}>
           AVAILABLE MATERIALS
         </h2>
         <div style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))",
-          gap: 12
+          gap: 12,
         }}>
           {materials.map((m) => (
             <div key={m.name} className="card" style={{
               borderColor: "var(--border-hi)",
-              background: `linear-gradient(135deg, rgba(249,115,22,0.05) 0%, var(--surface) 100%)`
+              background: `linear-gradient(135deg, rgba(249,115,22,0.05) 0%, var(--surface) 100%)`,
             }}>
-              {/* 3D layer icon */}
               <div style={{ marginBottom: 16 }}>
                 {[1,2,3].map(i => (
                   <div key={i} style={{
                     height: 6, borderRadius: 3, marginBottom: 3,
                     background: m.colour, opacity: 1.1 - i * 0.25,
-                    width: `${100 - (i - 1) * 15}%`
+                    width: `${100 - (i - 1) * 15}%`,
                   }} />
                 ))}
               </div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 8 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10 }}>
                 <span className="font-display" style={{ fontSize: 32, color: m.colour }}>{m.name}</span>
                 <span className="font-mono" style={{ fontSize: 10, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.1em" }}>{m.use}</span>
               </div>
-              <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.6, marginBottom: 16 }}>{m.desc}</p>
+              <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.65, marginBottom: 16 }}>{m.desc}</p>
               <div style={{ display: "flex", gap: 20 }}>
                 <div>
                   <p className="font-mono" style={{ fontSize: 9, color: "var(--muted)", letterSpacing: "0.12em", textTransform: "uppercase" }}>Print Temp</p>
@@ -314,6 +366,11 @@ export default async function HomePage() {
             </div>
           ))}
         </div>
+        <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 14, textAlign: "center" }}>
+          Not sure which material to choose?{" "}
+          <Link href="/guide" style={{ color: "var(--orange-hi)", textDecoration: "underline" }}>Read the print guide</Link>
+          {" "}— it covers settings and recommendations for common project types.
+        </p>
       </section>
 
       {/* ── CTA ── */}
@@ -324,19 +381,22 @@ export default async function HomePage() {
         padding: "clamp(32px, 5vw, 64px) clamp(24px, 4vw, 48px)",
         textAlign: "center",
         position: "relative",
-        overflow: "hidden"
+        overflow: "hidden",
       }}>
         <div style={{
           position: "absolute", inset: 0,
-          background: "radial-gradient(ellipse at center, rgba(249,115,22,0.08) 0%, transparent 70%)",
-          pointerEvents: "none"
+          background: "radial-gradient(ellipse at center, rgba(249,115,22,0.07) 0%, transparent 70%)",
+          pointerEvents: "none",
         }} />
-        <span className="eyebrow" style={{ marginBottom: 16 }}>Ready?</span>
-        <h2 className="font-display" style={{ fontSize: "clamp(40px, 6vw, 72px)", marginBottom: 16 }}>
-          GET YOUR QUOTE IN SECONDS
+        <span className="eyebrow" style={{ marginBottom: 16 }}>Start Here</span>
+        <h2 className="font-display" style={{ fontSize: "clamp(40px, 6vw, 72px)", marginBottom: 16, lineHeight: 1 }}>
+          YOUR DESIGN.<br />PRINTED IN PERTH.
         </h2>
-        <p style={{ color: "var(--text-dim)", marginBottom: "clamp(24px, 4vw, 40px)", fontSize: "clamp(13px, 1.5vw, 16px)", maxWidth: 480, margin: "0 auto clamp(24px, 4vw, 40px)" }}>
-          Upload your STL, pick your settings, and get an instant price. Affordable local printing with fast turnaround.
+        <p style={{
+          color: "var(--text-dim)", fontSize: "clamp(13px, 1.5vw, 16px)",
+          maxWidth: 460, margin: "0 auto clamp(24px, 4vw, 40px)", lineHeight: 1.75,
+        }}>
+          Upload your STL, configure your settings, and get a real price in seconds — calculated from your model&apos;s volume. No minimums, no waiting.
         </p>
         <Link href="/quote" className="btn-primary glow-pulse" style={{ fontSize: 18 }}>
           Upload & Quote Now →

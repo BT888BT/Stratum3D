@@ -149,15 +149,9 @@ export default function Home() {
 
       {/* ── Gallery preview ──────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(48px, 8vw, 88px)" }}>
-        <div style={{ display: "flex", alignItems: "flex-end", marginBottom: 15, gap: 20 }}>
-          <div style={{ flex: 1 }} aria-hidden="true" />
-          <div style={{ textAlign: "center" }}>
-            <span className="eyebrow" style={{ textAlign: "center", marginBottom: 10 }}>Recent work</span>
-            <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)" }}>FROM THE BUILD PLATE</h2>
-          </div>
-          <div style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
-            <Link href="/gallery" className="btn-ghost">View all →</Link>
-          </div>
+        <div style={{ textAlign: "center", marginBottom: 15 }}>
+          <span className="eyebrow" style={{ textAlign: "center", marginBottom: 10 }}>Recent work</span>
+          <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)" }}>FROM THE BUILD PLATE</h2>
         </div>
         <div className="gallery-grid">
           {GALLERY.slice(0, 4).map((p) => (

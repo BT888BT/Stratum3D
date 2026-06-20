@@ -1,7 +1,6 @@
 import "./globals.css";
 import Link from "next/link";
 import type { Metadata } from "next";
-import OrderToast from "./components/OrderToast";
 
 export const metadata: Metadata = {
   title: "Stratum3D — Affordable 3D Printing in Perth | Fast Local FDM Service",
@@ -76,13 +75,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
 
-          {/* Announce bar — scrolls away naturally */}
-          <div className="announce-bar">
-            <span className="font-mono" style={{ fontSize: 11, color: "var(--text)", letterSpacing: "0.13em", textTransform: "uppercase" }}>
-              Perth-based&nbsp;·&nbsp;Transparent volume pricing&nbsp;·&nbsp;No minimum order&nbsp;·&nbsp;Ships Australia-wide
-            </span>
-          </div>
-
           {/* Header */}
           <header style={{
             borderBottom: "1px solid var(--border)",
@@ -110,11 +102,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 </span>
               </Link>
 
-              <nav style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <Link href="/gallery" className="nav-link hidden-mobile" style={{ textDecoration: "none" }}>Gallery</Link>
-                <Link href="/guide" className="nav-link hidden-mobile" style={{ textDecoration: "none" }}>Guide</Link>
-                <Link href="/account" className="nav-link" style={{ textDecoration: "none" }}>Account</Link>
-                <Link href="/quote" className="btn-primary" style={{ fontSize: 14, padding: "8px 20px", marginLeft: 6 }}>
+              <nav style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <Link href="/gallery" className="nav-link" style={{ fontSize: 13, color: "var(--text-dim)", textDecoration: "none" }}>Gallery</Link>
+                <Link href="/quote" className="btn-primary" style={{ fontSize: 14, padding: "8px 20px" }}>
                   Get Quote
                 </Link>
               </nav>
@@ -125,42 +115,20 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             {children}
           </main>
 
-          <footer style={{ borderTop: "1px solid var(--border)", padding: "28px clamp(16px, 4vw, 32px)" }}>
-            <div style={{
-              maxWidth: 1200, margin: "0 auto",
-              display: "flex", flexWrap: "wrap", alignItems: "center",
-              justifyContent: "space-between", gap: 16, marginBottom: 20
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <svg width="18" height="18" viewBox="0 0 32 32" fill="none">
-                  <polygon points="16,2 29,9 29,23 16,30 3,23 3,9"
-                    stroke="var(--orange)" strokeWidth="1.5" fill="rgba(249,115,22,0.08)"/>
-                  <circle cx="16" cy="16" r="3" fill="var(--orange)" opacity="0.7"/>
-                </svg>
-                <span className="font-display" style={{ fontSize: 13, color: "var(--muted)", letterSpacing: "0.06em" }}>
-                  STRATUM<span style={{ color: "var(--orange)" }}>3D</span>
-                </span>
-                <span className="font-mono" style={{ fontSize: 9, color: "var(--border-hi)", letterSpacing: "0.08em", marginLeft: 4 }}>Perth, WA</span>
-              </div>
-              <div style={{ display: "flex", gap: 20 }}>
-                <Link href="/gallery" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.08em" }}>Gallery</Link>
-                <Link href="/guide" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.08em" }}>Print Guide</Link>
-                <Link href="/privacy" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.08em" }}>Privacy</Link>
-                <Link href="/terms" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.08em" }}>Terms</Link>
-              </div>
+          <footer style={{
+            borderTop: "1px solid var(--border)",
+            padding: "24px clamp(16px, 4vw, 32px)",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 10
+          }}>
+            <div style={{ display: "flex", gap: 20 }}>
+              <Link href="/guide" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.1em" }}>Print Guide</Link>
+              <Link href="/privacy" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.1em" }}>Privacy Policy</Link>
+              <Link href="/terms" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.1em" }}>Terms of Service</Link>
             </div>
-            <div style={{
-              maxWidth: 1200, margin: "0 auto",
-              borderTop: "1px solid var(--border)", paddingTop: 16,
-              display: "flex", justifyContent: "center"
-            }}>
-              <span className="font-mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.15em" }}>
-                © {new Date().getFullYear()} STRATUM3D · FDM 3D PRINTING · PERTH, WESTERN AUSTRALIA
-              </span>
-            </div>
+            <span className="font-mono" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.15em" }}>
+              © {new Date().getFullYear()} STRATUM3D — LOCAL 3D PRINTING SERVICES — PERTH, AUSTRALIA
+            </span>
           </footer>
-
-          <OrderToast />
 
         </div>
       </body>

@@ -56,11 +56,6 @@ input, select, textarea, button { font: inherit; }
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 20px;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.card:hover {
-  border-color: var(--border-hi);
-  box-shadow: 0 6px 28px rgba(0,0,0,0.3);
 }
 .card-lg {
   background: var(--surface);
@@ -158,11 +153,15 @@ input, select, textarea, button { font: inherit; }
   border: 1px solid var(--border);
   color: var(--muted);
 }
-.badge-received       { border-color: #312e81; background: #1e1b4b; color: #a5b4fc; }
-.badge-printing       { border-color: var(--orange-dim); background: #1e0e00; color: var(--orange); }
-.badge-quality_check  { border-color: #854d0e; background: #261a05; color: var(--amber); }
-.badge-shipped        { border-color: #065f46; background: var(--green-dim); color: var(--green); }
-.badge-delivered      { border-color: #065f46; background: var(--green-dim); color: var(--green); }
+.badge-paid             { border-color: #065f46; background: var(--green-dim); color: var(--green); }
+.badge-order_received   { border-color: var(--accent-dim); background: rgba(0,229,160,0.08); color: var(--accent); }
+.badge-printing         { border-color: var(--orange-dim); background: #1e0e00; color: var(--orange); }
+.badge-order_shipped    { border-color: #065f46; background: var(--green-dim); color: var(--green); }
+.badge-completed        { border-color: #065f46; background: var(--green-dim); color: var(--green); }
+.badge-cancelled        { border-color: #7f1d1d; background: var(--red-dim); color: var(--red); }
+.badge-refunded         { border-color: #7f1d1d; background: var(--red-dim); color: var(--red); }
+.badge-draft            { border-color: var(--border); color: var(--muted); }
+.badge-checkout_pending { border-color: #312e81; background: #1e1b4b; color: #a5b4fc; }
 
 /* ── Error / success ─────────────────────────── */
 .error-box {
@@ -290,109 +289,4 @@ input, select, textarea, button { font: inherit; }
   .order-row > *:nth-child(3),
   .order-row > *:nth-child(5),
   .order-row > *:nth-child(6) { display: none; }
-}
-
-/* ── Announce bar ────────────────────────────── */
-.announce-bar {
-  background: rgba(249,115,22,0.12);
-  border-bottom: 1px solid rgba(249,115,22,0.22);
-  padding: 7px clamp(16px, 4vw, 32px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-/* ── Trust items ─────────────────────────────── */
-.trust-item {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 10px;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.trust-item::before {
-  content: '';
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: var(--orange);
-  opacity: 0.5;
-  flex-shrink: 0;
-}
-
-/* ── Strata visual animations ────────────────── */
-@keyframes nozzlePulse {
-  0%, 100% { box-shadow: 0 0 8px rgba(249,115,22,0.7),  0 0 16px rgba(249,115,22,0.2); }
-  50%       { box-shadow: 0 0 16px rgba(249,115,22,1.0), 0 0 30px rgba(249,115,22,0.45); }
-}
-@keyframes buildPulse {
-  0%, 100% { opacity: 0.18; }
-  50%       { opacity: 0.82; }
-}
-
-/* ── Status timeline ─────────────────────────── */
-.timeline { display: flex; flex-direction: column; gap: 0; }
-.timeline-step {
-  display: flex;
-  gap: 14px;
-  position: relative;
-  padding-bottom: 22px;
-}
-.timeline-step:last-child { padding-bottom: 0; }
-.timeline-dot {
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  border: 2px solid var(--border-hi);
-  background: var(--bg);
-  flex-shrink: 0;
-  margin-top: 2px;
-  z-index: 1;
-}
-.timeline-step::before {
-  content: '';
-  position: absolute;
-  left: 7px; top: 18px; bottom: 0;
-  width: 2px;
-  background: var(--border);
-}
-.timeline-step:last-child::before { display: none; }
-.timeline-step.done .timeline-dot    { border-color: var(--green); background: var(--green); }
-.timeline-step.current .timeline-dot { border-color: var(--orange); background: var(--orange); box-shadow: 0 0 0 4px rgba(249,115,22,0.18); }
-.timeline-step.done::before          { background: var(--green); }
-
-/* ── Gallery grid ────────────────────────────── */
-.gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
-}
-.gallery-tile {
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  overflow: hidden;
-  background: var(--surface);
-  transition: border-color 0.2s, transform 0.2s;
-}
-.gallery-tile:hover { border-color: var(--border-hi); transform: translateY(-3px); }
-
-/* ── Stat block ──────────────────────────────── */
-.stat-num {
-  font-family: "Bebas Neue", sans-serif;
-  font-size: clamp(30px, 5vw, 44px);
-  color: var(--orange);
-  line-height: 1;
-  letter-spacing: 0.02em;
-}
-.stat-label {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  margin-top: 6px;
 }

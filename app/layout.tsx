@@ -78,8 +78,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 
           {/* Announce bar — scrolls away naturally */}
           <div className="announce-bar">
-            <span className="font-mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.13em", textTransform: "uppercase" }}>
-              Perth-based&nbsp;·&nbsp;Volume-based pricing&nbsp;·&nbsp;No minimum order&nbsp;·&nbsp;Ships Australia-wide
+            <span className="font-mono" style={{ fontSize: 11, color: "var(--text)", letterSpacing: "0.13em", textTransform: "uppercase" }}>
+              Perth-based&nbsp;·&nbsp;Transparent volume pricing&nbsp;·&nbsp;No minimum order&nbsp;·&nbsp;Ships Australia-wide
             </span>
           </div>
 

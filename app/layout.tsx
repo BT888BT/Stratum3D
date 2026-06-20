@@ -1,6 +1,7 @@
 import "./globals.css";
 import Link from "next/link";
 import type { Metadata } from "next";
+import OrderToast from "./components/OrderToast";
 
 export const metadata: Metadata = {
   title: "Stratum3D — Affordable 3D Printing in Perth | Fast Local FDM Service",
@@ -109,9 +110,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 </span>
               </Link>
 
-              <nav style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <Link href="/gallery" className="nav-link" style={{ fontSize: 13, color: "var(--text-dim)", textDecoration: "none" }}>Gallery</Link>
-                <Link href="/quote" className="btn-primary" style={{ fontSize: 14, padding: "8px 20px" }}>
+              <nav style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <Link href="/gallery" className="nav-link hidden-mobile" style={{ textDecoration: "none" }}>Gallery</Link>
+                <Link href="/guide" className="nav-link hidden-mobile" style={{ textDecoration: "none" }}>Guide</Link>
+                <Link href="/account" className="nav-link" style={{ textDecoration: "none" }}>Account</Link>
+                <Link href="/quote" className="btn-primary" style={{ fontSize: 14, padding: "8px 20px", marginLeft: 6 }}>
                   Get Quote
                 </Link>
               </nav>
@@ -156,6 +159,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               </span>
             </div>
           </footer>
+
+          <OrderToast />
 
         </div>
       </body>

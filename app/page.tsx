@@ -105,7 +105,7 @@ export default function Home() {
       {/* ── How it works ─────────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(48px, 8vw, 88px)" }}>
         <span className="eyebrow" style={{ textAlign: "center", marginBottom: 10 }}>How it works</span>
-        <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)", textAlign: "center", marginBottom: 21 }}>
+        <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)", textAlign: "center", marginBottom: 14 }}>
           THREE STEPS TO A FINISHED PART
         </h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
@@ -126,7 +126,7 @@ export default function Home() {
       {/* ── Materials ────────────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(48px, 8vw, 88px)" }}>
         <span className="eyebrow" style={{ textAlign: "center", marginBottom: 10 }}>Materials</span>
-        <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)", textAlign: "center", marginBottom: 18 }}>
+        <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)", textAlign: "center", marginBottom: 12 }}>
           PICK THE RIGHT PLASTIC
         </h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
@@ -149,7 +149,7 @@ export default function Home() {
 
       {/* ── Gallery preview ──────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(48px, 8vw, 88px)" }}>
-        <div style={{ textAlign: "center", marginBottom: 15 }}>
+        <div style={{ textAlign: "center", marginBottom: 10 }}>
           <span className="eyebrow" style={{ textAlign: "center", marginBottom: 10 }}>Recent work</span>
           <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)" }}>FROM THE BUILD PLATE</h2>
         </div>
@@ -171,7 +171,7 @@ export default function Home() {
       {/* ── Testimonials ─────────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(48px, 8vw, 88px)" }}>
         <span className="eyebrow" style={{ textAlign: "center", marginBottom: 10 }}>What customers say</span>
-        <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)", textAlign: "center", marginBottom: 18 }}>TRUSTED BY PERTH MAKERS</h2>
+        <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)", textAlign: "center", marginBottom: 12 }}>TRUSTED BY PERTH MAKERS</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
           {TESTIMONIALS.map((t) => (
             <div key={t.name} className="card">

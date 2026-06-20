@@ -50,6 +50,9 @@ const STATUS_STAGE_INDEX: Record<string, number> = {
 
 // In-progress stage colour (distinct from the green "done" accent).
 const YELLOW = "#facc15";
+// "Done" / accent colour, scoped locally to this page so the rest of the app
+// (incl. admin) is unaffected.
+const GREEN = "#00e5a0";
 
 function prettyStatus(status: string) {
   return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -153,7 +156,7 @@ function OrderResult({ result }: { result: LookupResult }) {
       <div className="card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
         <div>
           <p className="eyebrow" style={{ marginBottom: 4 }}>Order</p>
-          <p className="font-display" style={{ fontSize: 22, fontWeight: 700, color: "var(--accent)" }}>
+          <p className="font-display" style={{ fontSize: 22, fontWeight: 700, color: GREEN }}>
             {result.reference}
           </p>
           <p style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 2 }}>
@@ -193,7 +196,7 @@ function OrderResult({ result }: { result: LookupResult }) {
               const active = !isCompleted && i === currentIndex;
               const reached = done || active;
 
-              const lineColor = done ? "var(--accent)" : active ? YELLOW : "var(--border)";
+              const lineColor = done ? GREEN : active ? YELLOW : "var(--border)";
 
               return (
                 <div key={stage.key} style={{
@@ -271,7 +274,7 @@ function OrderResult({ result }: { result: LookupResult }) {
               <hr className="divider" />
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span className="font-display" style={{ fontSize: 14, fontWeight: 600 }}>Total</span>
-                <span className="font-display" style={{ fontSize: 18, fontWeight: 700, color: "var(--accent)" }}>
+                <span className="font-display" style={{ fontSize: 18, fontWeight: 700, color: GREEN }}>
                   {formatAud(result.totals.totalCents)}
                 </span>
               </div>

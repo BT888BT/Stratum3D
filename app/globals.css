@@ -20,8 +20,6 @@
   --red-dim:   #2a0a0a;
   --green:     #22c55e;
   --green-dim: #052e16;
-  --accent:    #00e5a0;
-  --accent-dim:#064e3b;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

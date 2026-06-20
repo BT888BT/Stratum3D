@@ -1,11 +1,19 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { MATERIALS, QUALITIES } from "@/lib/catalog";
-import { SHOP_STATS, TESTIMONIALS, GALLERY } from "@/lib/mock-data";
-import GalleryArt from "./components/GalleryArt";
+import { SHOP_STATS, TESTIMONIALS } from "@/lib/mock-data";
 import NowPrinting from "./components/NowPrinting";
 
 export const dynamic = "force-dynamic";
+
+// Home-page "From the build plate" photos. Drop the image files in
+// public/home-gallery/ (see the README there) and edit the labels below.
+const HOME_GALLERY = [
+  { src: "/home-gallery/print-1.jpg", title: "Articulated Dragon", material: "PLA", category: "Display" },
+  { src: "/home-gallery/print-2.jpg", title: "Raspberry Pi Enclosure", material: "PETG", category: "Functional" },
+  { src: "/home-gallery/print-3.jpg", title: "FPV Drone Frame", material: "ABS", category: "Engineering" },
+  { src: "/home-gallery/print-4.jpg", title: "Spiral Vase", material: "PLA", category: "Decor" },
+];
 
 function MaintenancePage() {
   return (
@@ -216,9 +224,15 @@ export default async function HomePage() {
           <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)" }}>FROM THE BUILD PLATE</h2>
         </div>
         <div className="gallery-grid">
-          {GALLERY.slice(0, 4).map((p) => (
-            <div key={p.id} className="gallery-tile">
-              <GalleryArt piece={p} />
+          {HOME_GALLERY.map((p) => (
+            <div key={p.src} className="gallery-tile">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={p.src}
+                alt={p.title}
+                loading="lazy"
+                style={{ display: "block", width: "100%", height: 180, objectFit: "cover" }}
+              />
               <div style={{ padding: "14px 16px" }}>
                 <div style={{ fontSize: 14, color: "var(--text)", fontWeight: 600 }}>{p.title}</div>
                 <div className="font-mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.1em", marginTop: 4, textTransform: "uppercase" }}>

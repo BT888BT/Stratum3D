@@ -125,11 +125,11 @@ export default function Home() {
 
       {/* ── Materials ────────────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(48px, 8vw, 88px)" }}>
-        <span className="eyebrow" style={{ marginBottom: 10 }}>Materials</span>
-        <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)", marginBottom: 8 }}>
+        <span className="eyebrow" style={{ textAlign: "center", marginBottom: 10 }}>Materials</span>
+        <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)", textAlign: "center", marginBottom: 8 }}>
           PICK THE RIGHT PLASTIC
         </h2>
-        <p style={{ fontSize: 15, color: "var(--text-dim)", maxWidth: 560, marginBottom: 32 }}>
+        <p style={{ fontSize: 15, color: "var(--text-dim)", maxWidth: 560, textAlign: "center", margin: "0 auto 32px" }}>
           Three workhorse filaments cover almost everything — from display pieces to weatherproof,
           load-bearing parts. Not sure? Our <Link href="/guide" style={{ color: "var(--orange)" }}>print guide</Link> breaks it down.
         </p>
@@ -153,9 +153,9 @@ export default function Home() {
 
       {/* ── Gallery preview ──────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(48px, 8vw, 88px)" }}>
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
-          <div>
-            <span className="eyebrow" style={{ marginBottom: 10 }}>Recent work</span>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 28, gap: 16 }}>
+          <div style={{ textAlign: "center" }}>
+            <span className="eyebrow" style={{ textAlign: "center", marginBottom: 10 }}>Recent work</span>
             <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)" }}>FROM THE BUILD PLATE</h2>
           </div>
           <Link href="/gallery" className="btn-ghost">View all →</Link>
@@ -177,8 +177,8 @@ export default function Home() {
 
       {/* ── Testimonials ─────────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(48px, 8vw, 88px)" }}>
-        <span className="eyebrow" style={{ marginBottom: 10 }}>What customers say</span>
-        <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)", marginBottom: 32 }}>TRUSTED BY PERTH MAKERS</h2>
+        <span className="eyebrow" style={{ textAlign: "center", marginBottom: 10 }}>What customers say</span>
+        <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)", textAlign: "center", marginBottom: 32 }}>TRUSTED BY PERTH MAKERS</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
           {TESTIMONIALS.map((t) => (
             <div key={t.name} className="card">

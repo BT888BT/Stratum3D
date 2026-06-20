@@ -69,10 +69,8 @@ export default function NowPrinting(data: NowPrintingData) {
   const specs: [string, string][] = [
     ["Material", data.material],
     ["Colour", data.colour],
-    ["Layer", data.layerHeight],
     ["Infill", data.infillPercent != null ? `${data.infillPercent}%` : "—"],
   ];
-  if (data.estPrice) specs.push(["Value", data.estPrice]);
 
   return (
     <div
@@ -109,8 +107,18 @@ export default function NowPrinting(data: NowPrintingData) {
       </div>
 
       {/* Spinning cube visual */}
-      <div style={{ perspective: 700, display: "flex", justifyContent: "center", alignItems: "center", height: 150, padding: "4px 0 16px" }}>
-        <div className="cube-3d float-anim">
+      <div
+        style={{
+          perspective: 520,
+          perspectiveOrigin: "50% 45%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: 160,
+          padding: "4px 0 16px",
+        }}
+      >
+        <div className="cube-3d">
           <div className="cube-face front" />
           <div className="cube-face back" />
           <div className="cube-face left" />
@@ -140,15 +148,6 @@ export default function NowPrinting(data: NowPrintingData) {
 
       {/* Spec list */}
       <div style={{ display: "grid", gap: 9 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
-          <span className="font-mono" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.08em" }}>Model</span>
-          <span
-            style={{ fontSize: 13, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 180 }}
-            title={data.fileName}
-          >
-            {data.fileName}
-          </span>
-        </div>
         {specs.map(([k, v]) => (
           <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
             <span className="font-mono" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.08em" }}>{k}</span>

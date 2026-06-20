@@ -9,9 +9,9 @@ export const dynamic = "force-dynamic";
 // Home-page "From the build plate" photos. Drop the image files in
 // public/home-gallery/ (see the README there) and edit the labels below.
 const HOME_GALLERY = [
-  { src: "/home-gallery/print-1.jpg", title: "Articulated Dragon", material: "PLA", category: "Display" },
-  { src: "/home-gallery/print-2.jpg", title: "Raspberry Pi Enclosure", material: "PETG", category: "Functional" },
-  { src: "/home-gallery/print-3.jpg", title: "FPV Drone Frame", material: "ABS", category: "Engineering" },
+  { src: "/home-gallery/print-1.jpg", title: "Raised Dog Bowl Stand", material: "PLA", category: "Pet · Functional" },
+  { src: "/home-gallery/print-2.jpg", title: "Cosplay Mask", material: "PLA", category: "Cosplay · Display" },
+  { src: "/home-gallery/print-3.jpg", title: "Raspberry Pi Enclosure", material: "PETG", category: "Functional" },
   { src: "/home-gallery/print-4.jpg", title: "Spiral Vase", material: "PLA", category: "Decor" },
 ];
 

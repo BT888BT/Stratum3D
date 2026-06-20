@@ -36,6 +36,9 @@ export async function POST(request: Request) {
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
   const caption = (formData.get("caption") as string) ?? "";
+  const name = (formData.get("name") as string) ?? "";
+  const material = (formData.get("material") as string) ?? "";
+  const category = (formData.get("category") as string) ?? "";
 
   if (!file) return NextResponse.json({ error: "No file provided." }, { status: 400 });
 
@@ -74,6 +77,9 @@ export async function POST(request: Request) {
   const { error: insertError } = await supabase.from("gallery_images").insert({
     storage_path: storagePath,
     caption: caption || null,
+    name: name || null,
+    material: material || null,
+    category: category || null,
     sort_order: (maxRow?.sort_order ?? 0) + 1,
     visible: true,
   });

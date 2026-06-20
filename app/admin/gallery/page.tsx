@@ -6,6 +6,7 @@ import Link from "next/link";
 
 type GalleryImage = {
   id: string; storage_path: string; caption: string | null;
+  name: string | null; material: string | null; category: string | null;
   sort_order: number; visible: boolean; url: string | null;
 };
 
@@ -13,6 +14,9 @@ export default function AdminGalleryPage() {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [caption, setCaption] = useState("");
+  const [name, setName] = useState("");
+  const [material, setMaterial] = useState("");
+  const [category, setCategory] = useState("");
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -31,12 +35,15 @@ export default function AdminGalleryPage() {
     const fd = new FormData();
     fd.append("file", file);
     fd.append("caption", caption);
+    fd.append("name", name);
+    fd.append("material", material);
+    fd.append("category", category);
     const res = await fetch("/api/admin/gallery", { method: "POST", body: fd });
     if (!res.ok) {
       const data = await res.json().catch(() => null);
       setError(data?.error || "Upload failed.");
     } else {
-      setFile(null); setCaption("");
+      setFile(null); setCaption(""); setName(""); setMaterial(""); setCategory("");
       await loadImages();
     }
     setUploading(false);
@@ -85,10 +92,28 @@ export default function AdminGalleryPage() {
               onChange={e => setFile(e.target.files?.[0] ?? null)}
               className="input-field" style={{ fontSize: 12, padding: "8px 10px" }} />
           </label>
+          <label style={{ display: "flex", flexDirection: "column", gap: 6, flex: 1, minWidth: 160 }}>
+            <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Name</span>
+            <input value={name} onChange={e => setName(e.target.value)}
+              className="input-field" placeholder="e.g. Cosplay Helmet"
+              onKeyDown={e => e.key === "Enter" && handleUpload()} />
+          </label>
+          <label style={{ display: "flex", flexDirection: "column", gap: 6, flex: 1, minWidth: 140 }}>
+            <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Material</span>
+            <input value={material} onChange={e => setMaterial(e.target.value)}
+              className="input-field" placeholder="e.g. PLA"
+              onKeyDown={e => e.key === "Enter" && handleUpload()} />
+          </label>
+          <label style={{ display: "flex", flexDirection: "column", gap: 6, flex: 1, minWidth: 140 }}>
+            <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Category</span>
+            <input value={category} onChange={e => setCategory(e.target.value)}
+              className="input-field" placeholder="e.g. Cosplay"
+              onKeyDown={e => e.key === "Enter" && handleUpload()} />
+          </label>
           <label style={{ display: "flex", flexDirection: "column", gap: 6, flex: 1, minWidth: 200 }}>
             <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Caption (optional)</span>
             <input value={caption} onChange={e => setCaption(e.target.value)}
-              className="input-field" placeholder="e.g. Custom cosplay helmet — PLA"
+              className="input-field" placeholder="e.g. Printed in two parts, glued and sanded"
               onKeyDown={e => e.key === "Enter" && handleUpload()} />
           </label>
           <button onClick={handleUpload} disabled={uploading || !file}
@@ -120,8 +145,16 @@ export default function AdminGalleryPage() {
               </div>
             )}
             <div style={{ padding: "10px 12px" }}>
+              {img.name && (
+                <p style={{ fontSize: 13, color: "var(--text)", marginBottom: 4, fontWeight: 600 }}>{img.name}</p>
+              )}
+              {(img.material || img.category) && (
+                <p className="font-mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.08em", marginBottom: 8, textTransform: "uppercase" }}>
+                  {[img.material, img.category].filter(Boolean).join(" · ")}
+                </p>
+              )}
               {img.caption && (
-                <p style={{ fontSize: 12, color: "var(--text)", marginBottom: 8, lineHeight: 1.4 }}>{img.caption}</p>
+                <p style={{ fontSize: 12, color: "var(--text-dim)", marginBottom: 8, lineHeight: 1.4 }}>{img.caption}</p>
               )}
               <div style={{ display: "flex", gap: 8 }}>
                 <button onClick={() => toggleVisibility(img.id, img.visible)}

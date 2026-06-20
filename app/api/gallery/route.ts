@@ -7,9 +7,11 @@ export async function GET() {
   // Use admin client because the gallery bucket is private —
   // the anon key cannot generate signed URLs for private storage.
   const supabase = createAdminClient();
+  // select("*") so the route keeps working even if the name/material/category
+  // columns haven't been migrated in yet — missing columns are simply absent.
   const { data: images, error } = await supabase
     .from("gallery_images")
-    .select("id, storage_path, caption, sort_order")
+    .select("*")
     .eq("visible", true)
     .order("sort_order")
     .order("created_at", { ascending: false });
@@ -37,6 +39,9 @@ export async function GET() {
   const result = images.map((img, i) => ({
     id: img.id,
     caption: img.caption,
+    name: img.name ?? null,
+    material: img.material ?? null,
+    category: img.category ?? null,
     url: signedUrls?.[i]?.signedUrl ?? null,
   })).filter(i => i.url);
 

@@ -12,7 +12,7 @@ const HOME_GALLERY = [
   { src: "/home-gallery/print-1.jpg", title: "Raised Dog Bowl Stand", material: "PLA", category: "Pet · Functional" },
   { src: "/home-gallery/print-2.jpg", title: "Cosplay Mask", material: "PLA", category: "Cosplay · Display" },
   { src: "/home-gallery/print-3.jpg", title: "Raspberry Pi Enclosure", material: "PETG", category: "Functional" },
-  { src: "/home-gallery/print-4.jpg", title: "Spiral Vase", material: "PLA", category: "Decor" },
+  { src: "/home-gallery/print-4.jpg", title: "Crochet-Style Cow Figure", material: "PETG", category: "Display · Decor" },
 ];
 
 function MaintenancePage() {

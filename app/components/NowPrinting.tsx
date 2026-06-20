@@ -128,22 +128,28 @@ export default function NowPrinting() {
       {/* Spinning cube visual */}
       <div
         style={{
-          perspective: 520,
-          perspectiveOrigin: "50% 45%",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          height: 160,
-          padding: "4px 0 16px",
+          height: 166,
+          padding: "12px 0 22px",
         }}
       >
-        <div className="cube-3d">
-          <div className="cube-face front" />
-          <div className="cube-face back" />
-          <div className="cube-face left" />
-          <div className="cube-face right" />
-          <div className="cube-face top" />
-          <div className="cube-face bottom" />
+        <div
+          style={{
+            perspective: 520,
+            perspectiveOrigin: "50% 45%",
+            transform: "scale(0.82)",
+          }}
+        >
+          <div className="cube-3d">
+            <div className="cube-face front" />
+            <div className="cube-face back" />
+            <div className="cube-face left" />
+            <div className="cube-face right" />
+            <div className="cube-face top" />
+            <div className="cube-face bottom" />
+          </div>
         </div>
       </div>
 

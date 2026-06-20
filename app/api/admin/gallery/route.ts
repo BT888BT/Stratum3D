@@ -6,11 +6,15 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // Sharp needs the Node.js runtime (not the Edge runtime).
 export const runtime = "nodejs";
 
-// Web-optimized display copy: capped width, WebP. The original full-quality
-// upload is kept untouched; this is just what the gallery grid loads.
+// Three visible quality tiers are generated from the single full upload:
+//   display — high quality, capped width WebP (the final swapped-in image)
+//   preview — small low-quality WebP that loads fast for every image
+//   blur    — tiny placeholder, inlined as a data URI for instant first paint
+// The original full-quality upload is always kept untouched.
 const DISPLAY_MAX_WIDTH = 1280;
-const DISPLAY_QUALITY = 80;
-// Tiny blur placeholder, inlined as a data URI for instant first paint.
+const DISPLAY_QUALITY = 82;
+const PREVIEW_MAX_WIDTH = 640;
+const PREVIEW_QUALITY = 55;
 const BLUR_WIDTH = 24;
 
 // GET — list all gallery images for admin (including hidden)
@@ -78,25 +82,41 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: `Upload failed: ${uploadError.message}` }, { status: 500 });
   }
 
-  // Auto-generate a web-optimized display copy + a tiny inline blur placeholder.
-  // If any of this fails we fall back to the original — the upload still works.
+  // Auto-generate the high-quality display copy, the low-quality preview, and a
+  // tiny inline blur placeholder. If any of this fails we fall back to the
+  // original — the upload still works.
+  const stem = storagePath.replace(/\.[^.]+$/, "");
   let displayPath: string | null = null;
+  let previewPath: string | null = null;
   let blurData: string | null = null;
   try {
     const base = sharp(originalBuf).rotate(); // honour EXIF orientation
 
+    // Tier 3 — high quality
     const displayBuf = await base
       .clone()
       .resize({ width: DISPLAY_MAX_WIDTH, withoutEnlargement: true })
       .webp({ quality: DISPLAY_QUALITY })
       .toBuffer();
-
-    const candidatePath = `display/${storagePath.replace(/\.[^.]+$/, "")}.webp`;
+    const displayCandidate = `display/${stem}.webp`;
     const { error: displayErr } = await supabase.storage
       .from("gallery")
-      .upload(candidatePath, displayBuf, { contentType: "image/webp", upsert: false });
-    if (!displayErr) displayPath = candidatePath;
+      .upload(displayCandidate, displayBuf, { contentType: "image/webp", upsert: false });
+    if (!displayErr) displayPath = displayCandidate;
 
+    // Tier 2 — low quality, small + fast
+    const previewBuf = await base
+      .clone()
+      .resize({ width: PREVIEW_MAX_WIDTH, withoutEnlargement: true })
+      .webp({ quality: PREVIEW_QUALITY })
+      .toBuffer();
+    const previewCandidate = `preview/${stem}.webp`;
+    const { error: previewErr } = await supabase.storage
+      .from("gallery")
+      .upload(previewCandidate, previewBuf, { contentType: "image/webp", upsert: false });
+    if (!previewErr) previewPath = previewCandidate;
+
+    // Tier 1 — inline blur placeholder
     const blurBuf = await base
       .clone()
       .resize({ width: BLUR_WIDTH })
@@ -118,6 +138,7 @@ export async function POST(request: Request) {
   const { error: insertError } = await supabase.from("gallery_images").insert({
     storage_path: storagePath,
     display_path: displayPath,
+    preview_path: previewPath,
     blur_data: blurData,
     caption: caption || null,
     name: name || null,
@@ -160,7 +181,7 @@ export async function DELETE(request: Request) {
     .single();
 
   if (img) {
-    const paths = [img.storage_path, img.display_path].filter(Boolean) as string[];
+    const paths = [img.storage_path, img.display_path, img.preview_path].filter(Boolean) as string[];
     if (paths.length) await supabase.storage.from("gallery").remove(paths);
   }
 

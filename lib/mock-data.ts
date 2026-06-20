@@ -130,11 +130,11 @@ export function orderByCodeForEmail(email: string, code: string): Order | undefi
 
 // ── Shop stats (social proof) ──────────────────────────────────────────────
 export const SHOP_STATS = {
-  printsCompleted: 4200,
-  rating: 4.9,
-  reviews: 312,
+  printsCompleted: 800,
+  rating: 4.8,
+  reviews: 127,
   turnaroundHours: 48,
-  repeatCustomerPct: 71,
+  repeatCustomerPct: 81,
 };
 
 // ── Live order feed (drives the subtle social-proof toast) ─────────────────

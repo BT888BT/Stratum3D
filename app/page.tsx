@@ -20,7 +20,7 @@ export default function Home() {
             display: "grid",
             gridTemplateColumns: "1.15fr 0.85fr",
             gap: "clamp(24px, 5vw, 56px)",
-            alignItems: "center",
+            alignItems: "stretch",
           }}
         >
           <div className="fade-up">
@@ -41,7 +41,7 @@ export default function Home() {
               Affordable, high-quality 3D printing made local. Configure your part, see a
               transparent price up front, and get it in days — not weeks. No minimum order.
             </p>
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 28 }}>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Link href="/quote" className="btn-primary glow-pulse" style={{ fontSize: 18, padding: "13px 32px" }}>
                 Start Your Print →
               </Link>
@@ -52,8 +52,10 @@ export default function Home() {
           </div>
 
           {/* Hero visual — layered build animation */}
-          <div className="fade-up-2 hidden-mobile" style={{ display: "flex", justifyContent: "center" }}>
-            <div className="card-orange" style={{ width: "100%", maxWidth: 340, padding: 32 }}>
+          <div className="fade-up-2 hidden-mobile" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            {/* invisible spacer matching the eyebrow row so the card top aligns with the heading */}
+            <span className="eyebrow" aria-hidden="true" style={{ marginBottom: 16, visibility: "hidden" }}>&nbsp;</span>
+            <div className="card-orange" style={{ width: "100%", maxWidth: 340, padding: 32, flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
               <div className="font-mono" style={{ fontSize: 10, color: "var(--orange)", letterSpacing: "0.2em", marginBottom: 18 }}>
                 ● NOW PRINTING
               </div>
@@ -87,7 +89,7 @@ export default function Home() {
           style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 24, textAlign: "center" }}
         >
           {[
-            [`${(SHOP_STATS.printsCompleted / 1000).toFixed(1)}k+`, "Prints completed"],
+            [`${SHOP_STATS.printsCompleted}+`, "Prints completed"],
             [`${SHOP_STATS.rating}★`, `${SHOP_STATS.reviews} reviews`],
             [`${SHOP_STATS.turnaroundHours}h`, "Avg. turnaround"],
             [`${SHOP_STATS.repeatCustomerPct}%`, "Repeat customers"],

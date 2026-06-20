@@ -35,6 +35,9 @@ const STAGES = [
   { key: "completed", label: "Completed" },
 ] as const;
 
+// In-progress stage colour (distinct from the green "done" accent).
+const YELLOW = "#facc15";
+
 function prettyStatus(status: string) {
   return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
@@ -159,41 +162,65 @@ function OrderResult({ result }: { result: LookupResult }) {
             </p>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+          <div style={{ display: "flex", alignItems: "flex-start" }}>
             {STAGES.map((stage, i) => {
-              const done = currentIndex >= 0 && i < currentIndex;
-              const active = i === currentIndex;
+              const isCompleted = result.status === "completed";
+              const done = isCompleted || (currentIndex >= 0 && i < currentIndex);
+              const active = !isCompleted && i === currentIndex;
               const reached = done || active;
+              const isLast = i === STAGES.length - 1;
+              // Connector to the LEFT is filled once we've reached this node;
+              // connector to the RIGHT is filled once we've moved past it.
+              const leftFilled = isCompleted || (currentIndex >= 0 && i <= currentIndex);
+              const rightFilled = done;
+
+              const dotColor = done ? "var(--accent)" : active ? YELLOW : "var(--bg2)";
+              const dotBorder = done ? "var(--accent)" : active ? YELLOW : "var(--border-hi)";
+
               return (
-                <div key={stage.key} style={{ display: "flex", gap: 14, alignItems: "stretch" }}>
-                  {/* Rail */}
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 18 }}>
+                <div key={stage.key} style={{
+                  flex: 1, position: "relative",
+                  display: "flex", flexDirection: "column", alignItems: "center",
+                }}>
+                  {/* Connecting status line (behind the dot) */}
+                  {i > 0 && (
                     <div style={{
-                      width: 14, height: 14, borderRadius: "50%", flexShrink: 0,
-                      background: reached ? "var(--accent)" : "var(--bg2)",
-                      border: `2px solid ${reached ? "var(--accent)" : "var(--border-hi)"}`,
-                      boxShadow: active ? "0 0 0 4px rgba(0,229,160,0.15)" : "none",
+                      position: "absolute", top: 12, left: 0, right: "50%", height: 3,
+                      background: leftFilled ? "var(--accent)" : "var(--border)",
                     }} />
-                    {i < STAGES.length - 1 && (
-                      <div style={{
-                        width: 2, flex: 1, minHeight: 22,
-                        background: done ? "var(--accent)" : "var(--border)",
-                      }} />
+                  )}
+                  {!isLast && (
+                    <div style={{
+                      position: "absolute", top: 12, left: "50%", right: 0, height: 3,
+                      background: rightFilled ? "var(--accent)" : "var(--border)",
+                    }} />
+                  )}
+
+                  {/* Dot */}
+                  <div style={{
+                    position: "relative", zIndex: 1,
+                    width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
+                    background: dotColor,
+                    border: `2px solid ${dotBorder}`,
+                    boxShadow: active ? `0 0 0 4px ${YELLOW}33` : "none",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    {done && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
                     )}
                   </div>
+
                   {/* Label */}
-                  <div style={{ paddingBottom: i < STAGES.length - 1 ? 18 : 0 }}>
-                    <p style={{
-                      fontSize: 14, lineHeight: 1.3,
-                      fontWeight: active ? 700 : 500,
-                      color: reached ? "var(--text)" : "var(--muted)",
-                    }}>
-                      {stage.label}
-                    </p>
-                    {active && (
-                      <p style={{ fontSize: 12, color: "var(--accent)", marginTop: 2 }}>Current stage</p>
-                    )}
-                  </div>
+                  <p style={{
+                    marginTop: 8, fontSize: 11, lineHeight: 1.25, textAlign: "center",
+                    padding: "0 2px",
+                    fontWeight: active ? 700 : 500,
+                    color: active ? YELLOW : reached ? "var(--text)" : "var(--muted)",
+                  }}>
+                    {stage.label}
+                  </p>
                 </div>
               );
             })}

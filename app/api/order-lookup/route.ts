@@ -29,8 +29,11 @@ export async function POST(request: Request) {
   }
 
   const email = (body.email ?? "").trim();
-  // Accept "S3D-0001", "#0001", "0001" or "1" — we only care about the digits.
-  const digits = (body.orderNumber ?? "").replace(/\D/g, "");
+  // Accept "S3D-0001", "#0001", "0001" or "1". Strip a leading "S3D" prefix
+  // first (it contains a digit), then keep only the order-number digits.
+  const digits = (body.orderNumber ?? "")
+    .replace(/^\s*s3d/i, "")
+    .replace(/\D/g, "");
   const orderNumber = digits ? parseInt(digits, 10) : NaN;
 
   if (!email || !email.includes("@") || !Number.isFinite(orderNumber)) {

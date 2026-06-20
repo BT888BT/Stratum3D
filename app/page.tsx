@@ -49,11 +49,6 @@ export default function Home() {
                 See the Gallery
               </Link>
             </div>
-            <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
-              <span className="trust-item">{SHOP_STATS.printsCompleted.toLocaleString()}+ prints completed</span>
-              <span className="trust-item">{SHOP_STATS.rating}★ from {SHOP_STATS.reviews} reviews</span>
-              <span className="trust-item">~{SHOP_STATS.turnaroundHours}h turnaround</span>
-            </div>
           </div>
 
           {/* Hero visual — layered build animation */}

@@ -8,6 +8,7 @@ type GalleryImage = {
   name: string | null;
   material: string | null;
   category: string | null;
+  blurData: string | null;
   url: string;
 };
 
@@ -70,6 +71,10 @@ function GalleryCard({ img, priority }: { img: GalleryImage; priority: boolean }
     ["Category", img.category],
   ] as const;
 
+  // Blur-up: the tiny inline placeholder (img.blurData) paints instantly with no
+  // network request; the full image fades in over it once it finishes loading.
+  const [loadedImg, setLoadedImg] = useState(false);
+
   return (
     <div style={{
       border: "1px solid var(--border)",
@@ -79,14 +84,35 @@ function GalleryCard({ img, priority }: { img: GalleryImage; priority: boolean }
       display: "flex",
       flexDirection: "column",
     }}>
-      <div style={{ aspectRatio: "4 / 3", overflow: "hidden", background: "var(--bg2)" }}>
+      <div style={{ position: "relative", aspectRatio: "4 / 3", overflow: "hidden", background: "var(--bg2)" }}>
+        {img.blurData && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={img.blurData}
+            alt=""
+            aria-hidden
+            style={{
+              position: "absolute", inset: 0, width: "100%", height: "100%",
+              objectFit: "cover", display: "block",
+              filter: "blur(12px)", transform: "scale(1.1)",
+            }}
+          />
+        )}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={img.url}
           alt={title}
           loading={priority ? "eager" : "lazy"}
           decoding="async"
-          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          // ref guards the cached-image race: a complete image may not fire onLoad
+          ref={el => { if (el?.complete) setLoadedImg(true); }}
+          onLoad={() => setLoadedImg(true)}
+          style={{
+            position: "relative", width: "100%", height: "100%",
+            objectFit: "cover", display: "block",
+            opacity: loadedImg ? 1 : 0,
+            transition: "opacity 0.5s ease",
+          }}
         />
       </div>
 

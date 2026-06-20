@@ -25,8 +25,9 @@ export async function GET() {
     return NextResponse.json([]);
   }
 
-  // Generate signed URLs (valid 24 hours)
-  const paths = images.map(i => i.storage_path);
+  // Sign the web-optimized display copy when it exists, otherwise the original.
+  // (display_path may be absent for older rows / before the migration is run.)
+  const paths = images.map(i => i.display_path || i.storage_path);
   const { data: signedUrls, error: signError } = await supabase.storage
     .from("gallery")
     .createSignedUrls(paths, 86400);
@@ -42,6 +43,8 @@ export async function GET() {
     name: img.name ?? null,
     material: img.material ?? null,
     category: img.category ?? null,
+    // blurData: tiny inline placeholder that paints instantly (no extra request)
+    blurData: img.blur_data ?? null,
     url: signedUrls?.[i]?.signedUrl ?? null,
   })).filter(i => i.url);
 

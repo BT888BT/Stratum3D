@@ -1,6 +1,17 @@
 import { NextResponse } from "next/server";
+import sharp from "sharp";
 import { isAdminAuthed } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+// Sharp needs the Node.js runtime (not the Edge runtime).
+export const runtime = "nodejs";
+
+// Web-optimized display copy: capped width, WebP. The original full-quality
+// upload is kept untouched; this is just what the gallery grid loads.
+const DISPLAY_MAX_WIDTH = 1280;
+const DISPLAY_QUALITY = 80;
+// Tiny blur placeholder, inlined as a data URI for instant first paint.
+const BLUR_WIDTH = 24;
 
 // GET — list all gallery images for admin (including hidden)
 export async function GET() {
@@ -58,12 +69,42 @@ export async function POST(request: Request) {
   const storagePath = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
 
   const arrayBuf = await file.arrayBuffer();
+  const originalBuf = Buffer.from(arrayBuf);
   const { error: uploadError } = await supabase.storage
     .from("gallery")
-    .upload(storagePath, arrayBuf, { contentType: file.type, upsert: false });
+    .upload(storagePath, originalBuf, { contentType: file.type, upsert: false });
 
   if (uploadError) {
     return NextResponse.json({ error: `Upload failed: ${uploadError.message}` }, { status: 500 });
+  }
+
+  // Auto-generate a web-optimized display copy + a tiny inline blur placeholder.
+  // If any of this fails we fall back to the original — the upload still works.
+  let displayPath: string | null = null;
+  let blurData: string | null = null;
+  try {
+    const base = sharp(originalBuf).rotate(); // honour EXIF orientation
+
+    const displayBuf = await base
+      .clone()
+      .resize({ width: DISPLAY_MAX_WIDTH, withoutEnlargement: true })
+      .webp({ quality: DISPLAY_QUALITY })
+      .toBuffer();
+
+    const candidatePath = `display/${storagePath.replace(/\.[^.]+$/, "")}.webp`;
+    const { error: displayErr } = await supabase.storage
+      .from("gallery")
+      .upload(candidatePath, displayBuf, { contentType: "image/webp", upsert: false });
+    if (!displayErr) displayPath = candidatePath;
+
+    const blurBuf = await base
+      .clone()
+      .resize({ width: BLUR_WIDTH })
+      .webp({ quality: 40 })
+      .toBuffer();
+    blurData = `data:image/webp;base64,${blurBuf.toString("base64")}`;
+  } catch (e) {
+    console.error("[gallery] image processing failed, using original:", e);
   }
 
   // Get current max sort_order
@@ -76,6 +117,8 @@ export async function POST(request: Request) {
 
   const { error: insertError } = await supabase.from("gallery_images").insert({
     storage_path: storagePath,
+    display_path: displayPath,
+    blur_data: blurData,
     caption: caption || null,
     name: name || null,
     material: material || null,
@@ -109,15 +152,16 @@ export async function DELETE(request: Request) {
   const { id } = await request.json();
   const supabase = createAdminClient();
 
-  // Get storage path first
+  // Get storage paths first
   const { data: img } = await supabase
     .from("gallery_images")
-    .select("storage_path")
+    .select("*")
     .eq("id", id)
     .single();
 
   if (img) {
-    await supabase.storage.from("gallery").remove([img.storage_path]);
+    const paths = [img.storage_path, img.display_path].filter(Boolean) as string[];
+    if (paths.length) await supabase.storage.from("gallery").remove(paths);
   }
 
   const { error } = await supabase.from("gallery_images").delete().eq("id", id);

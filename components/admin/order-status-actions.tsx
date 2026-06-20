@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 const ACTIONS = [
   { label: "Order Received", status: "order_received", color: "var(--accent)" },
+  { label: "Printing",       status: "printing",       color: "var(--orange)" },
   { label: "Order Shipped",  status: "order_shipped",  color: "var(--amber)" },
   { label: "Completed",      status: "completed",      color: "var(--green)" },
 ] as const;

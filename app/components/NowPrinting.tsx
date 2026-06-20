@@ -109,14 +109,14 @@ export default function NowPrinting(data: NowPrintingData) {
       </div>
 
       {/* Spinning cube visual */}
-      <div style={{ perspective: 600, display: "flex", justifyContent: "center", padding: "6px 0 20px" }}>
-        <div className="cube-3d" style={{ width: 96, height: 96 }}>
-          <div className="cube-face front" style={cubeFace} />
-          <div className="cube-face back" style={cubeFace} />
-          <div className="cube-face left" style={cubeFace} />
-          <div className="cube-face right" style={cubeFace} />
-          <div className="cube-face top" style={cubeFace} />
-          <div className="cube-face bottom" style={cubeFace} />
+      <div style={{ perspective: 700, display: "flex", justifyContent: "center", alignItems: "center", height: 150, padding: "4px 0 16px" }}>
+        <div className="cube-3d float-anim">
+          <div className="cube-face front" />
+          <div className="cube-face back" />
+          <div className="cube-face left" />
+          <div className="cube-face right" />
+          <div className="cube-face top" />
+          <div className="cube-face bottom" />
         </div>
       </div>
 
@@ -159,8 +159,3 @@ export default function NowPrinting(data: NowPrintingData) {
     </div>
   );
 }
-
-const cubeFace: React.CSSProperties = {
-  width: 96,
-  height: 96,
-};

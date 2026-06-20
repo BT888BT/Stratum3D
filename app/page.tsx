@@ -3,8 +3,87 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { MATERIALS, QUALITIES } from "@/lib/catalog";
 import { SHOP_STATS, TESTIMONIALS, GALLERY } from "@/lib/mock-data";
 import GalleryArt from "./components/GalleryArt";
+import NowPrinting, { type NowPrintingData } from "./components/NowPrinting";
 
 export const dynamic = "force-dynamic";
+
+const PRINTER_COUNT = 2;
+
+// Shown when no order is currently set to "printing" in the DB.
+const NOW_PRINTING_PLACEHOLDER: NowPrintingData = {
+  printerIndex: 1,
+  printerCount: PRINTER_COUNT,
+  fileName: "bracket_v3.stl",
+  material: "PETG",
+  colour: "Carbon Black",
+  layerHeight: "0.20 mm",
+  infillPercent: 25,
+  estPrice: "$18.40",
+  startedAtMs: null,
+  totalMinutes: null,
+  isPlaceholder: true,
+};
+
+// Pulls the most-recent order with status "printing" and surfaces it on the
+// home page as a "kind of live" build card. Read-only — does not touch any
+// ordering/backend logic. Falls back to a placeholder when nothing is printing.
+async function getNowPrinting(
+  supabase: ReturnType<typeof createAdminClient>
+): Promise<NowPrintingData> {
+  try {
+    const { data: order } = await supabase
+      .from("orders")
+      .select("id")
+      .eq("status", "printing")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!order) return NOW_PRINTING_PLACEHOLDER;
+
+    const [{ data: spec }, { data: hist }] = await Promise.all([
+      supabase
+        .from("quote_inputs")
+        .select(
+          "material, colour, infill_percent, estimated_print_time_minutes, line_total_cents, original_filename"
+        )
+        .eq("order_id", order.id)
+        .order("line_total_cents", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("order_status_history")
+        .select("created_at")
+        .eq("order_id", order.id)
+        .eq("status", "printing")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+    if (!spec) return NOW_PRINTING_PLACEHOLDER;
+
+    const startedAtMs = hist?.created_at ? new Date(hist.created_at).getTime() : null;
+    const estPrice =
+      spec.line_total_cents != null ? `$${(spec.line_total_cents / 100).toFixed(2)}` : null;
+
+    return {
+      printerIndex: 1,
+      printerCount: PRINTER_COUNT,
+      fileName: spec.original_filename ?? "model.stl",
+      material: spec.material ?? "PETG",
+      colour: spec.colour ?? "—",
+      layerHeight: "0.20 mm",
+      infillPercent: spec.infill_percent ?? null,
+      estPrice,
+      startedAtMs,
+      totalMinutes: spec.estimated_print_time_minutes ?? null,
+      isPlaceholder: false,
+    };
+  } catch {
+    return NOW_PRINTING_PLACEHOLDER;
+  }
+}
 
 function MaintenancePage() {
   return (
@@ -93,6 +172,8 @@ export default async function HomePage() {
     return <MaintenancePage />;
   }
 
+  const nowPrinting = await getNowPrinting(supabase);
+
   return (
     <>
       {/* ── Hero ─────────────────────────────────────────────── */}
@@ -138,29 +219,7 @@ export default async function HomePage() {
           <div className="fade-up-2 hidden-mobile" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             {/* invisible spacer matching the eyebrow row so the card top aligns with the heading */}
             <span className="eyebrow" aria-hidden="true" style={{ marginBottom: 16, visibility: "hidden" }}>&nbsp;</span>
-            <div className="card-orange" style={{ width: "100%", maxWidth: 340, padding: 32, flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-              <div className="font-mono" style={{ fontSize: 10, color: "var(--orange)", letterSpacing: "0.2em", marginBottom: 18 }}>
-                ● NOW PRINTING
-              </div>
-              <div className="layer-visual" style={{ marginBottom: 22 }}>
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="layer-line" style={{ width: `${90 - i * 6}%` }} />
-                ))}
-              </div>
-              <div style={{ display: "grid", gap: 10 }}>
-                {[
-                  ["Material", "PETG · Carbon Black"],
-                  ["Quality", "0.20 mm · Standard"],
-                  ["Infill", "25%"],
-                  ["Est. price", "$18.40"],
-                ].map(([k, v]) => (
-                  <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                    <span className="font-mono" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.08em" }}>{k}</span>
-                    <span style={{ fontSize: 13, color: "var(--text)" }}>{v}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <NowPrinting {...nowPrinting} />
           </div>
         </div>
       </section>

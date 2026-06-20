@@ -167,6 +167,7 @@ input, select, textarea, button { font: inherit; }
 .badge-refunded         { border-color: #7f1d1d; background: var(--red-dim); color: var(--red); }
 .badge-draft            { border-color: var(--border); color: var(--muted); }
 .badge-checkout_pending { border-color: #312e81; background: #1e1b4b; color: #a5b4fc; }
+.badge-pending_approval { border-color: #854d0e; background: rgba(250,204,21,0.08); color: #facc15; }
 
 /* ── Error / success ─────────────────────────── */
 .error-box {

@@ -25,15 +25,28 @@ type LookupResult = {
   history: { status: string; at: string }[];
 };
 
-// The customer-facing progress journey. Terminal states (cancelled / refunded)
-// are handled separately.
+// The customer-facing progress journey, in real lifecycle order. Pre-payment
+// states (draft / checkout_pending) and terminal states (cancelled / refunded)
+// are handled separately below.
 const STAGES = [
-  { key: "order_received", label: "Order received" },
-  { key: "paid", label: "Paid" },
+  { key: "pending_approval", label: "Under review" },
+  { key: "order_received", label: "Confirmed" },
   { key: "printing", label: "Printing" },
   { key: "order_shipped", label: "Shipped" },
   { key: "completed", label: "Completed" },
 ] as const;
+
+// Resolves a raw order status to its index on the STAGES journey above.
+// Includes legacy "paid" (maps to the confirmed stage) so older orders still
+// render a progress line rather than going all-grey.
+const STATUS_STAGE_INDEX: Record<string, number> = {
+  pending_approval: 0,
+  order_received: 1,
+  paid: 1,
+  printing: 2,
+  order_shipped: 3,
+  completed: 4,
+};
 
 // In-progress stage colour (distinct from the green "done" accent).
 const YELLOW = "#facc15";
@@ -129,7 +142,9 @@ export default function AccountPage() {
 
 function OrderResult({ result }: { result: LookupResult }) {
   const isTerminal = result.status === "cancelled" || result.status === "refunded";
-  const currentIndex = STAGES.findIndex((s) => s.key === result.status);
+  // Pre-payment states haven't entered the progress journey yet.
+  const isPrePayment = result.status === "draft" || result.status === "checkout_pending";
+  const currentIndex = STATUS_STAGE_INDEX[result.status] ?? -1;
 
   return (
     <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 16 }}>
@@ -159,6 +174,15 @@ function OrderResult({ result }: { result: LookupResult }) {
           }}>
             <p style={{ fontSize: 13, color: "var(--red)", fontWeight: 600 }}>
               This order has been {result.status}.
+            </p>
+          </div>
+        ) : isPrePayment ? (
+          <div style={{
+            padding: "12px 14px", borderRadius: 8,
+            background: "var(--surface)", border: "1px solid var(--border)",
+          }}>
+            <p style={{ fontSize: 13, color: "var(--text-dim)" }}>
+              Awaiting payment — your order will start tracking once checkout is complete.
             </p>
           </div>
         ) : (

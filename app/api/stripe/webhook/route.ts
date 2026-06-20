@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendOrderUnderReviewEmail } from "@/lib/email";
+import { expireStaleApprovals } from "@/lib/expire-approvals";
 import type Stripe from "stripe";
 
 export async function POST(request: Request) {
@@ -202,6 +203,19 @@ export async function POST(request: Request) {
         await supabase.from("orders").delete().eq("id", stale.id);
       }
       console.log(`[webhook] Cleaned up ${staleOrders.length} stale unpaid orders`);
+    }
+
+    // ── Backstop: release authorisations stuck in pending_approval ──────────
+    // Primary trigger is the daily cron (see app/api/cron/expire-approvals);
+    // this runs the same sweep opportunistically so authorisations still get
+    // released before Stripe's ~7-day expiry even if the cron didn't fire.
+    try {
+      const { expired } = await expireStaleApprovals();
+      if (expired) {
+        console.log(`[webhook] Auto-cancelled ${expired} stale pending_approval orders`);
+      }
+    } catch (err) {
+      console.error("[webhook] expireStaleApprovals backstop failed:", err instanceof Error ? err.message : err);
     }
 
     // Record event as processed only after all work succeeds.

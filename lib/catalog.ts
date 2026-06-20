@@ -14,8 +14,6 @@ export type Material = {
   temp: string;
   strength: "Good" | "Very Good" | "Excellent";
   accent: string;          // brand swatch colour
-  densityGPerCm3: number;
-  costPerGramAud: number;   // filament cost basis (AUD/g)
 };
 
 export const MATERIALS: Material[] = [
@@ -28,8 +26,6 @@ export const MATERIALS: Material[] = [
     temp: "190–220°C",
     strength: "Good",
     accent: "#fb923c",
-    densityGPerCm3: 1.24,
-    costPerGramAud: 0.045,
   },
   {
     key: "PETG",
@@ -40,8 +36,6 @@ export const MATERIALS: Material[] = [
     temp: "230–250°C",
     strength: "Very Good",
     accent: "#f97316",
-    densityGPerCm3: 1.27,
-    costPerGramAud: 0.05,
   },
   {
     key: "ABS",
@@ -52,8 +46,6 @@ export const MATERIALS: Material[] = [
     temp: "230–260°C",
     strength: "Excellent",
     accent: "#ea580c",
-    densityGPerCm3: 1.04,
-    costPerGramAud: 0.058,
   },
 ];
 
@@ -111,71 +103,7 @@ export const SIZE_PRESETS: SizePreset[] = [
 ];
 
 // ── Pricing ────────────────────────────────────────────────────────────────
-const MACHINE_RATE_PER_HOUR_AUD = 3.5;   // print-time machine + power
-const SETUP_FEE_AUD = 3;                  // per order line, slicing + handling
-const SOLIDITY_BASE = 0.32;               // fraction of bounding box that is actual plastic at 0% infill (walls)
-const MIN_LINE_AUD = 6;                   // minimum per line item
-export const FREE_SHIP_THRESHOLD_AUD = 80;
-export const SHIPPING_AUD = 9.5;
-export const PICKUP_AUD = 0;
-
-export type PriceInput = {
-  dims: [number, number, number]; // mm
-  material: MaterialKey;
-  infillPercent: number;
-  quality: Quality["key"];
-  quantity: number;
-};
-
-export type PriceBreakdown = {
-  unitVolumeCm3: number;
-  unitWeightG: number;
-  unitPrintMinutes: number;
-  unitPrice: number;     // AUD per unit
-  lineSubtotal: number;  // AUD before shipping (unit × qty + setup)
-  quantity: number;
-};
-
-export function estimatePrice(input: PriceInput): PriceBreakdown {
-  const [w, d, h] = input.dims;
-  const mat = getMaterial(input.material);
-  const quality = QUALITIES.find((q) => q.key === input.quality) ?? QUALITIES[1];
-
-  const bboxCm3 = (w * d * h) / 1000;
-
-  // Plastic = wall shell (fixed) + infill fraction of the interior.
-  const interiorFraction = Math.max(0, 1 - SOLIDITY_BASE);
-  const solidity = SOLIDITY_BASE + interiorFraction * (input.infillPercent / 100);
-  const unitVolumeCm3 = Math.max(0.4, bboxCm3 * solidity);
-
-  const unitWeightG = unitVolumeCm3 * mat.densityGPerCm3;
-
-  // ~8 cm³/min effective deposition at standard quality.
-  const unitPrintMinutes = (unitVolumeCm3 / 8) * quality.timeFactor + 4; // +4 min startup
-
-  const materialCost = unitWeightG * mat.costPerGramAud;
-  const machineCost = (unitPrintMinutes / 60) * MACHINE_RATE_PER_HOUR_AUD;
-
-  let unitPrice = materialCost + machineCost;
-  unitPrice = Math.max(MIN_LINE_AUD, unitPrice);
-
-  const lineSubtotal = unitPrice * input.quantity + SETUP_FEE_AUD;
-
-  return {
-    unitVolumeCm3,
-    unitWeightG,
-    unitPrintMinutes,
-    unitPrice: round2(unitPrice),
-    lineSubtotal: round2(lineSubtotal),
-    quantity: input.quantity,
-  };
-}
-
-export function round2(n: number) {
-  return Math.round(n * 100) / 100;
-}
-
-/** Format an AUD float as currency, e.g. 43.3 → "$43.30". */
-export function aud(n: number) {
-  return new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" }).format(n);
-}
+// The live quote engine lives in lib/quote.ts (calculateItemQuote / sumQuote),
+// which is the single source of truth for filament costs, machine rate, GST and
+// shipping. This catalog module only supplies display metadata (materials,
+// colours, qualities, size presets) for the storefront.

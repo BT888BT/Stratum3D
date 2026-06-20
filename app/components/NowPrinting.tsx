@@ -2,74 +2,93 @@
 
 import { useEffect, useState } from "react";
 
-export type NowPrintingData = {
-  /** 1-based index of the printer this job is on. */
-  printerIndex: number;
-  /** Total number of printers in the shop. */
-  printerCount: number;
-  fileName: string;
+type Preset = {
+  model: string;
   material: string;
   colour: string;
-  layerHeight: string;
-  infillPercent: number | null;
-  estPrice: string | null;
-  /** Epoch ms when the job entered "printing". null → progress is indeterminate. */
-  startedAtMs: number | null;
-  /** Estimated total print minutes. null → progress is indeterminate. */
-  totalMinutes: number | null;
-  /** True when there is no live job and we're showing placeholder specs. */
-  isPlaceholder: boolean;
+  infillPercent: number;
+  /** Simulated total print time for this job, in minutes. */
+  printMinutes: number;
 };
 
-// Live progress, capped just under 100% — the job stays "printing" in the DB
-// until an operator advances it, so we never claim it's finished on our own.
-const MAX_PCT = 99;
+// 20 preset jobs. The card cycles through these on a shared wall-clock so every
+// visitor sees the same job at the same moment, then it rolls to the next one
+// when a print "finishes". Purely visual — no files or orders are read.
+const PRESETS: Preset[] = [
+  { model: "Articulated Dragon",      material: "PLA",  colour: "Forest Green",  infillPercent: 15, printMinutes: 220 },
+  { model: "Phone Stand",             material: "PETG", colour: "Carbon Black",  infillPercent: 25, printMinutes: 75 },
+  { model: "Cable Management Clips",  material: "PETG", colour: "Slate Grey",    infillPercent: 30, printMinutes: 40 },
+  { model: "Headphone Hook",          material: "ABS",  colour: "Matte Black",   infillPercent: 35, printMinutes: 95 },
+  { model: "Hex Planter",             material: "PLA",  colour: "Terracotta",    infillPercent: 20, printMinutes: 180 },
+  { model: "Enclosure Bracket",       material: "PETG", colour: "Safety Orange", infillPercent: 40, printMinutes: 110 },
+  { model: "Keyboard Case",           material: "ABS",  colour: "Charcoal",      infillPercent: 30, printMinutes: 240 },
+  { model: "Miniature Knight",        material: "PLA",  colour: "Bone White",    infillPercent: 15, printMinutes: 55 },
+  { model: "Camera Mount Plate",      material: "PETG", colour: "Carbon Black",  infillPercent: 50, printMinutes: 85 },
+  { model: "Wall Vase",               material: "PLA",  colour: "Sky Blue",      infillPercent: 12, printMinutes: 160 },
+  { model: "GoPro Tripod Adapter",    material: "PETG", colour: "Graphite",      infillPercent: 40, printMinutes: 50 },
+  { model: "Raspberry Pi Case",       material: "PETG", colour: "Slate Grey",    infillPercent: 35, printMinutes: 70 },
+  { model: "Cosplay Pauldron",        material: "PLA",  colour: "Gunmetal",      infillPercent: 18, printMinutes: 200 },
+  { model: "Drawer Organiser",        material: "PLA",  colour: "Off White",     infillPercent: 20, printMinutes: 130 },
+  { model: "Filament Spool Holder",   material: "PETG", colour: "Safety Orange", infillPercent: 35, printMinutes: 95 },
+  { model: "Articulated Octopus",     material: "PLA",  colour: "Sunset Orange", infillPercent: 15, printMinutes: 90 },
+  { model: "Tabletop Terrain Ruins",  material: "PLA",  colour: "Stone Grey",    infillPercent: 12, printMinutes: 175 },
+  { model: "Pen Holder",              material: "PETG", colour: "Deep Red",      infillPercent: 25, printMinutes: 45 },
+  { model: "Bike Light Bracket",      material: "ABS",  colour: "Matte Black",   infillPercent: 45, printMinutes: 60 },
+  { model: "Desk Nameplate",          material: "PLA",  colour: "Warm White",    infillPercent: 20, printMinutes: 35 },
+];
 
-function computePct(startedAtMs: number | null, totalMinutes: number | null): number | null {
-  if (startedAtMs == null || !totalMinutes || totalMinutes <= 0) return null;
-  const elapsedMin = (Date.now() - startedAtMs) / 60000;
-  const pct = (elapsedMin / totalMinutes) * 100;
-  return Math.max(0, Math.min(MAX_PCT, pct));
+const PRINTER_COUNT = 2;
+const TOTAL_MINUTES = PRESETS.reduce((s, p) => s + p.printMinutes, 0);
+
+type LiveState = {
+  index: number;
+  pct: number;
+  remainingMin: number;
+};
+
+// Deterministic from the clock so server + client agree and all visitors sync.
+function getState(nowMs: number): LiveState {
+  const elapsed = (nowMs / 60000) % TOTAL_MINUTES;
+  let acc = 0;
+  for (let i = 0; i < PRESETS.length; i++) {
+    const d = PRESETS[i].printMinutes;
+    if (elapsed < acc + d) {
+      const within = elapsed - acc;
+      return { index: i, pct: (within / d) * 100, remainingMin: d - within };
+    }
+    acc += d;
+  }
+  return { index: 0, pct: 0, remainingMin: PRESETS[0].printMinutes };
 }
 
-function remainingLabel(startedAtMs: number | null, totalMinutes: number | null): string {
-  if (startedAtMs == null || !totalMinutes || totalMinutes <= 0) return "Live";
-  const elapsedMin = (Date.now() - startedAtMs) / 60000;
-  const remaining = Math.max(0, totalMinutes - elapsedMin);
-  if (remaining < 1) return "Finishing up";
-  if (remaining < 60) return `~${Math.round(remaining)} min left`;
-  const h = Math.floor(remaining / 60);
-  const m = Math.round(remaining % 60);
+function remainingLabel(min: number): string {
+  if (min < 1) return "Finishing up";
+  if (min < 60) return `~${Math.round(min)} min left`;
+  const h = Math.floor(min / 60);
+  const m = Math.round(min % 60);
   return m ? `~${h}h ${m}m left` : `~${h}h left`;
 }
 
-export default function NowPrinting(data: NowPrintingData) {
-  const determinate = data.startedAtMs != null && !!data.totalMinutes;
+export default function NowPrinting() {
+  // Seed with t=0 so the server render and the client's first render match,
+  // then jump to real wall-clock time on mount and tick every second.
+  const [state, setState] = useState<LiveState>(() => getState(0));
 
-  const [pct, setPct] = useState<number | null>(() =>
-    computePct(data.startedAtMs, data.totalMinutes)
-  );
-  const [eta, setEta] = useState<string>(() =>
-    remainingLabel(data.startedAtMs, data.totalMinutes)
-  );
-
-  // Tick the progress forward in real time so the bar visibly creeps along
-  // between page loads, making it feel live.
   useEffect(() => {
-    if (!determinate) return;
-    const update = () => {
-      setPct(computePct(data.startedAtMs, data.totalMinutes));
-      setEta(remainingLabel(data.startedAtMs, data.totalMinutes));
-    };
+    const update = () => setState(getState(Date.now()));
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
-  }, [determinate, data.startedAtMs, data.totalMinutes]);
+  }, []);
+
+  const preset = PRESETS[state.index];
+  const printerIndex = (state.index % PRINTER_COUNT) + 1;
 
   const specs: [string, string][] = [
-    ["Material", data.material],
-    ["Colour", data.colour],
-    ["Infill", data.infillPercent != null ? `${data.infillPercent}%` : "—"],
+    ["Model", preset.model],
+    ["Material", preset.material],
+    ["Colour", preset.colour],
+    ["Infill", `${preset.infillPercent}%`],
   ];
 
   return (
@@ -102,7 +121,7 @@ export default function NowPrinting(data: NowPrintingData) {
             whiteSpace: "nowrap",
           }}
         >
-          PRINTER {data.printerIndex} / {data.printerCount}
+          PRINTER {printerIndex} / {PRINTER_COUNT}
         </span>
       </div>
 
@@ -132,26 +151,28 @@ export default function NowPrinting(data: NowPrintingData) {
       <div style={{ marginBottom: 20 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
           <span className="font-mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.1em" }}>
-            {determinate ? "PROGRESS" : "STATUS"}
+            PROGRESS
           </span>
           <span className="font-mono" style={{ fontSize: 11, color: "var(--orange)" }}>
-            {pct != null ? `${Math.round(pct)}%` : "—"} · {eta}
+            {Math.round(state.pct)}% · {remainingLabel(state.remainingMin)}
           </span>
         </div>
-        <div className={`print-progress${determinate ? "" : " print-progress--indeterminate"}`}>
-          <div
-            className="print-progress-fill"
-            style={determinate ? { width: `${pct ?? 0}%` } : undefined}
-          />
+        <div className="print-progress">
+          <div className="print-progress-fill" style={{ width: `${state.pct}%` }} />
         </div>
       </div>
 
       {/* Spec list */}
       <div style={{ display: "grid", gap: 9 }}>
         {specs.map(([k, v]) => (
-          <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+          <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
             <span className="font-mono" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.08em" }}>{k}</span>
-            <span style={{ fontSize: 13, color: "var(--text)" }}>{v}</span>
+            <span
+              style={{ fontSize: 13, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 200, textAlign: "right" }}
+              title={v}
+            >
+              {v}
+            </span>
           </div>
         ))}
       </div>

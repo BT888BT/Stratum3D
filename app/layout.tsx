@@ -1,7 +1,6 @@
 import "./globals.css";
 import Link from "next/link";
 import type { Metadata } from "next";
-import OrderToast from "./components/OrderToast";
 
 export const metadata: Metadata = {
   title: "Stratum3D — Affordable 3D Printing in Perth | Fast Local FDM Service",
@@ -140,8 +139,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               </div>
             </div>
           </footer>
-
-          <OrderToast />
 
         </div>
       </body>

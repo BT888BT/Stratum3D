@@ -43,7 +43,6 @@ export default function GalleryPage() {
   return (
     <div>
       <div style={{ marginBottom: "clamp(24px, 4vw, 40px)", textAlign: "center" }}>
-        <span className="eyebrow" style={{ marginBottom: 10 }}>Our Work</span>
         <h1 className="font-display" style={{ fontSize: "clamp(36px, 5vw, 60px)", marginBottom: 8 }}>GALLERY</h1>
         <p style={{ color: "var(--text-dim)", fontSize: "clamp(13px, 1.5vw, 15px)" }}>
           A selection of recent prints from our workshop.

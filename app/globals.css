@@ -294,8 +294,8 @@ input, select, textarea, button { font: inherit; }
 
 /* ── Announce bar ────────────────────────────── */
 .announce-bar {
-  background: rgba(249,115,22,0.03);
-  border-bottom: 1px solid rgba(249,115,22,0.07);
+  background: rgba(249,115,22,0.12);
+  border-bottom: 1px solid rgba(249,115,22,0.22);
   padding: 7px clamp(16px, 4vw, 32px);
   display: flex;
   align-items: center;

@@ -158,15 +158,11 @@ input, select, textarea, button { font: inherit; }
   border: 1px solid var(--border);
   color: var(--muted);
 }
-.badge-paid             { border-color: #065f46; background: var(--green-dim); color: var(--green); }
-.badge-order_received   { border-color: var(--accent-dim); background: rgba(0,229,160,0.08); color: var(--accent); }
-.badge-printing         { border-color: var(--orange-dim); background: #1e0e00; color: var(--orange); }
-.badge-order_shipped    { border-color: #065f46; background: var(--green-dim); color: var(--green); }
-.badge-completed        { border-color: #065f46; background: var(--green-dim); color: var(--green); }
-.badge-cancelled        { border-color: #7f1d1d; background: var(--red-dim); color: var(--red); }
-.badge-refunded         { border-color: #7f1d1d; background: var(--red-dim); color: var(--red); }
-.badge-draft            { border-color: var(--border); color: var(--muted); }
-.badge-checkout_pending { border-color: #312e81; background: #1e1b4b; color: #a5b4fc; }
+.badge-received       { border-color: #312e81; background: #1e1b4b; color: #a5b4fc; }
+.badge-printing       { border-color: var(--orange-dim); background: #1e0e00; color: var(--orange); }
+.badge-quality_check  { border-color: #854d0e; background: #261a05; color: var(--amber); }
+.badge-shipped        { border-color: #065f46; background: var(--green-dim); color: var(--green); }
+.badge-delivered      { border-color: #065f46; background: var(--green-dim); color: var(--green); }
 
 /* ── Error / success ─────────────────────────── */
 .error-box {

@@ -1,98 +1,15 @@
 import Link from "next/link";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { MATERIALS, QUALITIES } from "@/lib/catalog";
 import { SHOP_STATS, TESTIMONIALS, GALLERY } from "@/lib/mock-data";
 import GalleryArt from "./components/GalleryArt";
 
-export const dynamic = "force-dynamic";
+export const metadata = {
+  title: "Stratum3D — Affordable 3D Printing in Perth | Fast Local FDM Service",
+  description:
+    "Perth's affordable 3D printing service. PLA, PETG & ABS from $6. Configure your print, get an instant price, fast local turnaround. Pickup or shipping Australia-wide.",
+};
 
-function MaintenancePage() {
-  return (
-    <div style={{
-      minHeight: "65vh",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      textAlign: "center",
-      padding: "clamp(48px, 8vw, 96px) clamp(24px, 4vw, 48px)",
-    }}>
-      {/* Logo mark */}
-      <div style={{ marginBottom: 40 }}>
-        <svg width="56" height="56" viewBox="0 0 32 32" fill="none">
-          <polygon points="16,2 29,9 29,23 16,30 3,23 3,9"
-            stroke="var(--orange)" strokeWidth="1.5" fill="rgba(249,115,22,0.08)" />
-          <polygon points="16,8 23,12 23,20 16,24 9,20 9,12"
-            stroke="var(--orange)" strokeWidth="1" fill="rgba(249,115,22,0.12)" opacity="0.6" />
-          <circle cx="16" cy="16" r="3" fill="var(--orange)" opacity="0.9" />
-        </svg>
-      </div>
-
-      {/* Stacked layer lines — top */}
-      <div style={{ width: "100%", maxWidth: 280, marginBottom: 52 }}>
-        {[100, 82, 64, 46, 28].map((w, i) => (
-          <div key={i} style={{
-            height: 2,
-            borderRadius: 1,
-            background: "var(--orange)",
-            opacity: 0.08 + i * 0.05,
-            width: `${w}%`,
-            margin: "0 auto 5px",
-          }} />
-        ))}
-      </div>
-
-      <span className="eyebrow" style={{ marginBottom: 20, letterSpacing: "0.2em" }}>Stratum3D</span>
-
-      <h1 className="font-display" style={{
-        fontSize: "clamp(56px, 11vw, 108px)",
-        lineHeight: 0.92,
-        marginBottom: 32,
-        color: "var(--text)",
-        letterSpacing: "0.02em",
-      }}>
-        BE BACK<br />
-        <span style={{ color: "var(--orange)", WebkitTextStroke: "1px var(--orange-hi)" }}>SOON.</span>
-      </h1>
-
-      <p style={{
-        fontSize: "clamp(14px, 1.6vw, 16px)",
-        color: "var(--text-dim)",
-        lineHeight: 1.8,
-        maxWidth: 400,
-        marginBottom: 56,
-      }}>
-        We're temporarily not accepting new orders.<br />
-        Check back shortly — we'll be printing again soon.
-      </p>
-
-      {/* Stacked layer lines — bottom */}
-      <div style={{ width: "100%", maxWidth: 280 }}>
-        {[28, 46, 64, 82, 100].map((w, i) => (
-          <div key={i} style={{
-            height: 2,
-            borderRadius: 1,
-            background: "var(--orange)",
-            opacity: 0.28 - i * 0.05,
-            width: `${w}%`,
-            margin: "0 auto 5px",
-          }} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-export default async function HomePage() {
-  const supabase = createAdminClient();
-  const { data } = await supabase.from("site_settings").select("key, value");
-  const settings = Object.fromEntries((data ?? []).map(r => [r.key, r.value]));
-  const orderingEnabled = settings["ordering_enabled"] !== "false";
-
-  if (!orderingEnabled) {
-    return <MaintenancePage />;
-  }
-
+export default function Home() {
   return (
     <>
       {/* ── Hero ─────────────────────────────────────────────── */}

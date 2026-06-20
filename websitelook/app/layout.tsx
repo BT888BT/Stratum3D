@@ -113,7 +113,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <nav style={{ display: "flex", alignItems: "center", gap: 4 }}>
                 <Link href="/gallery" className="nav-link hidden-mobile" style={{ textDecoration: "none" }}>Gallery</Link>
                 <Link href="/guide" className="nav-link hidden-mobile" style={{ textDecoration: "none" }}>Guide</Link>
-                <Link href="/login" className="nav-link" style={{ textDecoration: "none" }}>Account</Link>
+                <Link href="/account" className="nav-link" style={{ textDecoration: "none" }}>Account</Link>
                 <Link href="/quote" className="btn-primary" style={{ fontSize: 14, padding: "8px 20px", marginLeft: 6 }}>
                   Get Quote
                 </Link>

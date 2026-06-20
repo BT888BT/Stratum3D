@@ -31,11 +31,11 @@ export default function Home() {
               className="font-display"
               style={{ fontSize: "clamp(44px, 8vw, 82px)", lineHeight: 0.95, color: "var(--text)", margin: "10px 0 18px" }}
             >
-              YOUR IDEA,
+              YOUR DESIGN,
               <br />
               PRINTED IN
               <br />
-              <span style={{ color: "var(--orange)" }}>LAYERS.</span>
+              <span style={{ color: "var(--orange)" }}>PERTH.</span>
             </h1>
             <p style={{ fontSize: 17, color: "var(--text-dim)", maxWidth: 480, marginBottom: 28 }}>
               Affordable, high-quality 3D printing made local. Configure your part, see a

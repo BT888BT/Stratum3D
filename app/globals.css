@@ -49,6 +49,12 @@ input, select, textarea, button { font: inherit; }
   color: var(--orange);
   display: block;
 }
+/* Shorter eyebrow on phones so it stays on one line */
+.eyebrow-mobile { display: none; }
+@media (max-width: 600px) {
+  .eyebrow-desktop { display: none; }
+  .eyebrow-mobile { display: block; }
+}
 
 /* ── Cards ───────────────────────────────────── */
 .card {

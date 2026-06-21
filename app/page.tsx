@@ -116,8 +116,11 @@ export default async function HomePage() {
           }}
         >
           <div className="fade-up">
-            <span className="eyebrow" style={{ marginBottom: 16 }}>
+            <span className="eyebrow eyebrow-desktop" style={{ marginBottom: 16 }}>
               Perth · Western Australia · FDM 3D Printing
+            </span>
+            <span className="eyebrow eyebrow-mobile" style={{ marginBottom: 16 }}>
+              FDM 3D Printing · Western Australia
             </span>
             <h1
               className="font-display"

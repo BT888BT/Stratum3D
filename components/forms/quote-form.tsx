@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { formatAud } from "@/lib/utils";
 import { extractMeshDataFromArrayBuffer } from "@/lib/mesh-volume-client";
 import { validateSTLArrayBuffer, type MeshWarning } from "@/lib/mesh-validate-client";
@@ -92,6 +92,10 @@ export default function QuoteForm() {
   const [discountLoading, setDiscountLoading] = useState(false);
   const [discountError, setDiscountError] = useState("");
 
+  // Drag-and-drop file upload
+  const [dragActive, setDragActive] = useState(false);
+  const dragDepth = useRef(0);
+
   useEffect(() => {
     fetch("/api/colours").then(r => r.json())
       .then((d: Colour[]) => setColours(d))
@@ -104,9 +108,42 @@ export default function QuoteForm() {
       .catch(() => {});
   }, []);
 
+  // Stop the browser from opening a file if it's dropped anywhere outside the
+  // drop zone (its default behaviour is to navigate to / download the file).
+  useEffect(() => {
+    const prevent = (e: DragEvent) => { e.preventDefault(); };
+    window.addEventListener("dragover", prevent);
+    window.addEventListener("drop", prevent);
+    return () => {
+      window.removeEventListener("dragover", prevent);
+      window.removeEventListener("drop", prevent);
+    };
+  }, []);
+
   const handleAddressSelect = useCallback((a: ParsedAddress) => {
     setAddress(a); setAddressError("");
   }, []);
+
+  function handleDragEnter(e: React.DragEvent) {
+    e.preventDefault();
+    dragDepth.current += 1;
+    if (e.dataTransfer?.types?.includes("Files")) setDragActive(true);
+  }
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+  }
+  function handleDragLeave(e: React.DragEvent) {
+    e.preventDefault();
+    dragDepth.current -= 1;
+    if (dragDepth.current <= 0) { dragDepth.current = 0; setDragActive(false); }
+  }
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    dragDepth.current = 0;
+    setDragActive(false);
+    addFiles(e.dataTransfer.files);
+  }
 
   async function computeVolume(file: File): Promise<{
     volumeMm3: number | null;
@@ -453,15 +490,19 @@ export default function QuoteForm() {
               <label style={{
                 display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
                 gap: 8, padding: "clamp(20px, 4vw, 32px) 20px",
-                border: "2px dashed var(--border-hi)", borderRadius: 10,
-                cursor: "pointer", background: "var(--bg2)",
+                border: `2px dashed ${dragActive ? "var(--orange)" : "var(--border-hi)"}`, borderRadius: 10,
+                cursor: "pointer", background: dragActive ? "rgba(249,115,22,0.08)" : "var(--bg2)",
                 transition: "border-color 0.15s, background 0.15s",
               }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--orange)"; e.currentTarget.style.background = "rgba(249,115,22,0.04)"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border-hi)"; e.currentTarget.style.background = "var(--bg2)"; }}
+                onMouseEnter={e => { if (!dragActive) { e.currentTarget.style.borderColor = "var(--orange)"; e.currentTarget.style.background = "rgba(249,115,22,0.04)"; } }}
+                onMouseLeave={e => { if (!dragActive) { e.currentTarget.style.borderColor = "var(--border-hi)"; e.currentTarget.style.background = "var(--bg2)"; } }}
+                onDragEnter={handleDragEnter}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
               >
-                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 28, opacity: 0.5 }}>⬆</span> Click or drop STL files
+                <span style={{ fontSize: 14, fontWeight: 600, color: dragActive ? "var(--orange)" : "var(--text)", display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 28, opacity: 0.5 }}>⬆</span> {dragActive ? "Drop to upload" : "Click or drop STL files"}
                 </span>
                 <span style={{ fontSize: 11, color: "var(--muted)", textAlign: "center" }}>STL only · max 50 MB per file · multiple files OK</span>
                 <input type="file" accept=".stl" multiple onChange={e => addFiles(e.target.files)} style={{ display: "none" }} />

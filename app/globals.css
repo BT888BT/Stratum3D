@@ -473,3 +473,21 @@ input, select, textarea, button { font: inherit; }
   color: var(--text-dim);
   margin-top: 6px;
 }
+
+/* Phones only: keep all four stats on one horizontal row */
+@media (max-width: 600px) {
+  .stats-strip {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 6px !important;
+    padding: 16px 12px !important;
+  }
+  .stats-strip .stat-num {
+    font-size: clamp(18px, 6vw, 26px);
+  }
+  .stats-strip .stat-label {
+    font-size: 7.5px;
+    letter-spacing: 0.06em;
+    margin-top: 4px;
+    line-height: 1.25;
+  }
+}

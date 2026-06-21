@@ -155,7 +155,7 @@ export default async function HomePage() {
       {/* ── Stats strip ──────────────────────────────────────── */}
       <section style={{ margin: "clamp(48px, 8vw, 88px) 0" }}>
         <div
-          className="card-lg"
+          className="card-lg stats-strip"
           style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 24, textAlign: "center" }}
         >
           {[

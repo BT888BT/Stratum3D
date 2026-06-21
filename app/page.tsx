@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { MATERIALS, QUALITIES } from "@/lib/catalog";
+import { MATERIALS } from "@/lib/catalog";
 import { SHOP_STATS, TESTIMONIALS } from "@/lib/mock-data";
 import NowPrinting from "./components/NowPrinting";
 
@@ -270,7 +270,7 @@ export default async function HomePage() {
           </h2>
           <p style={{ fontSize: 16, color: "var(--text-dim)", maxWidth: 480, margin: "0 auto 26px" }}>
             From a single keyring to a full cosplay build — configure it, price it, and we&apos;ll
-            have it on the plate. Quality {QUALITIES.find((q) => q.key === "standard")?.layer} layers as standard.
+            have it on the plate.
           </p>
           <Link href="/quote" className="btn-primary" style={{ fontSize: 18, padding: "14px 36px" }}>
             Get Your Instant Price →

@@ -61,6 +61,7 @@ export default async function AdminOrdersPage() {
           <Link href="/admin/settings" className="btn-ghost" style={{ fontSize: 12 }}>Settings</Link>
           <Link href="/admin/gallery" className="btn-ghost" style={{ fontSize: 12 }}>Gallery</Link>
           <Link href="/admin/colours" className="btn-ghost" style={{ fontSize: 12 }}>Manage Colours</Link>
+          <Link href="/admin/discount-codes" className="btn-ghost" style={{ fontSize: 12 }}>Discount Codes</Link>
           <form action="/api/admin/logout" method="POST">
             <button type="submit" className="btn-ghost" style={{ fontSize: 12 }}>Log out</button>
           </form>

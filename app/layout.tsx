@@ -4,14 +4,14 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Stratum3D — Affordable 3D Printing in Perth | Fast Local FDM Service",
-  description: "Perth's affordable 3D printing service. PLA, PETG & ABS from $12. Upload your STL → instant quote → fast turnaround. Local pickup or shipping Australia-wide.",
+  description: "Perth's affordable 3D printing service. Print in PLA, PETG & ABS — upload your STL for an instant quote and fast local turnaround. Pickup in Perth or shipping Australia-wide.",
   keywords: "3D printing Perth, 3D print service Perth, affordable 3D printing, FDM printing Perth, PLA printing Perth, hobby 3D printing Australia, 3D printing service Western Australia, custom 3D prints Perth, STL printing, local 3D printing, cheap 3D printing Perth",
   icons: {
     icon: "/favicon.png",
   },
   openGraph: {
     title: "Stratum3D — Affordable 3D Printing in Perth",
-    description: "Perth's affordable 3D printing. PLA, PETG & ABS from $12. Upload → quote → print. Fast local turnaround.",
+    description: "Perth's affordable 3D printing in PLA, PETG & ABS. Upload your STL → instant quote → fast local turnaround.",
     url: "https://www.stratum3d.com.au",
     siteName: "Stratum3D",
     locale: "en_AU",

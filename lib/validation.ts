@@ -27,6 +27,15 @@ export const orderContactSchema = z.object({
   shippingCountry: z.literal("AU").optional(),
 });
 
+// Discount code — uppercased, alphanumeric + dashes, 3-32 chars
+export const discountCodeSchema = z
+  .string()
+  .trim()
+  .toUpperCase()
+  .min(3)
+  .max(32)
+  .regex(/^[A-Z0-9-]+$/, "Codes may only contain letters, numbers and dashes.");
+
 export type FileItemInput = z.infer<typeof fileItemSchema>;
 export type OrderContactInput = z.infer<typeof orderContactSchema>;
 

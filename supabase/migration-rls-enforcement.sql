@@ -109,8 +109,11 @@ begin
     where command_tag = 'CREATE TABLE'
       and schema_name = 'public'
   loop
-    execute format('alter table %I.%I enable row level security',
-      obj.schema_name, obj.object_identity);
+    -- object_identity is already schema-qualified and correctly quoted
+    -- (e.g. public.discount_codes), so pass it through with %s — using %I
+    -- here would double-qualify it to public."public.discount_codes".
+    execute format('alter table %s enable row level security',
+      obj.object_identity);
   end loop;
 end;
 $$;

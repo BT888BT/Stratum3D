@@ -187,6 +187,7 @@ export type ItemQuoteResult = {
 export type QuoteResult = {
   items: ItemQuoteResult[];
   subtotalCents: number;
+  discountCents: number; // amount taken off the parts subtotal only (never GST/shipping)
   shippingCents: number;
   gstCents: number;
   totalCents: number;
@@ -289,16 +290,65 @@ export function calculateItemQuote(
   };
 }
 
-export function sumQuote(items: ItemQuoteResult[], shippingMethod: string): QuoteResult {
+export function sumQuote(
+  items: ItemQuoteResult[],
+  shippingMethod: string,
+  discountCents = 0
+): QuoteResult {
   const subtotalCents = items.reduce((s, i) => s + i.itemTotalCents, 0);
   const shippingCents = shippingMethod === "pickup" ? 500 : 1000;
-  const gstCents      = Math.round((subtotalCents + shippingCents) * 0.1);
-  const totalCents    = subtotalCents + shippingCents + gstCents;
+  const totals = recomputeTotals(subtotalCents, shippingCents, discountCents);
 
   // Customer-facing time: sum all items × their quantities, then apply buffer
   // and round up to the nearest 5 minutes so it reads as a clean estimate
   const rawTotalMins = items.reduce((s, i) => s + i.estimatedPrintTimeMinutes * i.quantity, 0);
   const displayPrintTimeMinutes = Math.ceil((rawTotalMins * DISPLAY_TIME_BUFFER) / 5) * 5;
 
-  return { items, subtotalCents, shippingCents, gstCents, totalCents, displayPrintTimeMinutes };
+  return {
+    items,
+    subtotalCents,
+    discountCents: totals.discountCents,
+    shippingCents,
+    gstCents: totals.gstCents,
+    totalCents: totals.totalCents,
+    displayPrintTimeMinutes,
+  };
+}
+
+// ── Discount helpers ───────────────────────────────────────────────────────────
+// The discount comes off the PARTS SUBTOTAL only. GST is then recomputed on the
+// discounted subtotal (Australian convention) and shipping is left untouched.
+
+export type DiscountCodeRow = {
+  discount_type: "percent" | "fixed";
+  discount_value: number;        // percent: 1-100; fixed: cents
+  max_discount_cents: number | null;
+};
+
+/** Work out how many cents a code takes off a given parts subtotal. Always
+ *  clamped so it can never exceed the subtotal or go negative. */
+export function computeDiscountCents(code: DiscountCodeRow, subtotalCents: number): number {
+  if (subtotalCents <= 0) return 0;
+  let discount: number;
+  if (code.discount_type === "fixed") {
+    discount = code.discount_value;
+  } else {
+    discount = Math.round(subtotalCents * (code.discount_value / 100));
+    if (code.max_discount_cents != null) discount = Math.min(discount, code.max_discount_cents);
+  }
+  return Math.max(0, Math.min(discount, subtotalCents));
+}
+
+/** Recompute discount/GST/total from a stored subtotal + shipping + a desired
+ *  discount. Single source of truth used by the apply-discount + checkout paths. */
+export function recomputeTotals(
+  subtotalCents: number,
+  shippingCents: number,
+  discountCents: number
+): { discountCents: number; gstCents: number; totalCents: number } {
+  const clampedDiscount  = Math.max(0, Math.min(discountCents, subtotalCents));
+  const discountedSubtotal = subtotalCents - clampedDiscount;
+  const gstCents  = Math.round((discountedSubtotal + shippingCents) * 0.1);
+  const totalCents = discountedSubtotal + shippingCents + gstCents;
+  return { discountCents: clampedDiscount, gstCents, totalCents };
 }

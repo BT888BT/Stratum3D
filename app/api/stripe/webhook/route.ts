@@ -5,6 +5,21 @@ import { sendOrderUnderReviewEmail } from "@/lib/email";
 import { expireStaleApprovals } from "@/lib/expire-approvals";
 import type Stripe from "stripe";
 
+/**
+ * Release a single-use discount code consumed by an order that's about to be
+ * deleted (expired/abandoned checkout). The `redeemed_order_id` guard ensures
+ * we only release the code if THIS order actually consumed it.
+ */
+async function releaseDiscountForOrder(
+  supabase: ReturnType<typeof createAdminClient>,
+  orderId: string
+) {
+  await supabase
+    .from("discount_codes")
+    .update({ used: false, redeemed_order_id: null, redeemed_at: null })
+    .eq("redeemed_order_id", orderId);
+}
+
 export async function POST(request: Request) {
   const body = await request.text();
   const signature = (await headers()).get("stripe-signature");
@@ -159,6 +174,10 @@ export async function POST(request: Request) {
         session.metadata?.orderId || session.client_reference_id || null;
 
       if (orderId) {
+        // Release any single-use discount code this order had consumed, so an
+        // abandoned checkout doesn't permanently burn the code.
+        await releaseDiscountForOrder(supabase, orderId);
+
         // Delete associated files from storage first
         const { data: files } = await supabase
           .from("order_files")
@@ -183,13 +202,18 @@ export async function POST(request: Request) {
 
     const { data: staleOrders } = await supabase
       .from("orders")
-      .select("id")
+      .select("id, discount_code")
       .in("status", ["draft", "checkout_pending"])
       .lt("created_at", staleDate)
       .limit(20);
 
     if (staleOrders?.length) {
       for (const stale of staleOrders) {
+        // Release any consumed discount code before the order is deleted
+        if (stale.discount_code) {
+          await releaseDiscountForOrder(supabase, stale.id);
+        }
+
         // Delete storage files
         const { data: staleFiles } = await supabase
           .from("order_files")

@@ -60,6 +60,7 @@ type QuoteApiResponse = {
   orderId: string; checkoutToken: string; items: ItemResult[];
   subtotalCents: number; shippingCents: number; gstCents: number; totalCents: number;
   displayPrintTimeMinutes: number;
+  discountCents: number; discountCode?: string | null;
 };
 
 type Toast = { id: string; filename: string; message: string };
@@ -85,6 +86,11 @@ export default function QuoteForm() {
   const [loadingQuote, setLoadingQuote] = useState(false);
   const [loadingCheckout, setLoadingCheckout] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
+
+  // Discount code
+  const [discountInput, setDiscountInput] = useState("");
+  const [discountLoading, setDiscountLoading] = useState(false);
+  const [discountError, setDiscountError] = useState("");
 
   useEffect(() => {
     fetch("/api/colours").then(r => r.json())
@@ -346,6 +352,64 @@ export default function QuoteForm() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Checkout failed.");
     } finally { setLoadingCheckout(false); }
+  }
+
+  // ── Discount code: apply / remove ──
+  async function applyDiscount() {
+    if (!quote || !discountInput.trim() || discountLoading) return;
+    setDiscountError("");
+    setDiscountLoading(true);
+    try {
+      const res = await fetch("/api/quote/apply-discount", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: quote.orderId,
+          checkoutToken: quote.checkoutToken,
+          code: discountInput.trim(),
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error || "Could not apply code.");
+      setQuote(q => q ? {
+        ...q,
+        discountCode: data.discountCode,
+        discountCents: data.discountCents,
+        gstCents: data.gstCents,
+        totalCents: data.totalCents,
+      } : q);
+      setDiscountInput("");
+    } catch (err) {
+      setDiscountError(err instanceof Error ? err.message : "Could not apply code.");
+    } finally { setDiscountLoading(false); }
+  }
+
+  async function removeDiscount() {
+    if (!quote || discountLoading) return;
+    setDiscountError("");
+    setDiscountLoading(true);
+    try {
+      const res = await fetch("/api/quote/apply-discount", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: quote.orderId,
+          checkoutToken: quote.checkoutToken,
+          remove: true,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error || "Could not remove code.");
+      setQuote(q => q ? {
+        ...q,
+        discountCode: null,
+        discountCents: 0,
+        gstCents: data.gstCents,
+        totalCents: data.totalCents,
+      } : q);
+    } catch (err) {
+      setDiscountError(err instanceof Error ? err.message : "Could not remove code.");
+    } finally { setDiscountLoading(false); }
   }
 
   const hasQuote = !!quote;
@@ -721,7 +785,45 @@ export default function QuoteForm() {
 
               <hr className="divider" />
 
+              {/* Discount code */}
+              <div>
+                {quote.discountCode ? (
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 6, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.25)" }}>
+                    <span style={{ fontSize: 12, color: "var(--green)" }}>✓ Code <strong>{quote.discountCode}</strong> applied</span>
+                    <button type="button" onClick={removeDiscount} disabled={discountLoading} style={{ fontSize: 11, color: "var(--text-dim)", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", flexShrink: 0 }}>
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <input
+                      value={discountInput}
+                      onChange={e => setDiscountInput(e.target.value.toUpperCase())}
+                      onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); applyDiscount(); } }}
+                      placeholder="Discount code"
+                      className="input-field"
+                      style={{ flex: 1, minWidth: 0, textTransform: "uppercase", fontSize: 13 }}
+                      maxLength={32}
+                    />
+                    <button type="button" onClick={applyDiscount} disabled={discountLoading || !discountInput.trim()} className="btn-ghost" style={{ fontSize: 13, padding: "0 16px", flexShrink: 0 }}>
+                      {discountLoading ? "…" : "Apply"}
+                    </button>
+                  </div>
+                )}
+                {discountError && (
+                  <p style={{ fontSize: 11, color: "var(--red)", marginTop: 6 }}>{discountError}</p>
+                )}
+              </div>
+
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <Row label="Subtotal" value={formatAud(quote.subtotalCents)} />
+                {quote.discountCents > 0 && (
+                  <Row
+                    label={`Discount${quote.discountCode ? ` (${quote.discountCode})` : ""}`}
+                    value={`−${formatAud(quote.discountCents)}`}
+                    valueColor="var(--green)"
+                  />
+                )}
                 <Row label={shippingMethod === "pickup" ? "Parcel locker pickup" : "Shipping (Australia Post)"} value={formatAud(quote.shippingCents)} />
                 <Row label="GST (10%)" value={formatAud(quote.gstCents)} />
               </div>
@@ -743,11 +845,11 @@ export default function QuoteForm() {
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <span style={{ fontSize: 13, color: "var(--text-dim)" }}>{label}</span>
-      <span style={{ fontSize: 13 }}>{value}</span>
+      <span style={{ fontSize: 13, color: valueColor }}>{value}</span>
     </div>
   );
 }

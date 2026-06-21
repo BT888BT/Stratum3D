@@ -75,11 +75,16 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
 
-          {/* Announce bar — scrolls away naturally */}
+          {/* Announce bar — scrolls away naturally; marquee on phones (see globals.css) */}
           <div className="announce-bar">
-            <span className="font-mono" style={{ fontSize: 11, color: "var(--text)", letterSpacing: "0.13em", textTransform: "uppercase" }}>
-              Perth-based&nbsp;·&nbsp;Transparent volume pricing&nbsp;·&nbsp;No minimum order&nbsp;·&nbsp;Ships Australia-wide
-            </span>
+            <div className="announce-track">
+              <span className="font-mono announce-item" style={{ fontSize: 11, color: "var(--text)", letterSpacing: "0.13em", textTransform: "uppercase" }}>
+                Perth-based&nbsp;·&nbsp;Transparent volume pricing&nbsp;·&nbsp;No minimum order&nbsp;·&nbsp;Ships Australia-wide
+              </span>
+              <span className="font-mono announce-item announce-dup" aria-hidden="true" style={{ fontSize: 11, color: "var(--text)", letterSpacing: "0.13em", textTransform: "uppercase" }}>
+                Perth-based&nbsp;·&nbsp;Transparent volume pricing&nbsp;·&nbsp;No minimum order&nbsp;·&nbsp;Ships Australia-wide
+              </span>
+            </div>
           </div>
 
           {/* Header */}

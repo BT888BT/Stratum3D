@@ -351,6 +351,35 @@ input, select, textarea, button { font: inherit; }
   gap: 6px;
   flex-wrap: wrap;
 }
+/* Desktop/tablet: single static line, duplicate copy hidden */
+.announce-dup { display: none; }
+
+/* Phones only: turn the bar into a seamless sliding marquee */
+@media (max-width: 600px) {
+  .announce-bar {
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .announce-track {
+    display: flex;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    will-change: transform;
+    animation: announce-scroll 18s linear infinite;
+  }
+  .announce-dup { display: inline; }
+  .announce-item { padding-right: 2.5rem; } /* gap between repeats */
+}
+@keyframes announce-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .announce-track { animation: none; }
+}
 
 /* ── Trust items ─────────────────────────────── */
 .trust-item {

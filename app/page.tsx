@@ -132,7 +132,7 @@ export default async function HomePage() {
               <br />
               <span style={{ color: "var(--orange)" }}>PERTH.</span>
             </h1>
-            <p style={{ fontSize: 17, color: "var(--text-dim)", maxWidth: 480, marginBottom: 28 }}>
+            <p className="hero-lede" style={{ fontSize: 17, color: "var(--text-dim)", maxWidth: 480, marginBottom: 28 }}>
               High-quality 3D printing, made local.
               <br />
               Configure your part, see a transparent price up front.

@@ -133,8 +133,11 @@ export default async function HomePage() {
               <span style={{ color: "var(--orange)" }}>PERTH.</span>
             </h1>
             <p style={{ fontSize: 17, color: "var(--text-dim)", maxWidth: 480, marginBottom: 28 }}>
-              Affordable, high-quality 3D printing made local. Configure your part, see a
-              transparent price up front, and get it in days — not weeks. No minimum order.
+              High-quality 3D printing, made local.
+              <br />
+              Configure your part, see a transparent price up front.
+              <br />
+              Receive your parts in days — not weeks.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Link href="/quote" className="btn-primary glow-pulse" style={{ fontSize: 18, padding: "13px 32px" }}>

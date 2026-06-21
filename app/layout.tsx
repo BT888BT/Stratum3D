@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: "Perth's affordable 3D printing service. PLA, PETG & ABS from $12. Upload your STL → instant quote → fast turnaround. Local pickup or shipping Australia-wide.",
   keywords: "3D printing Perth, 3D print service Perth, affordable 3D printing, FDM printing Perth, PLA printing Perth, hobby 3D printing Australia, 3D printing service Western Australia, custom 3D prints Perth, STL printing, local 3D printing, cheap 3D printing Perth",
   icons: {
-    icon: "/favicon.svg",
+    icon: "/favicon.png",
   },
   openGraph: {
     title: "Stratum3D — Affordable 3D Printing in Perth",
@@ -66,7 +66,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="geo.region" content="AU-WA" />
         <meta name="geo.placename" content="Perth" />
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/favicon.png" type="image/png" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

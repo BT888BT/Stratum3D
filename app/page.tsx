@@ -28,13 +28,8 @@ function MaintenancePage() {
     }}>
       {/* Logo mark */}
       <div style={{ marginBottom: 40 }}>
-        <svg width="56" height="56" viewBox="0 0 32 32" fill="none">
-          <polygon points="16,2 29,9 29,23 16,30 3,23 3,9"
-            stroke="var(--orange)" strokeWidth="1.5" fill="rgba(249,115,22,0.08)" />
-          <polygon points="16,8 23,12 23,20 16,24 9,20 9,12"
-            stroke="var(--orange)" strokeWidth="1" fill="rgba(249,115,22,0.12)" opacity="0.6" />
-          <circle cx="16" cy="16" r="3" fill="var(--orange)" opacity="0.9" />
-        </svg>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="Stratum3D logo" width={56} height={56} style={{ display: "block", margin: "0 auto" }} />
       </div>
 
       {/* Stacked layer lines — top */}

@@ -35,13 +35,9 @@ function emailWrapper(content: string): string {
 
     <!-- Header -->
     <div style="background:#0e0a06;border-radius:12px 12px 0 0;padding:24px 28px;text-align:center">
-      <!-- Hex logo -->
+      <!-- Logo -->
       <div style="margin-bottom:8px">
-        <svg width="36" height="36" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="16,2 29,9 29,23 16,30 3,23 3,9" stroke="#f97316" stroke-width="1.5" fill="rgba(249,115,22,0.1)"/>
-          <polygon points="16,8 23,12 23,20 16,24 9,20 9,12" stroke="#f97316" stroke-width="1" fill="rgba(249,115,22,0.15)" opacity="0.6"/>
-          <circle cx="16" cy="16" r="3" fill="#f97316" opacity="0.9"/>
-        </svg>
+        <img src="https://www.stratum3d.com.au/logo.png" width="36" height="36" alt="Stratum3D" style="display:inline-block" />
       </div>
       <span style="font-size:20px;font-weight:700;color:#f5f0eb;letter-spacing:0.08em">STRATUM<span style="color:#f97316">3D</span></span>
     </div>

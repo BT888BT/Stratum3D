@@ -101,14 +101,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               display: "flex", alignItems: "center", justifyContent: "space-between"
             }}>
               <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                {/* Hexagon logo */}
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                  <polygon points="16,2 29,9 29,23 16,30 3,23 3,9"
-                    stroke="var(--orange)" strokeWidth="1.5" fill="rgba(249,115,22,0.08)"/>
-                  <polygon points="16,8 23,12 23,20 16,24 9,20 9,12"
-                    stroke="var(--orange)" strokeWidth="1" fill="rgba(249,115,22,0.12)" opacity="0.6"/>
-                  <circle cx="16" cy="16" r="3" fill="var(--orange)" opacity="0.9"/>
-                </svg>
+                {/* Logo */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/logo.png" alt="Stratum3D logo" width={32} height={32} style={{ display: "block" }} />
                 <span className="font-display" style={{ fontSize: 22, color: "var(--text)", letterSpacing: "0.06em" }}>
                   STRATUM<span style={{ color: "var(--orange)" }}>3D</span>
                 </span>

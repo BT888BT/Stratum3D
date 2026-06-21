@@ -139,7 +139,7 @@ export default async function HomePage() {
               <br />
               Receive your parts in days — not weeks.
             </p>
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <div className="hero-cta" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Link href="/quote" className="btn-primary glow-pulse" style={{ fontSize: 18, padding: "13px 32px" }}>
                 Start Your Print →
               </Link>

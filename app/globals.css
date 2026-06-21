@@ -56,6 +56,13 @@ input, select, textarea, button { font: inherit; }
   .eyebrow-mobile { display: block; }
   /* Shrink hero lede on phones so each line fits on one row */
   .hero-lede { font-size: 14px !important; line-height: 1.5; }
+  /* Keep both hero buttons on one line on phones */
+  .hero-cta { flex-wrap: nowrap !important; gap: 8px !important; }
+  .hero-cta a {
+    font-size: 14px !important;
+    padding: 11px 16px !important;
+    white-space: nowrap;
+  }
 }
 
 /* ── Cards ───────────────────────────────────── */

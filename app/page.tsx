@@ -181,7 +181,7 @@ export default async function HomePage() {
       {/* ── How it works ─────────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(48px, 8vw, 88px)" }}>
         <span className="eyebrow" style={{ textAlign: "center", marginBottom: 10 }}>How it works</span>
-        <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)", textAlign: "center", marginBottom: 14 }}>
+        <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)", textAlign: "center", marginBottom: 5 }}>
           THREE STEPS TO A FINISHED PART
         </h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
@@ -202,7 +202,7 @@ export default async function HomePage() {
       {/* ── Materials ────────────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(48px, 8vw, 88px)" }}>
         <span className="eyebrow" style={{ textAlign: "center", marginBottom: 10 }}>Materials</span>
-        <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)", textAlign: "center", marginBottom: 12 }}>
+        <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)", textAlign: "center", marginBottom: 5 }}>
           PICK THE RIGHT PLASTIC
         </h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
@@ -253,7 +253,7 @@ export default async function HomePage() {
       {/* ── Testimonials ─────────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(48px, 8vw, 88px)" }}>
         <span className="eyebrow" style={{ textAlign: "center", marginBottom: 10 }}>What customers say</span>
-        <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)", textAlign: "center", marginBottom: 12 }}>TRUSTED BY PERTH MAKERS</h2>
+        <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)", textAlign: "center", marginBottom: 5 }}>TRUSTED BY PERTH MAKERS</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
           {TESTIMONIALS.map((t) => (
             <div key={t.name} className="card">
@@ -270,7 +270,7 @@ export default async function HomePage() {
       <section>
         <div className="card-orange" style={{ textAlign: "center", padding: "clamp(32px, 6vw, 56px)" }}>
           <span className="eyebrow" style={{ marginBottom: 12 }}>Ready when you are</span>
-          <h2 className="font-display" style={{ fontSize: "clamp(32px, 6vw, 56px)", marginBottom: 14 }}>
+          <h2 className="font-display" style={{ fontSize: "clamp(32px, 6vw, 56px)", marginBottom: 5 }}>
             LET&apos;S PRINT SOMETHING
           </h2>
           <p style={{ fontSize: 16, color: "var(--text-dim)", maxWidth: 480, margin: "0 auto 26px" }}>

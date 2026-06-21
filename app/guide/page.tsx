@@ -180,28 +180,22 @@ export default function GuidePage() {
 
         {/* ── Holes ── */}
         <Section id="holes" icon="⭕" title="PRINTING HOLES">
-          <p>Holes in a 3D print almost always come out slightly smaller than the size in your model. This happens because the molten plastic squeezes inward on curves and shrinks a touch as it cools — so a hole drawn at 5mm might print closer to 4.7mm.</p>
+          <p>Holes that sit on their side (with the opening facing sideways rather than up) can sag or come out messy across the top, because the printer has to bridge the unsupported curve. The teardrop method fixes this: the top of the hole is shaped into a point so each layer rests cleanly on the one below — no supports, no sag.</p>
 
           <Visual>
             <div style={{ display: "flex", gap: 40, alignItems: "center" }}>
               <div style={{ textAlign: "center" }}>
-                <div style={{ width: 60, height: 60, borderRadius: "50%", border: "3px dashed var(--muted)", margin: "0 auto" }} />
-                <p className="font-mono" style={{ fontSize: 9, color: "var(--muted)", marginTop: 10 }}>Designed</p>
+                <div style={{ width: 60, height: 60, borderRadius: "50%", border: "3px solid var(--muted)", margin: "0 auto" }} />
+                <p className="font-mono" style={{ fontSize: 9, color: "var(--muted)", marginTop: 10 }}>Round (can sag)</p>
               </div>
               <div style={{ textAlign: "center" }}>
-                <div style={{ position: "relative", width: 60, height: 60, margin: "0 auto" }}>
-                  <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "3px dashed var(--muted)", opacity: 0.4 }} />
-                  <div style={{ position: "absolute", inset: 7, borderRadius: "50%", border: "3px solid var(--orange)" }} />
-                </div>
-                <p className="font-mono" style={{ fontSize: 9, color: "var(--orange)", marginTop: 10 }}>Printed (smaller)</p>
+                <div style={{ width: 60, height: 60, borderRadius: "0 50% 50% 50%", border: "3px solid var(--orange)", transform: "rotate(45deg)", margin: "0 auto" }} />
+                <p className="font-mono" style={{ fontSize: 9, color: "var(--orange)", marginTop: 10 }}>Teardrop (prints clean)</p>
               </div>
             </div>
           </Visual>
 
-          <p><strong style={{ color: "var(--text)" }}>If the hole needs to fit something snugly</strong> (a bolt, bearing, or dowel), it&apos;s worth oversizing it slightly in your model — adding 0.2–0.4mm to the diameter usually lands it right.</p>
-          <p><strong style={{ color: "var(--text)" }}>For holes that don&apos;t need a precise fit,</strong> the default print is fine. A bit of undersize rarely matters for clearance holes or cable pass-throughs.</p>
-          <p><strong style={{ color: "var(--text)" }}>Holes printed sideways</strong> (with the axis flat on the bed) tend to come out slightly oval rather than round. Where possible, orient your part so important holes point straight up — let us know if a hole is critical and we&apos;ll print it in the best orientation.</p>
-          <p>Not sure? Just mention the hole size and what goes in it when you order, and we&apos;ll help dial it in.</p>
+          <p><strong style={{ color: "var(--text)" }}>Note:</strong> you only need this for sideways holes — holes that point straight up print fine as normal circles. If a sideways hole is important and you can&apos;t reshape it yourself, just mention it when you order and we&apos;ll sort the orientation.</p>
         </Section>
 
         {/* ── Colour ── */}

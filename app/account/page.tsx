@@ -262,7 +262,7 @@ function OrderResult({ result }: { result: LookupResult }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
           <SummaryRow label="Delivery" value={result.deliveryMethod === "pickup" ? "Parcel locker pickup" : "Shipping — Australia Post"} />
           {result.totals.subtotalCents != null && <SummaryRow label="Subtotal" value={formatAud(result.totals.subtotalCents)} />}
-          {result.totals.gstCents != null && <SummaryRow label="GST (10%)" value={formatAud(result.totals.gstCents)} />}
+          {result.totals.gstCents != null && result.totals.gstCents > 0 && <SummaryRow label="GST (10%)" value={formatAud(result.totals.gstCents)} />}
           {result.totals.shippingCents != null && (
             <SummaryRow
               label="Shipping"

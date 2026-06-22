@@ -866,7 +866,7 @@ export default function QuoteForm() {
                   />
                 )}
                 <Row label={shippingMethod === "pickup" ? "Parcel locker pickup" : "Shipping (Australia Post)"} value={formatAud(quote.shippingCents)} />
-                <Row label="GST (10%)" value={formatAud(quote.gstCents)} />
+                {quote.gstCents > 0 && <Row label="GST (10%)" value={formatAud(quote.gstCents)} />}
               </div>
 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderTop: "1px solid rgba(249,115,22,0.2)" }}>
@@ -875,7 +875,7 @@ export default function QuoteForm() {
               </div>
 
               <p style={{ fontSize: 11, color: "var(--muted)", textAlign: "center" }}>
-                {hasQuote && !customerName ? "Fill in your details below to proceed ↓" : "Secure checkout via Stripe · GST included"}
+                {hasQuote && !customerName ? "Fill in your details below to proceed ↓" : "Secure checkout via Stripe"}
               </p>
             </div>
           )}

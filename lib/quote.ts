@@ -1,4 +1,11 @@
 import type { QuoteInputParsed } from "@/lib/validation";
+import { business } from "@/lib/business";
+
+// GST is only charged when the business is registered for GST. A sole trader
+// below the $75k threshold who is NOT registered must not add GST — so the rate
+// drops to 0 and the customer pays parts − discount + shipping. Flip
+// BUSINESS_GST_REGISTERED back to "true" (and register with the ATO) to re-enable.
+const GST_RATE = business.gstRegistered ? 0.1 : 0;
 
 /**
  * Pricing model (Bambu Lab FDM — X1C / P1S / P1P):
@@ -348,7 +355,7 @@ export function recomputeTotals(
 ): { discountCents: number; gstCents: number; totalCents: number } {
   const clampedDiscount  = Math.max(0, Math.min(discountCents, subtotalCents));
   const discountedSubtotal = subtotalCents - clampedDiscount;
-  const gstCents  = Math.round((discountedSubtotal + shippingCents) * 0.1);
+  const gstCents  = Math.round((discountedSubtotal + shippingCents) * GST_RATE);
   const totalCents = discountedSubtotal + shippingCents + gstCents;
   return { discountCents: clampedDiscount, gstCents, totalCents };
 }

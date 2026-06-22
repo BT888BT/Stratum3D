@@ -16,7 +16,7 @@ export default function TermsPage() {
         </Section>
 
         <Section title="Orders and pricing">
-          Prices are quoted in Australian Dollars (AUD) and include GST. Quotes are calculated automatically based on your model&apos;s volume, selected material, layer height, infill, and quantity. A flat shipping fee applies per order. Quotes are valid at the time of checkout — if you do not complete payment, the quote may expire.
+          Prices are quoted in Australian Dollars (AUD). Quotes are calculated automatically based on your model&apos;s volume, selected material, layer height, infill, and quantity. A flat shipping fee applies per order. Quotes are valid at the time of checkout — if you do not complete payment, the quote may expire.
         </Section>
 
         <Section title="Payment">

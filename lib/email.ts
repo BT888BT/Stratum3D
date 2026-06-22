@@ -157,10 +157,10 @@ export async function sendOrderUnderReviewEmail(order: {
           <td style="padding:4px 0;font-size:13px;color:#888">${deliveryLabel}</td>
           <td style="padding:4px 0;text-align:right;font-size:13px;color:#555">${formatAud(order.shippingCents)}</td>
         </tr>
-        <tr>
+        ${order.gstCents > 0 ? `<tr>
           <td style="padding:4px 0;font-size:13px;color:#888">GST (10%)</td>
           <td style="padding:4px 0;text-align:right;font-size:13px;color:#555">${formatAud(order.gstCents)}</td>
-        </tr>
+        </tr>` : ""}
         <tr>
           <td colspan="2" style="padding:10px 0 0 0;border-top:2px solid #1a1a1a"></td>
         </tr>

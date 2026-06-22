@@ -52,6 +52,9 @@ export default async function AdminOrderDetailPage({
             {new Date(order.created_at).toLocaleString("en-AU", { dateStyle: "long", timeStyle: "short" })}
           </p>
         </div>
+        <Link href={`/admin/orders/${order.id}/invoice`} className="btn-ghost" style={{ fontSize: 12 }}>
+          Invoice →
+        </Link>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
@@ -120,7 +123,7 @@ export default async function AdminOrderDetailPage({
           <p className="eyebrow" style={{ marginBottom: 16 }}>Pricing</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <DetailRow label="Subtotal" value={formatAud(order.subtotal_cents)} />
-            <DetailRow label="GST (10%)" value={formatAud(order.gst_cents)} />
+            {order.gst_cents > 0 && <DetailRow label="GST (10%)" value={formatAud(order.gst_cents)} />}
             <DetailRow label="Shipping" value={order.shipping_cents === 500 ? "Pickup ($5.00)" : formatAud(order.shipping_cents)} />
             <hr className="divider" />
             <div style={{ display: "flex", justifyContent: "space-between" }}>

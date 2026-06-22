@@ -37,7 +37,7 @@ function emailWrapper(content: string): string {
     <div style="background:#0e0a06;border-radius:12px 12px 0 0;padding:24px 28px;text-align:center">
       <!-- Logo -->
       <div style="margin-bottom:8px">
-        <img src="https://www.stratum3d.com.au/logo.png" width="36" height="36" alt="Stratum3D" style="display:inline-block" />
+        <img src="https://www.stratum3d.com.au/favicon.png" width="36" height="36" alt="Stratum3D" style="display:inline-block" />
       </div>
       <span style="font-size:20px;font-weight:700;color:#f5f0eb;letter-spacing:0.08em">STRATUM<span style="color:#f97316">3D</span></span>
     </div>

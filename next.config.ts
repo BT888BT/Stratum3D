@@ -13,8 +13,9 @@ const securityHeaders = [
       "default-src 'self'",
       // #5: Removed 'unsafe-eval' — only 'unsafe-inline' kept for Next.js compatibility
       "script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://js.stripe.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com",
+      "style-src 'self' 'unsafe-inline'",
+      // Fonts are self-hosted via next/font, so only 'self' is needed.
+      "font-src 'self'",
       "img-src 'self' data: blob: https://*.googleapis.com https://*.gstatic.com https://*.supabase.co https://lppctvfjaiepglfexuqm.supabase.co",
       "frame-src https://js.stripe.com https://hooks.stripe.com",
       "connect-src 'self' https://*.supabase.co https://maps.googleapis.com https://api.stripe.com",

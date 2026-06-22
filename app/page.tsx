@@ -9,10 +9,10 @@ export const dynamic = "force-dynamic";
 // Home-page "From the build plate" photos. Drop the image files in
 // public/home-gallery/ (see the README there) and edit the labels below.
 const HOME_GALLERY = [
-  { src: "/home-gallery/print-1.jpg", title: "Raised Dog Bowl Stand", material: "PLA", category: "Pet · Functional" },
-  { src: "/home-gallery/print-2.jpg", title: "Cosplay Mask", material: "PLA", category: "Cosplay · Display" },
-  { src: "/home-gallery/print-3.jpg", title: "Raspberry Pi Enclosure", material: "PETG", category: "Functional" },
-  { src: "/home-gallery/print-4.jpg", title: "Crochet-Style Cow Figure", material: "PETG", category: "Display · Decor" },
+  { src: "/home-gallery/print-1.webp", title: "Raised Dog Bowl Stand", material: "PLA", category: "Pet · Functional" },
+  { src: "/home-gallery/print-2.webp", title: "Ruined Town Terrain", material: "PLA", category: "Tabletop · Miniatures" },
+  { src: "/home-gallery/print-3.webp", title: "Raspberry Pi Enclosure", material: "PETG", category: "Functional" },
+  { src: "/home-gallery/print-4.webp", title: "Crochet-Style Cow Figure", material: "PETG", category: "Display · Decor" },
 ];
 
 function MaintenancePage() {
@@ -29,7 +29,7 @@ function MaintenancePage() {
       {/* Logo mark */}
       <div style={{ marginBottom: 40 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="Stratum3D logo" width={56} height={56} style={{ display: "block", margin: "0 auto" }} />
+        <img src="/logo.webp" alt="Stratum3D logo" width={56} height={56} style={{ display: "block", margin: "0 auto" }} />
       </div>
 
       {/* Stacked layer lines — top */}

@@ -1,6 +1,30 @@
 import "./globals.css";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { Manrope, Bebas_Neue, IBM_Plex_Mono } from "next/font/google";
+
+// Self-hosted via next/font — fonts are downloaded at build time and served
+// from our own origin, removing the render-blocking request to fonts.googleapis.com.
+const manrope = Manrope({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+  variable: "--font-manrope",
+});
+
+const bebasNeue = Bebas_Neue({
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+  variable: "--font-bebas",
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+  variable: "--font-plex-mono",
+});
 
 export const metadata: Metadata = {
   title: "Stratum3D — Affordable 3D Printing in Perth | Fast Local FDM Service",
@@ -42,7 +66,7 @@ const jsonLd = {
   },
   logo: {
     "@type": "ImageObject",
-    url: "https://www.stratum3d.com.au/logo.png",
+    url: "https://www.stratum3d.com.au/logo.webp",
     width: 512,
     height: 512,
   },
@@ -61,7 +85,7 @@ const jsonLd = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${manrope.variable} ${bebasNeue.variable} ${ibmPlexMono.variable}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="geo.region" content="AU-WA" />
@@ -103,7 +127,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 {/* Logo */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/logo.png" alt="Stratum3D logo" width={32} height={32} style={{ display: "block" }} />
+                <img src="/logo.webp" alt="Stratum3D logo" width={32} height={32} style={{ display: "block" }} />
                 <span className="font-display" style={{ fontSize: 22, color: "var(--text)", letterSpacing: "0.06em" }}>
                   STRATUM<span style={{ color: "var(--orange)" }}>3D</span>
                 </span>

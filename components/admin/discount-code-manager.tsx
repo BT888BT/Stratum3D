@@ -11,6 +11,7 @@ type DiscountCode = {
   discount_value: number;
   active: boolean;
   used: boolean;
+  single_use: boolean;
   expires_at: string | null;
   min_subtotal_cents: number;
   max_discount_cents: number | null;
@@ -26,6 +27,7 @@ export default function DiscountCodeManager({ initialCodes }: { initialCodes: Di
   const [minSubtotal, setMinSubtotal] = useState("");
   const [maxDiscount, setMaxDiscount] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
+  const [singleUse, setSingleUse] = useState(true);
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -47,12 +49,13 @@ export default function DiscountCodeManager({ initialCodes }: { initialCodes: Di
         minSubtotalCents: minSubtotal ? Math.round(parseFloat(minSubtotal) * 100) : 0,
         maxDiscountCents: discountType === "percent" && maxDiscount ? Math.round(parseFloat(maxDiscount) * 100) : null,
         expiresAt: expiresAt || null,
+        singleUse,
       }),
     });
     const data = await res.json().catch(() => null);
     if (!res.ok) { setError(data?.error || "Failed to add code."); }
     else {
-      setNewCode(""); setValue("10"); setMinSubtotal(""); setMaxDiscount(""); setExpiresAt("");
+      setNewCode(""); setValue("10"); setMinSubtotal(""); setMaxDiscount(""); setExpiresAt(""); setSingleUse(true);
       router.refresh();
     }
     setLoading(null);
@@ -95,14 +98,14 @@ export default function DiscountCodeManager({ initialCodes }: { initialCodes: Di
     return { text: "● Active", color: "var(--green)" };
   }
 
-  const cols = "150px 110px 1fr 130px 110px 70px";
+  const cols = "150px 110px 1fr 90px 130px 110px 70px";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {error && <div className="error-box">{error}</div>}
 
       <p style={{ fontSize: 12, color: "var(--text-dim)", margin: 0 }}>
-        Each code can be redeemed once and applies to the parts subtotal only (not GST or shipping). Disable a code to stop it being used without deleting its history.
+        Codes apply to the parts subtotal only (not GST or shipping). A single-use code is burned after its first redemption; a reusable code stays valid until it expires or is disabled. Disable a code to stop it being used without deleting its history.
       </p>
 
       {/* Code list */}
@@ -112,7 +115,7 @@ export default function DiscountCodeManager({ initialCodes }: { initialCodes: Di
           gap: 12, padding: "12px 20px",
           background: "var(--bg2)", borderBottom: "1px solid var(--border)"
         }}>
-          {["Code", "Discount", "Conditions", "Expires", "Status", ""].map((h, i) => (
+          {["Code", "Discount", "Conditions", "Usage", "Expires", "Status", ""].map((h, i) => (
             <span key={i} className="font-mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase" }}>{h}</span>
           ))}
         </div>
@@ -134,6 +137,9 @@ export default function DiscountCodeManager({ initialCodes }: { initialCodes: Di
                 {c.min_subtotal_cents > 0 && c.max_discount_cents ? " · " : ""}
                 {c.max_discount_cents && `Cap ${formatAud(c.max_discount_cents)}`}
                 {c.min_subtotal_cents === 0 && !c.max_discount_cents && "—"}
+              </span>
+              <span style={{ fontSize: 12, color: "var(--text-dim)" }}>
+                {c.single_use ? "Single use" : "Reusable"}
               </span>
               <span style={{ fontSize: 12, color: "var(--text-dim)" }}>
                 {c.expires_at ? new Date(c.expires_at).toLocaleDateString("en-AU") : "Never"}
@@ -209,6 +215,15 @@ export default function DiscountCodeManager({ initialCodes }: { initialCodes: Di
             <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Expires (optional)</span>
             <input value={expiresAt} onChange={e => setExpiresAt(e.target.value)} className="input-field" type="date"
               style={{ width: 160 }} />
+          </label>
+
+          <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Usage</span>
+            <select value={singleUse ? "single" : "reusable"} onChange={e => setSingleUse(e.target.value === "single")}
+              className="input-field" style={{ minWidth: 150 }}>
+              <option value="single">Single use</option>
+              <option value="reusable">Reusable until expiry</option>
+            </select>
           </label>
 
           <button onClick={addCode} disabled={loading === "add"} className="btn-primary" style={{ flexShrink: 0 }}>

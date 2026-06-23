@@ -48,12 +48,19 @@ create table if not exists public.discount_codes (
   min_subtotal_cents  integer not null default 0,
   -- optional cap (cents) on how much a percent code can take off
   max_discount_cents  integer,
+  -- when true the code is burned after its first redemption; when false the
+  -- code stays usable (subject to active/expiry) for any number of orders
+  single_use          boolean not null default true,
   -- single-use bookkeeping
   used                boolean not null default false,
   redeemed_order_id   uuid references public.orders(id) on delete set null,
   redeemed_at         timestamptz,
   created_at          timestamptz not null default now()
 );
+
+-- Backfill for databases created before single_use existed.
+alter table public.discount_codes
+  add column if not exists single_use boolean not null default true;
 
 -- Case-insensitive safety: codes are uppercased by the app, but enforce it here
 -- too so a lowercase manual insert can't create a duplicate.

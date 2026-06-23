@@ -63,18 +63,45 @@ export async function POST(request: Request) {
     // claim, strip the dead discount + recompute totals, and ask them to retry.
     let consumedCodeId: string | null = null;
     if (order.discount_code) {
-      const { data: consumed } = await supabase
+      // Look up the code first so we know whether it's single-use (burn after
+      // redemption) or multi-use (stays available until disabled/expired).
+      const { data: codeMeta } = await supabase
         .from("discount_codes")
-        .update({
-          used: true,
-          redeemed_order_id: order.id,
-          redeemed_at: new Date().toISOString(),
-        })
+        .select("id, single_use, active, expires_at")
         .ilike("code", order.discount_code)
-        .eq("used", false)
-        .eq("active", true)
-        .select("id")
         .single();
+
+      const nowIso = new Date().toISOString();
+
+      // Multi-use codes are never burned — just confirm they're still valid.
+      // Single-use codes are claimed atomically (compare-and-swap on `used`) so
+      // two orders can never both redeem the same code.
+      // Shared validity gate (active + not expired), read from the row we just
+      // fetched. Expiry can't "un-expire", so checking it here is safe; the
+      // atomic `.eq("used", false)` below still guards the single-use race.
+      const stillValid =
+        !!codeMeta &&
+        codeMeta.active &&
+        (!codeMeta.expires_at || codeMeta.expires_at > nowIso);
+
+      const consumed = !stillValid
+        ? null
+        : codeMeta.single_use === false
+          // Multi-use: never burned — validity already confirmed above.
+          ? { id: codeMeta.id }
+          // Single-use: claim atomically (compare-and-swap on `used`).
+          : (await supabase
+              .from("discount_codes")
+              .update({
+                used: true,
+                redeemed_order_id: order.id,
+                redeemed_at: nowIso,
+              })
+              .ilike("code", order.discount_code)
+              .eq("used", false)
+              .eq("active", true)
+              .select("id")
+              .single()).data;
 
       if (!consumed) {
         const totals = recomputeTotals(order.subtotal_cents, order.shipping_cents, 0);

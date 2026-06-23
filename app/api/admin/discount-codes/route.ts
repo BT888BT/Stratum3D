@@ -15,6 +15,7 @@ export async function POST(request: Request) {
     minSubtotalCents,
     maxDiscountCents,
     expiresAt,
+    singleUse,
   } = body as Record<string, unknown>;
 
   const parsedCode = discountCodeSchema.safeParse(code);
@@ -67,6 +68,7 @@ export async function POST(request: Request) {
     min_subtotal_cents: minSubtotal,
     max_discount_cents: discountType === "percent" ? maxDiscount : null,
     expires_at: expiresIso,
+    single_use: singleUse !== false, // default to single-use unless explicitly disabled
     active: true,
   });
 

@@ -12,12 +12,12 @@ export default function HeaderNav() {
   if (isAdmin) {
     return (
       <nav style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <Link href="/admin/settings" className="btn-ghost" style={{ fontSize: 12 }}>Settings</Link>
+        <Link href="/admin/settings" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Settings</Link>
         <Link href="/admin/gallery" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Gallery Management</Link>
         <Link href="/admin/colours" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Colour Management</Link>
-        <Link href="/admin/discount-codes" className="btn-ghost" style={{ fontSize: 12 }}>Discount Codes</Link>
+        <Link href="/admin/discount-codes" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Discount Codes</Link>
         <form action="/api/admin/logout" method="POST">
-          <button type="submit" className="btn-ghost" style={{ fontSize: 12 }}>Log out</button>
+          <button type="submit" className="btn-ghost" style={{ fontSize: 12, background: "var(--orange)", borderColor: "var(--orange)", color: "#fff", fontWeight: 700 }}>Log out</button>
         </form>
       </nav>
     );

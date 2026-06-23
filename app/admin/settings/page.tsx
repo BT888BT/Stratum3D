@@ -27,6 +27,19 @@ export default async function AdminSettingsPage() {
       <div className="card" style={{ maxWidth: 480 }}>
         <p className="eyebrow" style={{ marginBottom: 16 }}>Site</p>
         <SettingsClient pickupEnabled={pickupEnabled} orderingEnabled={orderingEnabled} />
+
+        <div style={{ borderTop: "1px solid var(--border)", margin: "24px 0" }} />
+
+        {/* Export invoices */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20 }}>
+          <div>
+            <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>Export Invoices</p>
+            <p style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 4 }}>
+              Download a CSV of all invoices for accounting and your records.
+            </p>
+          </div>
+          <a href="/api/admin/invoices/export" className="btn-ghost" style={{ fontSize: 12, flexShrink: 0 }}>Download CSV</a>
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatAud } from "@/lib/utils";
-import { business, displayWebsite } from "@/lib/business";
+import { business } from "@/lib/business";
 import { notFound } from "next/navigation";
 import InvoiceActions from "./invoice-actions";
 
@@ -109,10 +109,6 @@ export default async function InvoicePage({
               </p>
               <p style={{ margin: "8px 0 0", fontSize: 12, color: "#555", lineHeight: 1.6 }}>
                 {business.legalName}
-                <br />
-                {business.address}
-                <br />
-                {business.email} · {displayWebsite()}
               </p>
               {business.abn ? (
                 <p style={{ margin: "8px 0 0", fontSize: 12, fontWeight: 700, color: "#1a1a1a" }}>

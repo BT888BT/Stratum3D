@@ -1,5 +1,7 @@
 import "./globals.css";
 import Link from "next/link";
+import AnnounceBar from "./components/AnnounceBar";
+import HeaderNav from "./components/HeaderNav";
 import type { Metadata } from "next";
 import { Manrope, Bebas_Neue, IBM_Plex_Mono } from "next/font/google";
 
@@ -99,17 +101,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
 
-          {/* Announce bar — scrolls away naturally; marquee on phones (see globals.css) */}
-          <div className="announce-bar">
-            <div className="announce-track">
-              <span className="font-mono announce-item" style={{ fontSize: 11, color: "var(--text)", letterSpacing: "0.13em", textTransform: "uppercase" }}>
-                Perth-based&nbsp;·&nbsp;Transparent volume pricing&nbsp;·&nbsp;No minimum order&nbsp;·&nbsp;Ships Australia-wide
-              </span>
-              <span className="font-mono announce-item announce-dup" aria-hidden="true" style={{ fontSize: 11, color: "var(--text)", letterSpacing: "0.13em", textTransform: "uppercase" }}>
-                Perth-based&nbsp;·&nbsp;Transparent volume pricing&nbsp;·&nbsp;No minimum order&nbsp;·&nbsp;Ships Australia-wide
-              </span>
-            </div>
-          </div>
+          <AnnounceBar />
 
           {/* Header */}
           <header style={{
@@ -133,14 +125,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 </span>
               </Link>
 
-              <nav style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <Link href="/gallery" className="nav-link hidden-mobile" style={{ textDecoration: "none" }}>Gallery</Link>
-                <Link href="/guide" className="nav-link hidden-mobile" style={{ textDecoration: "none" }}>Guide</Link>
-                <Link href="/account" className="nav-link" style={{ textDecoration: "none" }}>Track Order</Link>
-                <Link href="/quote" className="btn-primary" style={{ fontSize: 14, padding: "8px 20px", marginLeft: 6 }}>
-                  Get Quote
-                </Link>
-              </nav>
+              <HeaderNav />
             </div>
           </header>
 

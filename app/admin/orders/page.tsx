@@ -51,22 +51,10 @@ export default async function AdminOrdersPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
 
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
-        <div>
-          <p className="eyebrow" style={{ marginBottom: 8 }}>Dashboard</p>
-          <h1 className="font-display" style={{ fontSize: 32, fontWeight: 700 }}>Orders</h1>
-        </div>
-        <div style={{ display: "flex", gap: 10 }}>
-          <a href="/api/admin/invoices/export" className="btn-ghost" style={{ fontSize: 12 }}>Download CSV</a>
-          <Link href="/admin/settings" className="btn-ghost" style={{ fontSize: 12 }}>Settings</Link>
-          <Link href="/admin/gallery" className="btn-ghost" style={{ fontSize: 12 }}>Gallery</Link>
-          <Link href="/admin/colours" className="btn-ghost" style={{ fontSize: 12 }}>Manage Colours</Link>
-          <Link href="/admin/discount-codes" className="btn-ghost" style={{ fontSize: 12 }}>Discount Codes</Link>
-          <form action="/api/admin/logout" method="POST">
-            <button type="submit" className="btn-ghost" style={{ fontSize: 12 }}>Log out</button>
-          </form>
-        </div>
+      {/* Header — admin nav controls now live in the site header (see HeaderNav) */}
+      <div>
+        <p className="eyebrow" style={{ marginBottom: 8 }}>Dashboard</p>
+        <h1 className="font-display" style={{ fontSize: 32, fontWeight: 700 }}>Orders</h1>
       </div>
 
       {/* Stats */}

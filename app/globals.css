@@ -344,6 +344,19 @@ input, select, textarea, button { font: inherit; }
 .glow-pulse { animation: glowPulse 2.5s ease-in-out infinite; }
 .float-anim { animation: float 8s ease-in-out infinite; transform-style: preserve-3d; }
 
+/* ── Discount code "create" form ─────────────── */
+/* Single row on desktop; fields shrink to fit, then wrap on narrow screens. */
+.discount-form-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: nowrap;
+}
+.discount-form-row > * { min-width: 0; }
+@media (max-width: 1024px) {
+  .discount-form-row { flex-wrap: wrap; }
+}
+
 /* ── Responsive ──────────────────────────────── */
 @media (max-width: 768px) {
   .quote-grid    { grid-template-columns: 1fr !important; }

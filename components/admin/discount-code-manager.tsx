@@ -155,11 +155,20 @@ export default function DiscountCodeManager({ initialCodes }: { initialCodes: Di
               >
                 {status.text}
               </button>
-              <button onClick={() => deleteCode(c.id)} disabled={!!loading}
-                style={{ background: "transparent", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: 12, padding: "4px 8px", borderRadius: 4 }}
-                onMouseEnter={e => (e.currentTarget.style.color = "var(--red)")}
-                onMouseLeave={e => (e.currentTarget.style.color = "var(--muted)")}
-              >Delete</button>
+              {(c.used || c.redeemed_at) ? (
+                // Redeemed codes keep their history — disable instead of deleting.
+                <span style={{ color: "var(--muted)", fontSize: 11, padding: "4px 8px", opacity: 0.6, cursor: "help" }}
+                  title="This code has been redeemed, so it can't be deleted (that would lose its usage history). Use the status button to disable it instead.">
+                  Redeemed
+                </span>
+              ) : (
+                <button onClick={() => deleteCode(c.id)} disabled={!!loading}
+                  style={{ background: "transparent", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: 12, padding: "4px 8px", borderRadius: 4 }}
+                  onMouseEnter={e => (e.currentTarget.style.color = "var(--red)")}
+                  onMouseLeave={e => (e.currentTarget.style.color = "var(--muted)")}
+                  title="Delete this unused code"
+                >Delete</button>
+              )}
             </div>
           );
         })}
@@ -174,59 +183,57 @@ export default function DiscountCodeManager({ initialCodes }: { initialCodes: Di
       {/* Add new */}
       <div className="card">
         <p className="eyebrow" style={{ marginBottom: 16 }}>Create New Code</p>
-        <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
-          <label style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 150 }}>
+        <div className="discount-form-row">
+          <label style={{ display: "flex", flexDirection: "column", gap: 6, flex: "1.4 1 130px" }}>
             <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Code</span>
             <input value={newCode} onChange={e => setNewCode(e.target.value.toUpperCase())} className="input-field"
-              placeholder="e.g. WELCOME10" style={{ textTransform: "uppercase", fontFamily: "monospace" }}
+              placeholder="e.g. WELCOME10" style={{ width: "100%", textTransform: "uppercase", fontFamily: "monospace" }}
               maxLength={32} onKeyDown={e => e.key === "Enter" && addCode()} />
           </label>
 
-          <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <label style={{ display: "flex", flexDirection: "column", gap: 6, flex: "1 1 110px" }}>
             <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Type</span>
-            <select value={discountType} onChange={e => setDiscountType(e.target.value as "percent" | "fixed")} className="input-field" style={{ minWidth: 120 }}>
+            <select value={discountType} onChange={e => setDiscountType(e.target.value as "percent" | "fixed")} className="input-field" style={{ width: "100%" }}>
               <option value="percent">Percentage</option>
               <option value="fixed">Fixed amount</option>
             </select>
           </label>
 
-          <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <label style={{ display: "flex", flexDirection: "column", gap: 6, flex: "0.8 1 90px" }}>
             <span style={{ fontSize: 12, color: "var(--text-dim)" }}>{discountType === "percent" ? "Percent off (%)" : "Amount off ($)"}</span>
             <input value={value} onChange={e => setValue(e.target.value)} className="input-field" type="number" min="0"
-              step={discountType === "percent" ? "1" : "0.01"} style={{ width: 120 }}
+              step={discountType === "percent" ? "1" : "0.01"} style={{ width: "100%" }}
               placeholder={discountType === "percent" ? "10" : "5.00"} />
           </label>
 
-          <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <label style={{ display: "flex", flexDirection: "column", gap: 6, flex: "1 1 110px" }}>
             <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Min spend ($, optional)</span>
             <input value={minSubtotal} onChange={e => setMinSubtotal(e.target.value)} className="input-field" type="number" min="0" step="0.01"
-              style={{ width: 130 }} placeholder="0.00" />
+              style={{ width: "100%" }} placeholder="0.00" />
           </label>
 
           {discountType === "percent" && (
-            <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <label style={{ display: "flex", flexDirection: "column", gap: 6, flex: "1 1 110px" }}>
               <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Max discount ($, optional)</span>
               <input value={maxDiscount} onChange={e => setMaxDiscount(e.target.value)} className="input-field" type="number" min="0" step="0.01"
-                style={{ width: 140 }} placeholder="No cap" />
+                style={{ width: "100%" }} placeholder="No cap" />
             </label>
           )}
 
-          <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <label style={{ display: "flex", flexDirection: "column", gap: 6, flex: "1 1 130px" }}>
             <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Expires (optional)</span>
             <input value={expiresAt} onChange={e => setExpiresAt(e.target.value)} className="input-field" type="date"
-              style={{ width: 160 }} />
+              style={{ width: "100%" }} />
           </label>
 
-          <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Usage</span>
-            <select value={singleUse ? "single" : "reusable"} onChange={e => setSingleUse(e.target.value === "single")}
-              className="input-field" style={{ minWidth: 150 }}>
-              <option value="single">Single use</option>
-              <option value="reusable">Reusable until expiry</option>
-            </select>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, flex: "0 0 auto", height: 42, cursor: "pointer", whiteSpace: "nowrap" }}
+            title="Single-use codes are burned after their first redemption; leave unchecked for a reusable code.">
+            <input type="checkbox" checked={singleUse} onChange={e => setSingleUse(e.target.checked)}
+              style={{ width: 16, height: 16, accentColor: "var(--orange)", cursor: "pointer" }} />
+            <span style={{ fontSize: 13, color: "var(--text-dim)" }}>Single use</span>
           </label>
 
-          <button onClick={addCode} disabled={loading === "add"} className="btn-primary" style={{ flexShrink: 0 }}>
+          <button onClick={addCode} disabled={loading === "add"} className="btn-primary" style={{ flex: "0 0 auto" }}>
             {loading === "add" ? "Creating..." : "Create Code"}
           </button>
         </div>

@@ -106,6 +106,23 @@ export async function DELETE(request: Request) {
   if (!id) return NextResponse.json({ error: "id is required." }, { status: 400 });
 
   const supabase = createAdminClient();
+
+  // Never hard-delete a code that's been redeemed — that would lose its usage
+  // history (who used it, when, how much was saved). Admins should disable it
+  // (PATCH active:false) instead, which keeps the record intact.
+  const { data: existing, error: lookupError } = await supabase
+    .from("discount_codes")
+    .select("used, redeemed_at")
+    .eq("id", id)
+    .single();
+  if (lookupError) return NextResponse.json({ error: lookupError.message }, { status: 500 });
+  if (existing?.used || existing?.redeemed_at) {
+    return NextResponse.json(
+      { error: "This code has been redeemed and can't be deleted. Disable it instead to keep its history." },
+      { status: 409 }
+    );
+  }
+
   const { error } = await supabase.from("discount_codes").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ success: true });

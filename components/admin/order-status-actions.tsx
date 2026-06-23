@@ -14,10 +14,12 @@ export default function OrderStatusActions({
   orderId,
   currentStatus,
   isPaid,
+  trackingNumber,
 }: {
   orderId: string;
   currentStatus: string;
   isPaid: boolean;
+  trackingNumber?: string | null;
 }) {
   const [loading, setLoading] = useState<string | null>(null);
   const [note, setNote] = useState("");
@@ -26,9 +28,12 @@ export default function OrderStatusActions({
   const [emailResult, setEmailResult] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showShipForm, setShowShipForm] = useState(false);
+  const [shipTracking, setShipTracking] = useState("");
+  const [trackingInput, setTrackingInput] = useState(trackingNumber ?? "");
   const router = useRouter();
 
-  async function updateStatus(status: string) {
+  async function updateStatus(status: string, tracking?: string) {
     try {
       setLoading(status);
       setError("");
@@ -36,12 +41,40 @@ export default function OrderStatusActions({
       const res = await fetch("/api/admin/update-status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId, status, note: note || undefined }),
+        body: JSON.stringify({
+          orderId,
+          status,
+          note: note || undefined,
+          trackingNumber: tracking?.trim() || undefined,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to update status.");
       setEmailResult(data.emailSent ? "Email sent to customer." : "Status updated.");
       setNote("");
+      setShowShipForm(false);
+      setShipTracking("");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed.");
+    } finally {
+      setLoading(null);
+    }
+  }
+
+  async function saveTracking() {
+    try {
+      setLoading("tracking");
+      setError("");
+      setEmailResult(null);
+      const res = await fetch("/api/admin/update-tracking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId, trackingNumber: trackingInput.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to save tracking number.");
+      setEmailResult(data.emailSent ? "Tracking number saved — emailed to customer." : "Tracking number saved.");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed.");
@@ -200,6 +233,63 @@ export default function OrderStatusActions({
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {ACTIONS.map(action => {
           const isCurrent = currentStatus === action.status;
+
+          // "Order Shipped" opens an inline form so a tracking number can be
+          // added (optional) before the shipped email goes out.
+          if (action.status === "order_shipped") {
+            return (
+              <div key={action.status} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <button
+                  onClick={() => { if (!isCurrent && !isRefunded) setShowShipForm(v => !v); }}
+                  disabled={loading !== null || isRefunded}
+                  style={{
+                    background: isCurrent ? `${action.color}15` : "transparent",
+                    border: `1px solid ${action.color}${isCurrent ? "44" : "22"}`,
+                    borderRadius: 8,
+                    padding: "10px 14px",
+                    color: action.color,
+                    fontSize: 13,
+                    cursor: isRefunded ? "default" : "pointer",
+                    textAlign: "left",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    opacity: loading !== null ? 0.5 : isRefunded ? 0.35 : 1,
+                    transition: "background 0.15s",
+                  }}
+                >
+                  <span>
+                    {loading === action.status ? "Updating..." : isCurrent ? `● ${action.label}` : `Mark as ${action.label}`}
+                  </span>
+                  <span style={{ opacity: 0.4 }}>{showShipForm ? "×" : "→"}</span>
+                </button>
+
+                {showShipForm && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: "12px 14px", border: `1px solid ${action.color}33`, borderRadius: 8, background: `${action.color}08` }}>
+                    <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Tracking number (optional — Australia Post)</span>
+                      <input
+                        value={shipTracking}
+                        onChange={e => setShipTracking(e.target.value)}
+                        className="input-field"
+                        style={{ fontSize: 13 }}
+                        placeholder="e.g. 33ABC1234567890"
+                      />
+                      <span style={{ fontSize: 11, color: "var(--muted)" }}>Leave blank to ship without a tracking number — it won&apos;t be mentioned in the email.</span>
+                    </label>
+                    <button
+                      onClick={() => updateStatus("order_shipped", shipTracking)}
+                      disabled={loading !== null}
+                      style={{ padding: "10px 14px", borderRadius: 8, fontSize: 13, fontWeight: 700, border: "none", background: action.color, color: "#0e0a06", cursor: loading ? "default" : "pointer", opacity: loading ? 0.6 : 1 }}
+                    >
+                      {loading === "order_shipped" ? "Sending..." : "Mark shipped & email customer"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
           return (
             <button
               key={action.status}
@@ -243,6 +333,38 @@ export default function OrderStatusActions({
       )}
 
       {error && <div className="error-box">{error}</div>}
+
+      {/* Tracking number — add it later if it was forgotten at ship time.
+          One number per order; saving emails it to the customer. */}
+      <div style={{ border: "1px solid var(--border)", borderRadius: 10, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+        <div>
+          <p style={{ fontSize: 12, fontWeight: 700, color: "var(--text)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Tracking number</p>
+          <p style={{ fontSize: 12, color: "var(--text-dim)", lineHeight: 1.5 }}>
+            {trackingNumber
+              ? "One per order. Update it here to re-send the customer the latest number."
+              : "Add a tracking number later if it was missed when shipping. Saving emails it to the customer."}
+          </p>
+        </div>
+        <input
+          value={trackingInput}
+          onChange={e => setTrackingInput(e.target.value)}
+          className="input-field"
+          style={{ fontSize: 13 }}
+          placeholder="e.g. 33ABC1234567890"
+        />
+        <button
+          onClick={saveTracking}
+          disabled={loading !== null || !trackingInput.trim() || trackingInput.trim() === (trackingNumber ?? "")}
+          style={{
+            padding: "10px 14px", borderRadius: 8, fontSize: 13, fontWeight: 700,
+            border: "1px solid var(--accent-dim)", background: "rgba(249,115,22,0.08)", color: "var(--accent)",
+            cursor: loading !== null || !trackingInput.trim() || trackingInput.trim() === (trackingNumber ?? "") ? "default" : "pointer",
+            opacity: loading !== null || !trackingInput.trim() || trackingInput.trim() === (trackingNumber ?? "") ? 0.5 : 1,
+          }}
+        >
+          {loading === "tracking" ? "Saving..." : trackingNumber ? "Update & email tracking" : "Save & email tracking"}
+        </button>
+      </div>
 
       <hr className="divider" />
 

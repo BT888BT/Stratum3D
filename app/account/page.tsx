@@ -9,6 +9,7 @@ type LookupResult = {
   status: string;
   createdAt: string;
   deliveryMethod: "pickup" | "shipping";
+  trackingNumber: string | null;
   items: {
     material: string | null;
     colour: string | null;
@@ -224,6 +225,33 @@ function OrderResult({ result }: { result: LookupResult }) {
           </div>
         )}
       </div>
+
+      {/* Tracking number — only shown when one has been added to the order */}
+      {result.trackingNumber && (
+        <div className="card">
+          <p className="eyebrow" style={{ marginBottom: 12 }}>Australia Post tracking</p>
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            flexWrap: "wrap", gap: 12, padding: "14px 16px",
+            border: `1px solid ${GREEN}40`, borderRadius: 8, background: `${GREEN}0d`,
+          }}>
+            <span className="font-mono" style={{
+              fontSize: 18, fontWeight: 700, color: "var(--text)", letterSpacing: "0.04em",
+              wordBreak: "break-all",
+            }}>
+              {result.trackingNumber}
+            </span>
+            <a
+              href={`https://auspost.com.au/mypost/track/details/${encodeURIComponent(result.trackingNumber)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: 13, fontWeight: 600, color: "var(--orange)", whiteSpace: "nowrap", textDecoration: "none" }}
+            >
+              Track with Australia Post →
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* Items */}
       {result.items.length > 0 && (

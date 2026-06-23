@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorised." }, { status: 401 });
     }
 
-    const { orderId, status, note } = await request.json();
+    const { orderId, status, note, trackingNumber } = await request.json();
 
     if (!orderId || !status) {
       return NextResponse.json(
@@ -39,11 +39,19 @@ export async function POST(request: Request) {
       );
     }
 
+    const tracking =
+      typeof trackingNumber === "string" ? trackingNumber.trim() : "";
+
     const supabase = createAdminClient();
+
+    // Only ever store a tracking number when one was supplied — never wipe an
+    // existing number by sending a blank value. One number per order.
+    const update: { status: string; tracking_number?: string } = { status };
+    if (tracking) update.tracking_number = tracking;
 
     const { error: updateError } = await supabase
       .from("orders")
-      .update({ status })
+      .update(update)
       .eq("id", orderId);
 
     if (updateError) {
@@ -65,7 +73,7 @@ export async function POST(request: Request) {
     // Send customer status update email
     const { data: order } = await supabase
       .from("orders")
-      .select("id, order_number, customer_name, email")
+      .select("id, order_number, customer_name, email, tracking_number")
       .eq("id", orderId)
       .single();
 
@@ -83,7 +91,8 @@ export async function POST(request: Request) {
         customerName: order.customer_name,
         email: order.email,
         status,
-        note: note || null
+        note: note || null,
+        trackingNumber: order.tracking_number ?? null
       });
       emailSent = result.sent;
       emailError = result.reason ?? null;

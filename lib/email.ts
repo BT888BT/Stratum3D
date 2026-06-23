@@ -60,6 +60,31 @@ function emailWrapper(content: string): string {
 </html>`;
 }
 
+// ─── Shared: track-order button + tracking-number block ──────────────────────
+
+// Button linking to the customer-facing track-order page, where they enter
+// their email + order number to see live status.
+function trackOrderButton(): string {
+  return `
+    <div style="text-align:center;margin:24px 0 8px 0">
+      <a href="${SITE}/account" style="display:inline-block;background:#f97316;color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;padding:13px 30px;border-radius:8px">Track your order →</a>
+    </div>`;
+}
+
+// Australia Post tracking-number block. Returns "" when no number is set, so
+// callers can drop it in unconditionally and nothing is shown without a number.
+function trackingNumberBlock(trackingNumber?: string | null): string {
+  const num = (trackingNumber ?? "").trim();
+  if (!num) return "";
+  const auspost = `https://auspost.com.au/mypost/track/details/${encodeURIComponent(num)}`;
+  return `
+    <div style="background:#f0faf5;border:1px solid #c4edda;border-radius:8px;padding:14px 16px;margin:16px 0">
+      <p style="margin:0;font-size:11px;font-weight:700;color:#0a7c42;text-transform:uppercase;letter-spacing:0.08em">Australia Post tracking number</p>
+      <p style="margin:6px 0 0 0;font-size:16px;font-weight:700;color:#1a1a1a;letter-spacing:0.02em">${esc(num)}</p>
+      <p style="margin:8px 0 0 0;font-size:12px"><a href="${auspost}" style="color:#f97316;text-decoration:none">Track with Australia Post →</a></p>
+    </div>`;
+}
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export type OrderLineItem = {
@@ -332,6 +357,7 @@ export async function sendStatusUpdateEmail(order: {
   email: string;
   status: string;
   note?: string | null;
+  trackingNumber?: string | null;
 }): Promise<{ sent: boolean; reason?: string }> {
   if (!process.env.RESEND_API_KEY) {
     return { sent: false, reason: "RESEND_API_KEY is not set. Add it to your Vercel environment variables." };
@@ -346,6 +372,12 @@ export async function sendStatusUpdateEmail(order: {
     ? `S3D-${String(order.orderNumber).padStart(4, "0")}`
     : order.id.slice(0, 8).toUpperCase();
 
+  const isShipped = order.status === "order_shipped";
+
+  const intro = isShipped
+    ? `Good news — your order <strong style="color:#1a1a1a">${shortId}</strong> is on its way.`
+    : `Your order <strong style="color:#1a1a1a">${shortId}</strong> has been updated to <strong style="color:${cfg.colour}">${esc(order.status)}</strong>.`;
+
   const content = `
     <!-- Status banner -->
     <div style="background:${cfg.bg};border:1px solid ${cfg.border};border-radius:8px;padding:20px 22px;text-align:center;margin-bottom:24px">
@@ -354,12 +386,15 @@ export async function sendStatusUpdateEmail(order: {
     </div>
 
     <p style="margin:0 0 16px 0;font-size:14px;color:#555;line-height:1.7">Hi ${esc(order.customerName)},</p>
-    <p style="margin:0 0 16px 0;font-size:14px;color:#555;line-height:1.7">Your order <strong style="color:#1a1a1a">${shortId}</strong> has been updated to <strong style="color:${cfg.colour}">${esc(order.status)}</strong>.</p>
+    <p style="margin:0 0 16px 0;font-size:14px;color:#555;line-height:1.7">${intro}</p>
 
     ${order.note ? `
     <div style="background:#faf8f5;border-left:3px solid #f97316;padding:12px 16px;border-radius:0 6px 6px 0;margin:16px 0">
       <p style="margin:0;font-size:13px;color:#555;line-height:1.6">${esc(order.note)}</p>
     </div>` : ""}
+
+    ${isShipped ? trackingNumberBlock(order.trackingNumber) : ""}
+    ${isShipped ? trackOrderButton() : ""}
 
     <p style="margin:20px 0 0 0;font-size:13px;color:#888;line-height:1.7">If you have any questions, just reply to this email.</p>
     <p style="margin:8px 0 0 0;font-size:13px;color:#888">— The Stratum3D team</p>
@@ -379,5 +414,61 @@ export async function sendStatusUpdateEmail(order: {
   }
 
   console.log(`[email] Status update "${order.status}" sent to ${order.email} for ${shortId} (id: ${data?.id})`);
+  return { sent: true };
+}
+
+// ─── Customer: tracking number added (after the order already shipped) ────────
+
+export async function sendTrackingNumberEmail(order: {
+  id: string;
+  orderNumber?: number;
+  customerName: string;
+  email: string;
+  trackingNumber: string;
+}): Promise<{ sent: boolean; reason?: string }> {
+  if (!process.env.RESEND_API_KEY) {
+    return { sent: false, reason: "RESEND_API_KEY is not set. Add it to your Vercel environment variables." };
+  }
+
+  const num = (order.trackingNumber ?? "").trim();
+  if (!num) {
+    return { sent: false, reason: "No tracking number provided." };
+  }
+
+  const shortId = order.orderNumber
+    ? `S3D-${String(order.orderNumber).padStart(4, "0")}`
+    : order.id.slice(0, 8).toUpperCase();
+
+  const content = `
+    <!-- Status banner -->
+    <div style="background:#f0faf5;border:1px solid #c4edda;border-radius:8px;padding:20px 22px;text-align:center;margin-bottom:24px">
+      <p style="margin:0;font-size:18px;font-weight:700;color:#0a7c42">Tracking number for your order</p>
+      <p style="margin:8px 0 0 0;font-size:13px;color:#888">Order ${shortId}</p>
+    </div>
+
+    <p style="margin:0 0 16px 0;font-size:14px;color:#555;line-height:1.7">Hi ${esc(order.customerName)},</p>
+    <p style="margin:0 0 16px 0;font-size:14px;color:#555;line-height:1.7">Here's the tracking number for your order <strong style="color:#1a1a1a">${shortId}</strong>.</p>
+
+    ${trackingNumberBlock(num)}
+    ${trackOrderButton()}
+
+    <p style="margin:20px 0 0 0;font-size:13px;color:#888;line-height:1.7">If you have any questions, just reply to this email.</p>
+    <p style="margin:8px 0 0 0;font-size:13px;color:#888">— The Stratum3D team</p>
+  `;
+
+  const { data, error } = await resend.emails.send({
+    from: FROM,
+    replyTo: REPLY_TO || undefined,
+    to: order.email,
+    subject: `Stratum3D — Tracking number for order ${shortId}`,
+    html: emailWrapper(content),
+  });
+
+  if (error) {
+    console.error(`[email] Tracking email error for ${order.email}:`, JSON.stringify(error));
+    return { sent: false, reason: `Resend: ${error.message || JSON.stringify(error)}` };
+  }
+
+  console.log(`[email] Tracking number sent to ${order.email} for ${shortId} (id: ${data?.id})`);
   return { sent: true };
 }

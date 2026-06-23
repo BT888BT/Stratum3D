@@ -57,7 +57,8 @@ create table public.orders (
   shipping_city               text,
   shipping_state              text,
   shipping_postcode           text,
-  shipping_country            text default 'AU'
+  shipping_country            text default 'AU',
+  tracking_number             text
 );
 
 -- ─── Order files ───────────────────────────────────────────────────────────

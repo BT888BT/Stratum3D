@@ -66,6 +66,7 @@ export default async function AdminOrderDetailPage({
             orderId={order.id}
             currentStatus={order.status}
             isPaid={order.stripe_payment_intent_id != null || order.status === "refunded"}
+            trackingNumber={order.tracking_number ?? null}
           />
         </div>
 

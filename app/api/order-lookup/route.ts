@@ -87,6 +87,7 @@ export async function POST(request: Request) {
     status: order.status,
     createdAt: order.created_at,
     deliveryMethod,
+    trackingNumber: order.tracking_number ?? null,
     items: (items ?? []).map((qi) => ({
       material: qi.material ?? null,
       colour: qi.colour ?? null,

@@ -91,11 +91,12 @@ export default function OrderStatusActions({
       const res = await fetch("/api/admin/approve-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId, action: "approve" }),
+        body: JSON.stringify({ orderId, action: "approve", note: note || undefined }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to approve order.");
       setEmailResult("Order approved — payment captured, confirmation email sent.");
+      setNote("");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to approve.");

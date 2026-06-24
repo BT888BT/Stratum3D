@@ -304,6 +304,7 @@ export async function sendOrderConfirmationEmail(order: {
   orderNumber?: number;
   customerName: string;
   email: string;
+  note?: string | null;
 }) {
   if (!process.env.RESEND_API_KEY) return;
 
@@ -321,7 +322,11 @@ export async function sendOrderConfirmationEmail(order: {
       <p style="margin:0;font-size:14px;font-weight:600;color:#0a7c42">ORDER APPROVED</p>
       <p style="margin:8px 0 0 0;font-size:13px;color:#666;line-height:1.7">Your payment has been confirmed and we'll be starting on your print soon.</p>
     </div>
-
+${order.note ? `
+    <div style="background:#faf8f5;border-left:3px solid #f97316;padding:12px 16px;border-radius:0 6px 6px 0;margin:0 0 20px 0">
+      <p style="margin:0 0 4px 0;font-size:11px;font-weight:700;color:#a09890;text-transform:uppercase;letter-spacing:0.08em">Note from our team</p>
+      <p style="margin:0;font-size:13px;color:#555;line-height:1.6">${esc(order.note)}</p>
+    </div>` : ""}
     <p style="margin:0;font-size:13px;color:#888;line-height:1.7">We'll send you another email when your order ships. If you have any questions, just reply to this email.</p>
     <p style="margin:8px 0 0 0;font-size:13px;color:#888">— The Stratum3D team</p>
   `;

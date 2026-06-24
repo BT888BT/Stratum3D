@@ -10,7 +10,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorised." }, { status: 401 });
     }
 
-    const { orderId, action, rejectNote } = await request.json();
+    const { orderId, action, rejectNote, note } = await request.json();
 
     if (!orderId || !action) {
       return NextResponse.json({ error: "orderId and action are required." }, { status: 400 });
@@ -53,7 +53,9 @@ export async function POST(request: Request) {
       await supabase.from("order_status_history").insert({
         order_id: orderId,
         status: "order_received",
-        note: "Order approved by admin — payment captured",
+        note: note
+          ? `Order approved by admin — payment captured. Note: ${note}`
+          : "Order approved by admin — payment captured",
       });
 
       await sendOrderConfirmationEmail({
@@ -61,6 +63,7 @@ export async function POST(request: Request) {
         orderNumber: order.order_number ?? undefined,
         customerName: order.customer_name,
         email: order.email,
+        note: note || null,
       }).catch(err => console.error("[approve-order] Approval email failed:", err));
 
       console.log(`[approve-order] Order ${orderId} approved and moved to order_received`);

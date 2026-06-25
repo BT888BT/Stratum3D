@@ -52,8 +52,8 @@ const GST_RATE = business.gstRegistered ? 0.1 : 0;
 const LINE_WIDTH_MM        = 0.4;  // 0.4 mm nozzle
 const LAYER_HEIGHT_MM      = 0.2;  // fixed standard layer height
 
-const SHELL_FLOW_MM3_PER_SEC  = 7.7; // effective shell  flow at 0.2 mm layer height (11 × 0.70)
-const INFILL_FLOW_MM3_PER_SEC = 14;  // effective infill / support flow at 0.2 mm layer height (20 × 0.70)
+const SHELL_FLOW_MM3_PER_SEC  = 6.16; // effective shell  flow at 0.2 mm layer height (was 7.7, lowered 1.25× to extend est. times +25%)
+const INFILL_FLOW_MM3_PER_SEC = 11.2; // effective infill / support flow at 0.2 mm layer height (was 14, lowered 1.25× to extend est. times +25%)
 const STARTUP_SECONDS         = 3 * 60; // AMS init + bed levelling + first-layer caution
 const LAYER_OVERHEAD_SECONDS  = 3;      // per layer: Z-hop + wipe + next-layer travel
 

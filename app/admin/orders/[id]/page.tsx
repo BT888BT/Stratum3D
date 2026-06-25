@@ -28,6 +28,16 @@ export default async function AdminOrderDetailPage({
 
   if (!order) notFound();
 
+  // Customer-facing total print time, reconstructed to match the quote the customer saw:
+  // sum(perUnitTime × qty) × 1.30 buffer, rounded up to 5 min (see DISPLAY_TIME_BUFFER in lib/quote.ts)
+  const rawTotalPrintMins = (quoteItems ?? []).reduce(
+    (s, qi) => s + (qi.estimated_print_time_minutes ?? 0) * (qi.quantity ?? 1),
+    0
+  );
+  const fullPrintTimeMins = rawTotalPrintMins > 0
+    ? Math.ceil((rawTotalPrintMins * 1.30) / 5) * 5
+    : 0;
+
   const shortId = (order.order_number
     ? `S3D-${String(order.order_number).padStart(4, "0")}`
     : `#${order.id.slice(0, 8).toUpperCase()}`
@@ -162,9 +172,19 @@ export default async function AdminOrderDetailPage({
 
       {/* ── Print items (full width — one card per file) ── */}
       <div>
-        <p className="eyebrow" style={{ marginBottom: 16 }}>
-          Print Items — {quoteItems?.length ?? 0} file{(quoteItems?.length ?? 0) !== 1 ? "s" : ""}
-        </p>
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+          <p className="eyebrow" style={{ margin: 0 }}>
+            Print Items — {quoteItems?.length ?? 0} file{(quoteItems?.length ?? 0) !== 1 ? "s" : ""}
+          </p>
+          {fullPrintTimeMins > 0 && (
+            <p style={{ fontSize: 12, color: "var(--text-dim)", margin: 0 }}>
+              Total print time (as quoted):{" "}
+              <span className="font-mono" style={{ color: "var(--orange)", fontWeight: 600 }}>
+                {formatPrintTime(fullPrintTimeMins)}
+              </span>
+            </p>
+          )}
+        </div>
 
         {quoteItems?.length ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -221,7 +241,8 @@ export default async function AdminOrderDetailPage({
                     <SpecCell label="Infill" value={qi.infill_percent != null ? `${qi.infill_percent}%` : "—"} />
                     <SpecCell label="Quantity" value={String(qi.quantity ?? "—")} />
                     <SpecCell label="Est. volume" value={qi.estimated_volume_cm3 ? `${qi.estimated_volume_cm3} cm³` : "—"} />
-                    <SpecCell label="Est. print time" value={qi.estimated_print_time_minutes ? `${qi.estimated_print_time_minutes} min` : "—"} />
+                    <SpecCell label="Est. print time (per unit)" value={qi.estimated_print_time_minutes ? `${qi.estimated_print_time_minutes} min` : "—"} />
+                    <SpecCell label="Supports" value={qi.remove_supports ? "Removed (+20%)" : "Left on"} />
                   </div>
 
                   {/* Storage path + download */}
@@ -268,6 +289,13 @@ function DetailRow({ label, value }: { label: string; value: string }) {
       <span style={{ fontSize: 13, color: "var(--text)", textAlign: "right" }}>{value}</span>
     </div>
   );
+}
+
+function formatPrintTime(minutes: number): string {
+  if (minutes < 60) return `${minutes} min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m === 0 ? `${h} hr` : `${h} hr ${m} min`;
 }
 
 function SpecCell({ label, value }: { label: string; value: string }) {

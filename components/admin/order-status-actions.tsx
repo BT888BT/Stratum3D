@@ -74,7 +74,7 @@ export default function OrderStatusActions({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save tracking number.");
-      setEmailResult(data.emailSent ? "Tracking number saved — emailed to customer." : "Tracking number saved.");
+      setEmailResult("Tracking number saved — no email sent.");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed.");
@@ -335,15 +335,16 @@ export default function OrderStatusActions({
 
       {error && <div className="error-box">{error}</div>}
 
-      {/* Tracking number — add it later if it was forgotten at ship time.
-          One number per order; saving emails it to the customer. */}
+      {/* Tracking number — add or correct it without notifying the customer.
+          One number per order; saving does NOT send an email. The tracking
+          email only goes out when the order is marked shipped. */}
       <div style={{ border: "1px solid var(--border)", borderRadius: 10, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
         <div>
           <p style={{ fontSize: 12, fontWeight: 700, color: "var(--text)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Tracking number</p>
           <p style={{ fontSize: 12, color: "var(--text-dim)", lineHeight: 1.5 }}>
             {trackingNumber
-              ? "One per order. Update it here to re-send the customer the latest number."
-              : "Add a tracking number later if it was missed when shipping. Saving emails it to the customer."}
+              ? "One per order. Update it here to correct it — saving won't email the customer."
+              : "Add a tracking number without notifying the customer. Saving won't send an email."}
           </p>
         </div>
         <input
@@ -363,7 +364,7 @@ export default function OrderStatusActions({
             opacity: loading !== null || !trackingInput.trim() || trackingInput.trim() === (trackingNumber ?? "") ? 0.5 : 1,
           }}
         >
-          {loading === "tracking" ? "Saving..." : trackingNumber ? "Update & email tracking" : "Save & email tracking"}
+          {loading === "tracking" ? "Saving..." : trackingNumber ? "Update tracking (no email)" : "Save tracking (no email)"}
         </button>
       </div>
 

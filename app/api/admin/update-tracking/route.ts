@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthed } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendTrackingNumberEmail } from "@/lib/email";
 
-// Adds (or corrects) the single tracking number on an order after it has
-// already been marked shipped — for the case where it was forgotten at the
-// time. Emails the customer the tracking number. One number per order.
+// Adds (or corrects) the single tracking number on an order — for the case
+// where it was forgotten at ship time or needs fixing. This silently saves the
+// number and does NOT email the customer; the tracking email only goes out when
+// the order is marked shipped. One number per order.
 export async function POST(request: Request) {
   try {
     if (!await isAdminAuthed()) {
@@ -35,36 +35,12 @@ export async function POST(request: Request) {
       throw new Error(updateError.message);
     }
 
-    const { data: order } = await supabase
-      .from("orders")
-      .select("id, order_number, customer_name, email")
-      .eq("id", orderId)
-      .single();
-
-    console.log(`[update-tracking] Order ${orderId} tracking → ${tracking}`);
-
-    let emailSent = false;
-    let emailError: string | null = null;
-
-    if (!order) {
-      emailError = "Tracking saved, but could not load order details for the email.";
-    } else {
-      const result = await sendTrackingNumberEmail({
-        id: order.id,
-        orderNumber: order.order_number ?? undefined,
-        customerName: order.customer_name,
-        email: order.email,
-        trackingNumber: tracking
-      });
-      emailSent = result.sent;
-      emailError = result.reason ?? null;
-    }
+    console.log(`[update-tracking] Order ${orderId} tracking → ${tracking} (no email sent)`);
 
     return NextResponse.json({
       success: true,
       trackingNumber: tracking,
-      emailSent,
-      emailError: emailError ?? undefined
+      emailSent: false
     });
   } catch (error) {
     return NextResponse.json(

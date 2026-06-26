@@ -243,7 +243,12 @@ input, select, textarea, button { font: inherit; }
   width: 120px;
   height: 120px;
   border: 1.5px solid rgba(249,115,22,0.4);
-  background: rgba(249,115,22,0.04);
+  /* Opaque fill so front faces occlude the back edges. Without occlusion the
+     transparent wireframe reads as an ambiguous Necker cube whose perceived
+     spin direction the brain can flip — one flip looks wrong. A solid fill
+     gives the depth cue that locks rotation to a single correct reading. */
+  background: #160c02;
+  backface-visibility: hidden;
 }
 .cube-face.front  { transform: translateZ(60px); }
 .cube-face.back   { transform: rotateY(180deg) translateZ(60px); }

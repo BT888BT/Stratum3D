@@ -11,9 +11,10 @@ type Preset = {
   printMinutes: number;
 };
 
-// 20 preset jobs. The card cycles through these on a shared wall-clock so every
-// visitor sees the same job at the same moment, then it rolls to the next one
-// when a print "finishes". Purely visual — no files or orders are read.
+// 40 preset jobs. The card cycles through these on a shared wall-clock so every
+// visitor sees the same job at the same moment. When a print "finishes" the
+// card sits idle ("setting up for next print") for a fixed wait, then rolls to
+// the next job. Purely visual — no files or orders are read.
 const PRESETS: Preset[] = [
   { model: "Articulated Dragon",      material: "PLA",  colour: "Forest Green",  infillPercent: 15, printMinutes: 220 },
   { model: "Phone Stand",             material: "PETG", colour: "Carbon Black",  infillPercent: 25, printMinutes: 75 },
@@ -35,30 +36,75 @@ const PRESETS: Preset[] = [
   { model: "Pen Holder",              material: "PETG", colour: "Deep Red",      infillPercent: 25, printMinutes: 45 },
   { model: "Bike Light Bracket",      material: "ABS",  colour: "Matte Black",   infillPercent: 45, printMinutes: 60 },
   { model: "Desk Nameplate",          material: "PLA",  colour: "Warm White",    infillPercent: 20, printMinutes: 35 },
+  { model: "Desk Cable Tray",         material: "PETG", colour: "Slate Grey",    infillPercent: 30, printMinutes: 65 },
+  { model: "Plant Pot Saucer",        material: "PLA",  colour: "Terracotta",    infillPercent: 15, printMinutes: 50 },
+  { model: "Switch Game Holder",      material: "PETG", colour: "Carbon Black",  infillPercent: 35, printMinutes: 120 },
+  { model: "Articulated Slug",        material: "PLA",  colour: "Lime Green",    infillPercent: 15, printMinutes: 70 },
+  { model: "Wall Hook Set",           material: "PETG", colour: "Matte Black",   infillPercent: 40, printMinutes: 55 },
+  { model: "Laptop Riser",            material: "ABS",  colour: "Charcoal",      infillPercent: 45, printMinutes: 260 },
+  { model: "Dice Tower",              material: "PLA",  colour: "Deep Purple",   infillPercent: 18, printMinutes: 190 },
+  { model: "Coaster Set",             material: "PLA",  colour: "Sky Blue",      infillPercent: 20, printMinutes: 80 },
+  { model: "SD Card Box",             material: "PETG", colour: "Graphite",      infillPercent: 35, printMinutes: 60 },
+  { model: "Vacuum Hose Adapter",     material: "PETG", colour: "Safety Orange", infillPercent: 40, printMinutes: 45 },
+  { model: "Bust of Athena",          material: "PLA",  colour: "Marble White",  infillPercent: 12, printMinutes: 230 },
+  { model: "Toothbrush Holder",       material: "PETG", colour: "Off White",     infillPercent: 30, printMinutes: 75 },
+  { model: "Controller Stand",        material: "PLA",  colour: "Gunmetal",      infillPercent: 20, printMinutes: 90 },
+  { model: "Spice Jar Labels",        material: "PLA",  colour: "Warm White",    infillPercent: 25, printMinutes: 40 },
+  { model: "Drone Propeller Guards",  material: "PETG", colour: "Neon Yellow",   infillPercent: 45, printMinutes: 110 },
+  { model: "Articulated Shark",       material: "PLA",  colour: "Steel Blue",    infillPercent: 15, printMinutes: 100 },
+  { model: "Monitor Light Bar Mount", material: "ABS",  colour: "Matte Black",   infillPercent: 40, printMinutes: 130 },
+  { model: "Earbud Case",             material: "PETG", colour: "Carbon Black",  infillPercent: 35, printMinutes: 50 },
+  { model: "Wall Clock Face",         material: "PLA",  colour: "Walnut Brown",  infillPercent: 18, printMinutes: 150 },
+  { model: "Keyboard Wrist Rest",     material: "PETG", colour: "Slate Grey",    infillPercent: 35, printMinutes: 140 },
 ];
 
 const PRINTER_COUNT = 2;
-const TOTAL_MINUTES = PRESETS.reduce((s, p) => s + p.printMinutes, 0);
+
+// Idle "setting up" wait after each finished print: 1, 2 or 3 hours. Fixed per
+// index (not random) so the server render and every visitor stay in sync. The
+// pattern is scrambled so the wait isn't a predictable 1→2→3 each time.
+const GAP_MIN_BY_SLOT = [120, 60, 180]; // 2h, 1h, 3h
+function gapMinutes(index: number): number {
+  return GAP_MIN_BY_SLOT[(index * 2 + 1) % GAP_MIN_BY_SLOT.length];
+}
+
+// Full loop = every print plus its trailing idle gap.
+const CYCLE_MINUTES = PRESETS.reduce((s, p, i) => s + p.printMinutes + gapMinutes(i), 0);
+
+type Phase = "printing" | "idle";
 
 type LiveState = {
   index: number;
+  phase: Phase;
   pct: number;
+  /** Minutes left in the current phase (print remaining, or wait remaining). */
   remainingMin: number;
+  /** Job that starts once the idle wait ends. */
+  nextIndex: number;
 };
 
 // Deterministic from the clock so server + client agree and all visitors sync.
 function getState(nowMs: number): LiveState {
-  const elapsed = (nowMs / 60000) % TOTAL_MINUTES;
+  const elapsed = (nowMs / 60000) % CYCLE_MINUTES;
   let acc = 0;
   for (let i = 0; i < PRESETS.length; i++) {
-    const d = PRESETS[i].printMinutes;
-    if (elapsed < acc + d) {
+    const printDur = PRESETS[i].printMinutes;
+    const gapDur = gapMinutes(i);
+    const nextIndex = (i + 1) % PRESETS.length;
+    // Printing phase
+    if (elapsed < acc + printDur) {
       const within = elapsed - acc;
-      return { index: i, pct: (within / d) * 100, remainingMin: d - within };
+      return { index: i, phase: "printing", pct: (within / printDur) * 100, remainingMin: printDur - within, nextIndex };
     }
-    acc += d;
+    acc += printDur;
+    // Idle / setting-up phase
+    if (elapsed < acc + gapDur) {
+      const within = elapsed - acc;
+      return { index: i, phase: "idle", pct: 100, remainingMin: gapDur - within, nextIndex };
+    }
+    acc += gapDur;
   }
-  return { index: 0, pct: 0, remainingMin: PRESETS[0].printMinutes };
+  return { index: 0, phase: "printing", pct: 0, remainingMin: PRESETS[0].printMinutes, nextIndex: 1 };
 }
 
 function remainingLabel(min: number): string {
@@ -67,6 +113,14 @@ function remainingLabel(min: number): string {
   const h = Math.floor(min / 60);
   const m = Math.round(min % 60);
   return m ? `~${h}h ${m}m left` : `~${h}h left`;
+}
+
+function startLabel(min: number): string {
+  if (min < 1) return "Starting now";
+  if (min < 60) return `Starts in ~${Math.round(min)} min`;
+  const h = Math.floor(min / 60);
+  const m = Math.round(min % 60);
+  return m ? `Starts in ~${h}h ${m}m` : `Starts in ~${h}h`;
 }
 
 // Shown for any print that doesn't have an image yet: a simple 3D line cube
@@ -133,11 +187,14 @@ export default function NowPrinting() {
     return () => clearInterval(id);
   }, []);
 
-  const preset = PRESETS[state.index];
-  const printerIndex = (state.index % PRINTER_COUNT) + 1;
+  const isIdle = state.phase === "idle";
+  // While idle the card previews the job it's setting up for next.
+  const displayIndex = isIdle ? state.nextIndex : state.index;
+  const preset = PRESETS[displayIndex];
+  const printerIndex = (displayIndex % PRINTER_COUNT) + 1;
 
   const specs: [string, string][] = [
-    ["Model", preset.model],
+    [isIdle ? "Next" : "Model", preset.model],
     ["Material", preset.material],
     ["Colour", preset.colour],
     ["Infill", `${preset.infillPercent}%`],
@@ -158,8 +215,11 @@ export default function NowPrinting() {
     >
       {/* Header row */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-        <span className="font-mono now-printing-dot" style={{ fontSize: 10, color: "var(--orange)", letterSpacing: "0.2em" }}>
-          ● NOW PRINTING
+        <span
+          className="font-mono now-printing-dot"
+          style={{ fontSize: 10, color: isIdle ? "var(--text-dim)" : "var(--orange)", letterSpacing: "0.2em" }}
+        >
+          {isIdle ? "○ SETTING UP" : "● NOW PRINTING"}
         </span>
         <span
           className="font-mono"
@@ -185,19 +245,27 @@ export default function NowPrinting() {
         <div className="print-shadow-ground" />
       </div>
 
-      {/* Progress bar */}
+      {/* Progress bar (printing) or idle / setting-up notice */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
           <span className="font-mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.1em" }}>
-            PROGRESS
+            {isIdle ? "IDLE" : "PROGRESS"}
           </span>
-          <span className="font-mono" style={{ fontSize: 11, color: "var(--orange)" }}>
-            {Math.round(state.pct)}% · {remainingLabel(state.remainingMin)}
+          <span className="font-mono" style={{ fontSize: 11, color: isIdle ? "var(--text-dim)" : "var(--orange)" }}>
+            {isIdle
+              ? startLabel(state.remainingMin)
+              : `${Math.round(state.pct)}% · ${remainingLabel(state.remainingMin)}`}
           </span>
         </div>
-        <div className="print-progress">
-          <div className="print-progress-fill" style={{ width: `${state.pct}%` }} />
-        </div>
+        {isIdle ? (
+          <span className="font-mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.06em" }}>
+            Setting up bed for next print…
+          </span>
+        ) : (
+          <div className="print-progress">
+            <div className="print-progress-fill" style={{ width: `${state.pct}%` }} />
+          </div>
+        )}
       </div>
 
       {/* Spec list */}

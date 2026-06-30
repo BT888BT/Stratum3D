@@ -187,11 +187,12 @@ export default function NowPrinting() {
   const preset = PRESETS[displayIndex];
   const printerIndex = (displayIndex % PRINTER_COUNT) + 1;
 
+  // While idle there's no active job, so the spec values are blanked to "-".
   const specs: [string, string][] = [
-    [isIdle ? "Next" : "Model", preset.model],
-    ["Material", preset.material],
-    ["Colour", preset.colour],
-    ["Infill", `${preset.infillPercent}%`],
+    ["Model", isIdle ? "-" : preset.model],
+    ["Material", isIdle ? "-" : preset.material],
+    ["Colour", isIdle ? "-" : preset.colour],
+    ["Infill", isIdle ? "-" : `${preset.infillPercent}%`],
   ];
 
   return (

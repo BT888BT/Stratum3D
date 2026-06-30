@@ -148,7 +148,7 @@ function slugify(model: string): string {
 }
 
 // Extensions tried, in order, for each print's image in public/now-printing/.
-const IMAGE_EXTS = ["png", "webp", "jpg", "jpeg"] as const;
+const IMAGE_EXTS = ["svg", "png", "webp", "jpg", "jpeg"] as const;
 
 // Shows the customer's own image (public/now-printing/<slug>.<ext>). It tries
 // each extension in turn; if none exist it quietly falls back to the 3D line

@@ -244,6 +244,43 @@ export async function sendOrderUnderReviewEmail(order: {
   }
 }
 
+// ─── Admin: new review submitted ──────────────────────────────────────────────
+
+export async function sendNewReviewEmail(review: {
+  orderNumber: number;
+  firstName: string;
+  body: string;
+}) {
+  if (!process.env.RESEND_API_KEY || !ADMIN) return;
+
+  const shortId = `S3D-${String(review.orderNumber).padStart(4, "0")}`;
+  const adminLink = `${SITE}/admin/reviews`;
+
+  const { error } = await resend.emails.send({
+    from: FROM,
+    to: ADMIN,
+    subject: `New review submitted — ${shortId} (${review.firstName})`,
+    html: `
+      <div style="font-family:sans-serif;max-width:540px;margin:auto;color:#111">
+        <h2>New review — pending your approval</h2>
+        <p><strong>From:</strong> ${esc(review.firstName)}</p>
+        <p><strong>Order:</strong> ${esc(shortId)}</p>
+        <div style="background:#faf8f5;border-left:3px solid #f97316;padding:12px 16px;border-radius:0 6px 6px 0;margin:12px 0">
+          <p style="margin:0;font-size:14px;color:#555;line-height:1.6">${esc(review.body)}</p>
+        </div>
+        <p><a href="${adminLink}" style="color:#0070f3;font-weight:600">Review &amp; approve it in the admin →</a></p>
+      </div>
+    `,
+  });
+
+  if (error) {
+    console.error("[email] New-review notification failed:", JSON.stringify(error));
+    return;
+  }
+
+  console.log(`[email] New-review notification sent to ${ADMIN} for ${shortId}`);
+}
+
 // ─── Customer: order rejected ─────────────────────────────────────────────────
 
 export async function sendOrderRejectedEmail(order: {

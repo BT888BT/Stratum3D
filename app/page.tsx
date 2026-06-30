@@ -251,8 +251,8 @@ export default async function HomePage() {
         <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)", textAlign: "center", marginBottom: 5 }}>TRUSTED BY PERTH MAKERS</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
           {TESTIMONIALS.map((t) => (
-            <div key={t.name} className="card">
-              <p style={{ fontSize: 14.5, color: "var(--text)", marginBottom: 16, lineHeight: 1.6 }}>“{t.quote}”</p>
+            <div key={t.name} className="card" style={{ display: "flex", flexDirection: "column" }}>
+              <p style={{ fontSize: 14.5, color: "var(--text)", marginBottom: 16, lineHeight: 1.6, flex: 1 }}>“{t.quote}”</p>
               <div style={{ fontSize: 13, color: "var(--text)", fontWeight: 600 }}>{t.name}</div>
               <div className="font-mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.08em", marginTop: 2 }}>{t.detail}</div>
             </div>

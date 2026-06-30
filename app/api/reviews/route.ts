@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { buildRateLimitKey } from "@/lib/trusted-ip";
 import { parseOrderNumber, firstNameOf, REVIEW_MAX_LENGTH } from "@/lib/reviews";
+import { sendNewReviewEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -78,10 +79,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "We couldn't find that order code." }, { status: 404 });
   }
 
+  const reviewFirstName = firstNameOf(order.customer_name);
+
   const { error: insertError } = await supabase.from("reviews").insert({
     order_id: order.id,
     order_number: order.order_number,
-    first_name: firstNameOf(order.customer_name),
+    first_name: reviewFirstName,
     body: text,
     status: "pending",
   });
@@ -99,6 +102,17 @@ export async function POST(request: Request) {
       { error: "Couldn't save your review. Please try again." },
       { status: 500 }
     );
+  }
+
+  // Notify the admin a new review is waiting (best-effort — never block the response).
+  try {
+    await sendNewReviewEmail({
+      orderNumber: order.order_number,
+      firstName: reviewFirstName,
+      body: text,
+    });
+  } catch (e) {
+    console.error("[reviews] New-review email failed:", e);
   }
 
   return NextResponse.json({ ok: true });

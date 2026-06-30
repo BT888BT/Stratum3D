@@ -155,18 +155,18 @@ export type Testimonial = { quote: string; name: string; detail: string };
 
 export const TESTIMONIALS: Testimonial[] = [
   {
-    quote: "Uploaded an STL at lunch, had a price in seconds and the part in my hands two days later. The PETG finish was spotless.",
-    name: "Marcus D.",
+    quote: "Really straightforward process. Uploaded my file, got a quote straight away, and the print turned out great.",
+    name: "Marcus",
     detail: "Maker · Perth",
   },
   {
-    quote: "Local, fast and actually answers their messages. I've ordered five times now — every print has been clean and on spec.",
-    name: "Tanya L.",
+    quote: "Local, fast and actually answers their messages. I've ordered five times now.",
+    name: "Tanya",
     detail: "Small business · Joondalup",
   },
   {
-    quote: "Did my whole cosplay build in PLA. Great surface quality on the fine setting and no warping on the big pieces.",
-    name: "Reece P.",
+    quote: "Printed all the parts for my cosplay in PLA. The detail came out really well, even on the larger pieces.",
+    name: "Alex",
     detail: "Cosplayer · Mandurah",
   },
 ];

@@ -115,14 +115,6 @@ function remainingLabel(min: number): string {
   return m ? `~${h}h ${m}m left` : `~${h}h left`;
 }
 
-function startLabel(min: number): string {
-  if (min < 1) return "Starting now";
-  if (min < 60) return `Starts in ~${Math.round(min)} min`;
-  const h = Math.floor(min / 60);
-  const m = Math.round(min % 60);
-  return m ? `Starts in ~${h}h ${m}m` : `Starts in ~${h}h`;
-}
-
 // Shown for any print that doesn't have an image yet: a simple 3D line cube
 // (isometric), faces lightly shaded so it reads as a 3D object.
 function CubeSilhouette() {
@@ -138,12 +130,14 @@ function CubeSilhouette() {
       strokeLinecap="round"
       aria-hidden="true"
     >
+      {/* True isometric cube on a regular hexagon: all three vertical edges
+          (27,41->27,79 · 60,60->60,98 · 93,41->93,79) are an equal 38px long. */}
       {/* top face */}
-      <path d="M60 60 L24 45 L60 24 L96 45 Z" fill="rgba(249,115,22,0.22)" />
+      <path d="M60 22 L93 41 L60 60 L27 41 Z" fill="rgba(249,115,22,0.22)" />
       {/* left face */}
-      <path d="M60 60 L24 45 L24 75 L60 96 Z" fill="rgba(249,115,22,0.10)" />
+      <path d="M27 41 L60 60 L60 98 L27 79 Z" fill="rgba(249,115,22,0.10)" />
       {/* right face */}
-      <path d="M60 60 L96 45 L96 75 L60 96 Z" fill="rgba(249,115,22,0.15)" />
+      <path d="M93 41 L60 60 L60 98 L93 79 Z" fill="rgba(249,115,22,0.15)" />
     </svg>
   );
 }
@@ -253,7 +247,7 @@ export default function NowPrinting() {
           </span>
           <span className="font-mono" style={{ fontSize: 11, color: isIdle ? "var(--text-dim)" : "var(--orange)" }}>
             {isIdle
-              ? startLabel(state.remainingMin)
+              ? "Up next"
               : `${Math.round(state.pct)}% · ${remainingLabel(state.remainingMin)}`}
           </span>
         </div>

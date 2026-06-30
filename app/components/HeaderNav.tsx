@@ -14,6 +14,7 @@ export default function HeaderNav() {
       <nav style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <Link href="/admin/settings" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Settings</Link>
         <Link href="/admin/gallery" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Gallery Management</Link>
+        <Link href="/admin/reviews" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Reviews</Link>
         <Link href="/admin/colours" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Colour Management</Link>
         <Link href="/admin/discount-codes" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Discount Codes</Link>
         <form action="/api/admin/logout" method="POST">
@@ -26,6 +27,7 @@ export default function HeaderNav() {
   return (
     <nav style={{ display: "flex", alignItems: "center", gap: 4 }}>
       <Link href="/gallery" className="nav-link hidden-mobile" style={{ textDecoration: "none" }}>Gallery</Link>
+      <Link href="/reviews" className="nav-link hidden-mobile" style={{ textDecoration: "none" }}>Reviews</Link>
       <Link href="/guide" className="nav-link hidden-mobile" style={{ textDecoration: "none" }}>Guide</Link>
       <Link href="/account" className="nav-link" style={{ textDecoration: "none" }}>Track Order</Link>
       <Link href="/quote" className="btn-primary" style={{ fontSize: 14, padding: "8px 20px", marginLeft: 6 }}>

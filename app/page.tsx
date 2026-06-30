@@ -252,12 +252,19 @@ export default async function HomePage() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
           {TESTIMONIALS.map((t) => (
             <div key={t.name} className="card">
-              <div style={{ color: "var(--amber)", fontSize: 14, letterSpacing: 2, marginBottom: 12 }}>★★★★★</div>
               <p style={{ fontSize: 14.5, color: "var(--text)", marginBottom: 16, lineHeight: 1.6 }}>“{t.quote}”</p>
               <div style={{ fontSize: 13, color: "var(--text)", fontWeight: 600 }}>{t.name}</div>
               <div className="font-mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.08em", marginTop: 2 }}>{t.detail}</div>
             </div>
           ))}
+        </div>
+        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", marginTop: 24 }}>
+          <Link href="/reviews/new" className="btn-primary" style={{ fontSize: 14, padding: "10px 24px" }}>
+            Leave a review →
+          </Link>
+          <Link href="/reviews" className="btn-ghost" style={{ fontSize: 14, padding: "10px 24px" }}>
+            See all reviews
+          </Link>
         </div>
       </section>
 

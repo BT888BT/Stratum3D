@@ -232,10 +232,15 @@ export default function NowPrinting() {
         </span>
       </div>
 
-      {/* Floating silhouette of the item currently printing */}
+      {/* Floating silhouette of the item currently printing. While idle there's
+          no active job, so we show the slowly rotating 3D cube instead of any
+          saved item image. */}
       <div className="print-shadow-stage">
-        <div className="print-shadow-float" key={preset.model}>
-          <PrintVisual model={preset.model} />
+        <div
+          className={isIdle ? "print-shadow-float print-cube-spin" : "print-shadow-float"}
+          key={isIdle ? "idle-cube" : preset.model}
+        >
+          {isIdle ? <CubeSilhouette /> : <PrintVisual model={preset.model} />}
         </div>
         <div className="print-shadow-ground" />
       </div>

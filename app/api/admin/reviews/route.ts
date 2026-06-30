@@ -13,7 +13,7 @@ export async function GET() {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("reviews")
-    .select("id, order_number, first_name, body, status, created_at")
+    .select("id, order_number, first_name, body, rating, model, status, created_at")
     .order("created_at", { ascending: false })
     .limit(500);
 

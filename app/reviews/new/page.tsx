@@ -9,6 +9,7 @@ export default function NewReviewPage() {
   // step: "write" → fill out the form, "done" → submitted
   const [step, setStep] = useState<"write" | "done">("write");
   const [orderNumber, setOrderNumber] = useState("");
+  const [rating, setRating] = useState(5);
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -30,7 +31,7 @@ export default function NewReviewPage() {
       const res = await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderNumber, body: text }),
+        body: JSON.stringify({ orderNumber, body: text, rating }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
@@ -70,6 +71,30 @@ export default function NewReviewPage() {
               className="input-field"
               required
             />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <label className="eyebrow">Your rating</label>
+            <div style={{ display: "inline-flex", gap: 4 }}>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setRating(i)}
+                  aria-label={`${i} star${i > 1 ? "s" : ""}`}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    padding: 0,
+                    cursor: "pointer",
+                    fontSize: 26,
+                    lineHeight: 1,
+                    color: i <= rating ? "#857c6b" : "var(--border-hi)",
+                  }}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <label htmlFor="body" className="eyebrow">Your review</label>

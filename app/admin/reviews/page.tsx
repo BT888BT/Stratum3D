@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Stars from "../../components/Stars";
 
 type Review = {
   id: string;
   order_number: number | null;
   first_name: string;
   body: string;
+  rating: number;
+  model: string | null;
   status: "pending" | "approved" | "rejected";
   created_at: string;
 };
@@ -96,11 +99,13 @@ function ReviewRow({ r, busy, onAct }: {
   return (
     <div className="card" style={{ display: "flex", flexWrap: "wrap", gap: 14, alignItems: "center", justifyContent: "space-between" }}>
       <div style={{ flex: "1 1 300px", minWidth: 0 }}>
-        <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 6 }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 6, flexWrap: "wrap" }}>
           <span style={{ fontSize: 13, color: "var(--text)", fontWeight: 600 }}>{r.first_name}</span>
+          <Stars rating={r.rating} size={12} />
           <span className={`badge badge-${r.status === "approved" ? "completed" : r.status === "rejected" ? "cancelled" : "pending_approval"}`}>
             {r.status}
           </span>
+          {r.model && <span className="font-mono" style={{ fontSize: 10, color: "var(--muted)", textTransform: "uppercase" }}>{r.model}</span>}
           <span className="font-mono" style={{ fontSize: 10, color: "var(--muted)" }}>{orderLabel(r.order_number)}</span>
         </div>
         <p style={{ fontSize: 14, color: "var(--text-dim)", margin: 0 }}>“{r.body}”</p>

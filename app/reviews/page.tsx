@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Stars from "../components/Stars";
 
 type Review = {
   id: string;
   firstName: string;
   body: string;
+  rating: number;
+  model: string | null;
   createdAt: string;
 };
 
@@ -53,11 +56,12 @@ export default function ReviewsPage() {
         }}>
           {reviews.map((r) => (
             <div key={r.id} className="card" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <Stars rating={r.rating} />
               <p style={{ fontSize: 14.5, color: "var(--text)", lineHeight: 1.6, margin: 0 }}>“{r.body}”</p>
               <div style={{ marginTop: "auto" }}>
                 <div style={{ fontSize: 13, color: "var(--text)", fontWeight: 600 }}>{r.firstName}</div>
-                <div className="font-mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.08em", marginTop: 2 }}>
-                  Verified order
+                <div className="font-mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.08em", marginTop: 2, textTransform: "uppercase" }}>
+                  {r.model ? `${r.model} · Verified order` : "Verified order"}
                 </div>
               </div>
             </div>

@@ -12,7 +12,7 @@ export async function GET() {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("reviews")
-    .select("id, first_name, body, created_at")
+    .select("id, first_name, body, rating, model, created_at")
     .eq("status", "approved")
     .order("created_at", { ascending: false })
     .limit(200);
@@ -27,6 +27,8 @@ export async function GET() {
       id: r.id,
       firstName: r.first_name,
       body: r.body,
+      rating: r.rating ?? 5,
+      model: r.model ?? null,
       createdAt: r.created_at,
     }))
   );
@@ -43,7 +45,7 @@ export async function POST(request: Request) {
     );
   }
 
-  let payload: { orderNumber?: string; body?: string };
+  let payload: { orderNumber?: string; body?: string; rating?: number };
   try {
     payload = await request.json();
   } catch {
@@ -52,6 +54,8 @@ export async function POST(request: Request) {
 
   const orderNumber = parseOrderNumber(payload.orderNumber);
   const text = (payload.body ?? "").trim();
+  // Clamp to 1–5; default to 5 if missing/invalid.
+  const rating = Math.min(5, Math.max(1, Math.round(Number(payload.rating) || 5)));
 
   if (!Number.isFinite(orderNumber)) {
     return NextResponse.json({ error: "Please enter a valid order code." }, { status: 400 });
@@ -81,11 +85,23 @@ export async function POST(request: Request) {
 
   const reviewFirstName = firstNameOf(order.customer_name);
 
+  // Derive a short "what they printed" label from the order's primary
+  // material (e.g. "PETG"). Best-effort — null if there's nothing to show.
+  const { data: firstItem } = await supabase
+    .from("quote_inputs")
+    .select("material")
+    .eq("order_id", order.id)
+    .limit(1)
+    .maybeSingle();
+  const model = firstItem?.material?.trim().slice(0, 40) || null;
+
   const { error: insertError } = await supabase.from("reviews").insert({
     order_id: order.id,
     order_number: order.order_number,
     first_name: reviewFirstName,
     body: text,
+    rating,
+    model,
     status: "pending",
   });
 

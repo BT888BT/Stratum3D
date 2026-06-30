@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { MATERIALS } from "@/lib/catalog";
 import { SHOP_STATS, TESTIMONIALS } from "@/lib/mock-data";
 import NowPrinting from "./components/NowPrinting";
+import Stars from "./components/Stars";
 
 export const dynamic = "force-dynamic";
 
@@ -252,6 +253,9 @@ export default async function HomePage() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
           {TESTIMONIALS.map((t) => (
             <div key={t.name} className="card" style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ marginBottom: 12 }}>
+                <Stars rating={t.rating} size={13} color="#6f685b" />
+              </div>
               <p style={{ fontSize: 14.5, color: "var(--text)", marginBottom: 16, lineHeight: 1.6, flex: 1 }}>“{t.quote}”</p>
               <div style={{ fontSize: 13, color: "var(--text)", fontWeight: 600 }}>{t.name}</div>
               <div className="font-mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.08em", marginTop: 2 }}>{t.detail}</div>

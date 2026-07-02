@@ -556,3 +556,266 @@ input, select, textarea, button { font: inherit; }
     line-height: 1.25;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   HOME PAGE — 2.0 look. All classes below are home-scoped so no other
+   page is affected. Everything reuses the existing theme variables.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Hero panel ──────────────────────────────────────────────── */
+.home-hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: clamp(24px, 4vw, 52px);
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(249,115,22,0.10) 0%, transparent 45%),
+    linear-gradient(180deg, var(--surface) 0%, var(--bg2) 100%);
+}
+/* Build-plate grid, faded out toward the edges */
+.home-grid-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--border-hi) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-hi) 1px, transparent 1px);
+  background-size: 46px 46px;
+  opacity: 0.35;
+  -webkit-mask-image: radial-gradient(ellipse 75% 65% at 28% 8%, #000 0%, transparent 72%);
+          mask-image: radial-gradient(ellipse 75% 65% at 28% 8%, #000 0%, transparent 72%);
+}
+/* Soft drifting orange glow */
+.home-glow {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  width: 480px;
+  height: 480px;
+  top: -180px;
+  right: -120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(249,115,22,0.20) 0%, transparent 62%);
+  filter: blur(24px);
+  animation: homeGlow 11s ease-in-out infinite;
+}
+/* Slow vertical "print head" scan sweeping the panel */
+.home-scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 140px;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 0%, rgba(249,115,22,0.06) 50%, transparent 100%);
+  animation: homeScan 8s linear infinite;
+}
+.home-hero-inner { position: relative; z-index: 1; }
+
+@keyframes homeGlow {
+  0%, 100% { transform: translate(0, 0)      scale(1); }
+  50%      { transform: translate(-26px, 20px) scale(1.12); }
+}
+@keyframes homeScan {
+  0%   { transform: translateY(-160px); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(640px);  opacity: 0; }
+}
+
+/* Gradient headline accent */
+.grad-text {
+  background: linear-gradient(105deg, var(--orange-hi) 0%, var(--amber) 55%, var(--orange) 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 40px rgba(249,115,22,0.25);
+}
+
+/* Trust chips row under the hero copy */
+.hero-trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Capability marquee ──────────────────────────────────────── */
+.home-marquee {
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 13px 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+}
+.home-marquee-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 30px;
+  white-space: nowrap;
+  will-change: transform;
+  animation: homeMarquee 34s linear infinite;
+}
+.home-marquee-item {
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  display: inline-flex;
+  align-items: center;
+  gap: 30px;
+}
+.home-marquee-item::after {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--orange);
+  opacity: 0.7;
+}
+@keyframes homeMarquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ── Section headers ─────────────────────────────────────────── */
+.sec-head { text-align: center; margin-bottom: 26px; }
+.sec-head h2 { position: relative; display: inline-block; }
+.sec-head h2::after {
+  content: '';
+  display: block;
+  width: 46px;
+  height: 3px;
+  margin: 14px auto 0;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--orange), transparent);
+}
+
+/* ── Steps with connector ────────────────────────────────────── */
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+.step-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px 22px;
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.step-card:hover {
+  border-color: var(--border-hi);
+  transform: translateY(-4px);
+  box-shadow: 0 14px 40px rgba(0,0,0,0.35);
+}
+.step-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--orange), transparent);
+}
+.step-num {
+  font-family: var(--font-bebas), sans-serif;
+  font-size: 54px;
+  line-height: 0.9;
+  letter-spacing: 0.02em;
+  color: transparent;
+  -webkit-text-stroke: 1.4px var(--orange);
+  opacity: 0.85;
+}
+
+/* ── Material cards ──────────────────────────────────────────── */
+.mat-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px;
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.mat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 44px rgba(0,0,0,0.4);
+}
+.mat-accent-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.mat-swatches { display: flex; gap: 5px; margin-top: 4px; }
+.mat-swatch { width: 22px; height: 8px; border-radius: 3px; opacity: 0.9; }
+
+/* ── Gallery tiles with hover reveal ─────────────────────────── */
+.g-tile {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--surface);
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.g-tile:hover {
+  border-color: var(--border-hi);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 44px rgba(0,0,0,0.4);
+}
+.g-tile img { transition: transform 0.5s ease; }
+.g-tile:hover img { transform: scale(1.06); }
+.g-cat {
+  position: absolute;
+  top: 12px; left: 12px;
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text);
+  background: rgba(14,10,6,0.72);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--border-hi);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+/* ── Big CTA panel ───────────────────────────────────────────── */
+.home-cta {
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  border-radius: 22px;
+  padding: clamp(36px, 6vw, 64px);
+  background:
+    radial-gradient(90% 140% at 50% 0%, rgba(249,115,22,0.16) 0%, transparent 55%),
+    linear-gradient(180deg, #1e0e00 0%, var(--surface) 100%);
+  border: 1px solid rgba(249,115,22,0.28);
+}
+.home-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(249,115,22,0.10) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(249,115,22,0.10) 1px, transparent 1px);
+  background-size: 40px 40px;
+  -webkit-mask-image: radial-gradient(ellipse 60% 80% at 50% 120%, #000, transparent 70%);
+          mask-image: radial-gradient(ellipse 60% 80% at 50% 120%, #000, transparent 70%);
+}
+.home-cta > * { position: relative; z-index: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .home-glow, .home-scan, .home-marquee-track { animation: none; }
+}

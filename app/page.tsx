@@ -102,63 +102,100 @@ export default async function HomePage() {
     <>
       {/* ── Hero ─────────────────────────────────────────────── */}
       <section style={{ position: "relative", paddingTop: 8 }}>
-        <div
-          className="quote-grid"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1.15fr 0.85fr",
-            gap: "clamp(24px, 5vw, 56px)",
-            alignItems: "stretch",
-          }}
-        >
-          <div className="fade-up">
-            <span className="eyebrow eyebrow-desktop" style={{ marginBottom: 16 }}>
-              Perth · Western Australia · FDM 3D Printing
-            </span>
-            <span className="eyebrow eyebrow-mobile" style={{ marginBottom: 16 }}>
-              FDM 3D Printing · Western Australia
-            </span>
-            <h1
-              className="font-display"
-              style={{ fontSize: "clamp(44px, 8vw, 82px)", lineHeight: 0.95, color: "var(--text)", margin: "10px 0 18px" }}
-            >
-              YOUR DESIGN,
-              <br />
-              PRINTED IN
-              <br />
-              <span style={{ color: "var(--orange)" }}>PERTH.</span>
-            </h1>
-            <p className="hero-lede" style={{ fontSize: 17, color: "var(--text-dim)", maxWidth: 480, marginBottom: 28 }}>
-              High-quality 3D printing, made local.
-              <br />
-              Configure your part, see a transparent price up front.
-              <br />
-              Receive your parts in days — not weeks.
-            </p>
-            <div className="hero-cta" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <Link href="/quote" className="btn-primary glow-pulse" style={{ fontSize: 18, padding: "13px 32px" }}>
-                Start Your Print →
-              </Link>
-              <Link href="/gallery" className="btn-ghost" style={{ padding: "13px 26px" }}>
-                See the Gallery
-              </Link>
+        <div className="home-hero fade-up">
+          {/* Decorative build-plate layers */}
+          <div className="home-grid-bg" aria-hidden="true" />
+          <div className="home-glow" aria-hidden="true" />
+          <div className="home-scan" aria-hidden="true" />
+
+          <div
+            className="home-hero-inner quote-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1.15fr 0.85fr",
+              gap: "clamp(24px, 5vw, 56px)",
+              alignItems: "stretch",
+            }}
+          >
+            <div>
+              <span className="eyebrow eyebrow-desktop" style={{ marginBottom: 16 }}>
+                Perth · Western Australia · FDM 3D Printing
+              </span>
+              <span className="eyebrow eyebrow-mobile" style={{ marginBottom: 16 }}>
+                FDM 3D Printing · Western Australia
+              </span>
+              <h1
+                className="font-display"
+                style={{ fontSize: "clamp(44px, 8vw, 84px)", lineHeight: 0.95, color: "var(--text)", margin: "10px 0 18px" }}
+              >
+                YOUR DESIGN,
+                <br />
+                PRINTED IN
+                <br />
+                <span className="grad-text">PERTH.</span>
+              </h1>
+              <p className="hero-lede" style={{ fontSize: 17, color: "var(--text-dim)", maxWidth: 480, marginBottom: 28 }}>
+                High-quality 3D printing, made local.
+                <br />
+                Configure your part, see a transparent price up front.
+                <br />
+                Receive your parts in days — not weeks.
+              </p>
+              <div className="hero-cta" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <Link href="/quote" className="btn-primary glow-pulse" style={{ fontSize: 18, padding: "13px 32px" }}>
+                  Start Your Print →
+                </Link>
+                <Link href="/gallery" className="btn-ghost" style={{ padding: "13px 26px" }}>
+                  See the Gallery
+                </Link>
+              </div>
+
+              {/* Trust chips */}
+              <div className="hero-trust">
+                {["Instant pricing", "48h avg turnaround", "Perth pickup", "Ships Australia-wide"].map((t) => (
+                  <span key={t} className="trust-item">{t}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* Hero visual — live "now printing" card */}
+            <div className="fade-up-2 hidden-mobile" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+              <NowPrinting />
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* Hero visual — layered build animation */}
-          <div className="fade-up-2 hidden-mobile" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-            {/* invisible spacer matching the eyebrow row so the card top aligns with the heading */}
-            <span className="eyebrow" aria-hidden="true" style={{ marginBottom: 16, visibility: "hidden" }}>&nbsp;</span>
-            <NowPrinting />
+      {/* ── Capability marquee ───────────────────────────────── */}
+      <section style={{ margin: "clamp(28px, 5vw, 44px) 0" }}>
+        <div className="home-marquee">
+          <div className="home-marquee-track">
+            {[0, 1].map((dup) => (
+              <span key={dup} className="home-marquee-item" aria-hidden={dup === 1}>
+                {[
+                  "PLA", "PETG", "ABS", "0.1mm layer height", "Multi-colour prints",
+                  "Up to 256mm³ build", "Instant quotes", "Perth local", "Fast turnaround",
+                  "Quality-checked",
+                ].map((cap) => (
+                  <span key={cap} className="home-marquee-item">{cap}</span>
+                ))}
+              </span>
+            ))}
           </div>
         </div>
       </section>
 
       {/* ── Stats strip ──────────────────────────────────────── */}
-      <section style={{ margin: "clamp(48px, 8vw, 88px) 0" }}>
+      <section style={{ margin: "clamp(40px, 7vw, 80px) 0" }}>
         <div
           className="card-lg stats-strip"
-          style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 24, textAlign: "center" }}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+            gap: 24,
+            textAlign: "center",
+            background: "linear-gradient(180deg, var(--surface) 0%, var(--bg2) 100%)",
+          }}
         >
           {[
             [`${SHOP_STATS.printsCompleted}+`, "Prints completed"],
@@ -176,19 +213,21 @@ export default async function HomePage() {
 
       {/* ── How it works ─────────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(48px, 8vw, 88px)" }}>
-        <span className="eyebrow" style={{ textAlign: "center", marginBottom: 10 }}>How it works</span>
-        <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)", textAlign: "center", marginBottom: 5 }}>
-          THREE STEPS TO A FINISHED PART
-        </h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+        <div className="sec-head">
+          <span className="eyebrow" style={{ marginBottom: 8 }}>How it works</span>
+          <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)" }}>
+            THREE STEPS TO A FINISHED PART
+          </h2>
+        </div>
+        <div className="steps-grid">
           {[
             ["01", "Configure", "Pick your material, colour, quality and size. See a transparent price update instantly — no waiting on a quote."],
             ["02", "We print", "Your job goes on a calibrated FDM machine. We quality-check every part before it leaves the bench."],
             ["03", "Collect or ship", "Pick up locally in Perth or have it shipped Australia-wide. Track every order from your account."],
           ].map(([n, title, body]) => (
-            <div key={n} className="card" style={{ borderTop: "2px solid var(--orange)" }}>
-              <div className="font-display" style={{ fontSize: 40, color: "var(--orange)", opacity: 0.85, lineHeight: 1 }}>{n}</div>
-              <h3 className="font-display" style={{ fontSize: 22, margin: "10px 0 8px", letterSpacing: "0.04em" }}>{title}</h3>
+            <div key={n} className="step-card">
+              <div className="step-num">{n}</div>
+              <h3 className="font-display" style={{ fontSize: 23, margin: "14px 0 8px", letterSpacing: "0.04em" }}>{title}</h3>
               <p style={{ fontSize: 14, color: "var(--text-dim)" }}>{body}</p>
             </div>
           ))}
@@ -197,15 +236,25 @@ export default async function HomePage() {
 
       {/* ── Materials ────────────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(48px, 8vw, 88px)" }}>
-        <span className="eyebrow" style={{ textAlign: "center", marginBottom: 10 }}>Materials</span>
-        <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)", textAlign: "center", marginBottom: 5 }}>
-          PICK THE RIGHT PLASTIC
-        </h2>
+        <div className="sec-head">
+          <span className="eyebrow" style={{ marginBottom: 8 }}>Materials</span>
+          <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)" }}>
+            PICK THE RIGHT PLASTIC
+          </h2>
+        </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
           {MATERIALS.map((m) => (
-            <div key={m.key} className="card" style={{ borderTop: `2px solid ${m.accent}` }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                <span className="font-display" style={{ fontSize: 28, color: m.accent, letterSpacing: "0.06em" }}>{m.name}</span>
+            <div key={m.key} className="mat-card" style={{ boxShadow: `inset 0 0 0 1px transparent` }}>
+              <div className="mat-accent-bar" style={{ background: `linear-gradient(90deg, ${m.accent}, transparent)` }} />
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
+                <div>
+                  <span className="font-display" style={{ fontSize: 30, color: m.accent, letterSpacing: "0.06em", display: "block", lineHeight: 1 }}>{m.name}</span>
+                  <div className="mat-swatches" aria-hidden="true">
+                    <span className="mat-swatch" style={{ background: m.accent }} />
+                    <span className="mat-swatch" style={{ background: m.accent, opacity: 0.6 }} />
+                    <span className="mat-swatch" style={{ background: m.accent, opacity: 0.3 }} />
+                  </div>
+                </div>
                 <span className="badge">{m.strength}</span>
               </div>
               <div className="font-mono" style={{ fontSize: 11, color: "var(--orange)", letterSpacing: "0.1em", marginBottom: 12 }}>{m.tagline.toUpperCase()}</div>
@@ -221,38 +270,47 @@ export default async function HomePage() {
 
       {/* ── Gallery preview ──────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(48px, 8vw, 88px)" }}>
-        <div style={{ textAlign: "center", marginBottom: 10 }}>
-          <span className="eyebrow" style={{ textAlign: "center", marginBottom: 10 }}>Recent work</span>
+        <div className="sec-head">
+          <span className="eyebrow" style={{ marginBottom: 8 }}>Recent work</span>
           <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)" }}>FROM THE BUILD PLATE</h2>
         </div>
         <div className="gallery-grid">
           {HOME_GALLERY.map((p) => (
-            <div key={p.src} className="gallery-tile">
+            <div key={p.src} className="g-tile">
+              <span className="g-cat">{p.category}</span>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={p.src}
                 alt={p.title}
                 loading="lazy"
-                style={{ display: "block", width: "100%", height: 180, objectFit: "cover" }}
+                style={{ display: "block", width: "100%", height: 190, objectFit: "cover" }}
               />
               <div style={{ padding: "14px 16px" }}>
                 <div style={{ fontSize: 14, color: "var(--text)", fontWeight: 600 }}>{p.title}</div>
                 <div className="font-mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.1em", marginTop: 4, textTransform: "uppercase" }}>
-                  {p.material} · {p.category}
+                  {p.material}
                 </div>
               </div>
             </div>
           ))}
         </div>
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 24 }}>
+          <Link href="/gallery" className="btn-ghost" style={{ fontSize: 14, padding: "11px 26px" }}>
+            Browse the full gallery →
+          </Link>
+        </div>
       </section>
 
       {/* ── Testimonials ─────────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(48px, 8vw, 88px)" }}>
-        <span className="eyebrow" style={{ textAlign: "center", marginBottom: 10 }}>What customers say</span>
-        <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)", textAlign: "center", marginBottom: 5 }}>TRUSTED BY PERTH MAKERS</h2>
+        <div className="sec-head">
+          <span className="eyebrow" style={{ marginBottom: 8 }}>What customers say</span>
+          <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)" }}>TRUSTED BY PERTH MAKERS</h2>
+        </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
           {TESTIMONIALS.map((t) => (
-            <div key={t.name} className="card" style={{ display: "flex", flexDirection: "column" }}>
+            <div key={t.name} className="card" style={{ display: "flex", flexDirection: "column", position: "relative" }}>
+              <span className="font-display" aria-hidden="true" style={{ position: "absolute", top: 8, right: 18, fontSize: 64, lineHeight: 1, color: "var(--orange)", opacity: 0.12 }}>”</span>
               <div style={{ marginBottom: 12 }}>
                 <Stars rating={t.rating} size={13} color="#6f685b" />
               </div>
@@ -274,16 +332,16 @@ export default async function HomePage() {
 
       {/* ── CTA ──────────────────────────────────────────────── */}
       <section>
-        <div className="card-orange" style={{ textAlign: "center", padding: "clamp(32px, 6vw, 56px)" }}>
+        <div className="home-cta">
           <span className="eyebrow" style={{ marginBottom: 12 }}>Ready when you are</span>
-          <h2 className="font-display" style={{ fontSize: "clamp(32px, 6vw, 56px)", marginBottom: 5 }}>
-            LET&apos;S PRINT SOMETHING
+          <h2 className="font-display" style={{ fontSize: "clamp(32px, 6vw, 58px)", marginBottom: 8 }}>
+            LET&apos;S PRINT <span className="grad-text">SOMETHING</span>
           </h2>
-          <p style={{ fontSize: 16, color: "var(--text-dim)", maxWidth: 480, margin: "0 auto 26px" }}>
+          <p style={{ fontSize: 16, color: "var(--text-dim)", maxWidth: 480, margin: "0 auto 28px" }}>
             From a single keyring to a full cosplay build — configure it, price it, and we&apos;ll
             have it on the plate.
           </p>
-          <Link href="/quote" className="btn-primary" style={{ fontSize: 18, padding: "14px 36px" }}>
+          <Link href="/quote" className="btn-primary glow-pulse" style={{ fontSize: 18, padding: "14px 36px" }}>
             Get Your Instant Price →
           </Link>
         </div>

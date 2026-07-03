@@ -171,7 +171,7 @@ export default async function HomePage() {
         <div className="home-marquee">
           <div className="home-marquee-track">
             {[0, 1].map((dup) => (
-              <span key={dup} className="home-marquee-item" aria-hidden={dup === 1}>
+              <span key={dup} className="home-marquee-group" aria-hidden={dup === 1}>
                 {[
                   "PLA", "PETG", "ABS", "0.1mm layer height", "Multi-colour prints",
                   "Up to 256mm³ build", "Instant quotes", "Perth local", "Fast turnaround",

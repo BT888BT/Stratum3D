@@ -1,8 +1,10 @@
 import { Resend } from "resend";
+import { generateInvoicePdf, type InvoicePdfData } from "@/lib/invoice-pdf";
+import { business } from "@/lib/business";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM = process.env.EMAIL_FROM ?? "orders@stratum3d.com";
+const FROM = process.env.EMAIL_FROM ?? "orders@stratum3d.com.au";
 const REPLY_TO = process.env.EMAIL_REPLY_TO ?? "";
 const ADMIN = process.env.EMAIL_ADMIN ?? "";
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "";
@@ -342,12 +344,26 @@ export async function sendOrderConfirmationEmail(order: {
   customerName: string;
   email: string;
   note?: string | null;
+  // When provided, a PDF tax invoice is generated and attached to the email.
+  invoice?: InvoicePdfData;
 }) {
   if (!process.env.RESEND_API_KEY) return;
 
   const shortId = order.orderNumber
     ? `S3D-${String(order.orderNumber).padStart(4, "0")}`
     : order.id.slice(0, 8).toUpperCase();
+
+  // Build the invoice PDF attachment. Never let a PDF failure block the email —
+  // the customer still gets their approval notice if generation goes wrong.
+  let attachments: { filename: string; content: Buffer }[] | undefined;
+  if (order.invoice) {
+    try {
+      const pdf = await generateInvoicePdf(order.invoice);
+      attachments = [{ filename: `Invoice-${shortId}.pdf`, content: Buffer.from(pdf) }];
+    } catch (err) {
+      console.error(`[email] Invoice PDF generation failed for ${shortId}:`, err);
+    }
+  }
 
   const content = `
     <h2 style="margin:0 0 4px 0;font-size:22px;color:#1a1a1a">Great news, ${esc(order.customerName)}!</h2>
@@ -368,12 +384,22 @@ ${order.note ? `
     <p style="margin:8px 0 0 0;font-size:13px;color:#888">— The Stratum3D team</p>
   `;
 
+  // BCC a copy (with the same invoice attachment) to the business inbox, so we
+  // keep a record of every approved order. BCC keeps this address hidden from
+  // the customer. Skip it if it's the same address the order went to.
+  const bcc =
+    business.email && business.email.toLowerCase() !== order.email.toLowerCase()
+      ? business.email
+      : undefined;
+
   const { error } = await resend.emails.send({
     from: FROM,
     replyTo: REPLY_TO || undefined,
     to: order.email,
+    bcc,
     subject: `Stratum3D — Order ${shortId} approved — printing soon`,
     html: emailWrapper(content),
+    attachments,
   });
 
   if (error) {
@@ -381,7 +407,7 @@ ${order.note ? `
     throw new Error(`Resend: ${error.message || JSON.stringify(error)}`);
   }
 
-  console.log(`[email] Approval email sent to ${order.email} for ${shortId}`);
+  console.log(`[email] Approval email sent to ${order.email}${bcc ? ` (bcc ${bcc})` : ""} for ${shortId}${attachments ? " (with invoice)" : ""}`);
 }
 
 // ─── Customer: status update ──────────────────────────────────────────────────

@@ -58,12 +58,57 @@ export async function POST(request: Request) {
           : "Order approved by admin — payment captured",
       });
 
+      // Build the invoice attachment from the order's line items + totals.
+      const { data: quoteItems } = await supabase
+        .from("quote_inputs")
+        .select("*")
+        .eq("order_id", orderId)
+        .order("original_filename");
+
+      const isPickup =
+        order.delivery_method === "pickup" ||
+        (!order.delivery_method && order.shipping_cents === 500);
+
+      const addressLines: string[] = [];
+      if (!isPickup && order.shipping_address_line1) {
+        addressLines.push(order.shipping_address_line1);
+        if (order.shipping_address_line2) addressLines.push(order.shipping_address_line2);
+        addressLines.push(
+          [order.shipping_city, order.shipping_state, order.shipping_postcode]
+            .filter(Boolean)
+            .join(" ")
+        );
+      }
+
       await sendOrderConfirmationEmail({
         id: order.id,
         orderNumber: order.order_number ?? undefined,
         customerName: order.customer_name,
         email: order.email,
         note: note || null,
+        invoice: {
+          id: order.id,
+          orderNumber: order.order_number,
+          createdAt: order.created_at,
+          customerName: order.customer_name,
+          email: order.email,
+          isPickup,
+          addressLines,
+          items: (quoteItems ?? []).map((it) => ({
+            description: it.original_filename || "Print item",
+            specs: [it.material, it.colour].filter(Boolean).join(" / "),
+            quantity: it.quantity ?? 1,
+            lineTotalCents: it.line_total_cents ?? null,
+          })),
+          subtotalCents: order.subtotal_cents,
+          discountCents: order.discount_cents ?? 0,
+          discountCode: order.discount_code ?? null,
+          shippingCents: order.shipping_cents,
+          gstCents: order.gst_cents ?? 0,
+          totalCents: order.total_cents,
+          currency: order.currency || "AUD",
+          isPaid: order.stripe_payment_intent_id != null,
+        },
       }).catch(err => console.error("[approve-order] Approval email failed:", err));
 
       console.log(`[approve-order] Order ${orderId} approved and moved to order_received`);

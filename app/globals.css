@@ -663,6 +663,11 @@ input, select, textarea, button { font: inherit; }
   will-change: transform;
   animation: homeMarquee 34s linear infinite;
 }
+.home-marquee-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 30px;
+}
 .home-marquee-item {
   font-family: var(--font-plex-mono), monospace;
   font-size: 11px;

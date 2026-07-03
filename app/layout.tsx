@@ -104,7 +104,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <AnnounceBar />
 
           {/* Header */}
-          <header style={{
+          <header className="site-header" style={{
             borderBottom: "1px solid var(--border)",
             background: "rgba(14,10,6,0.9)",
             backdropFilter: "blur(16px)",
@@ -133,7 +133,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             {children}
           </main>
 
-          <footer style={{ borderTop: "1px solid var(--border)", padding: "20px clamp(16px, 4vw, 32px)" }}>
+          <footer className="site-footer" style={{ borderTop: "1px solid var(--border)", padding: "20px clamp(16px, 4vw, 32px)" }}>
             <div style={{
               maxWidth: 1200, margin: "0 auto",
               display: "flex", flexWrap: "wrap", alignItems: "center",

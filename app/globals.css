@@ -824,3 +824,18 @@ input, select, textarea, button { font: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .home-glow, .home-scan, .home-marquee-track { animation: none; }
 }
+
+/* Print: strip the site chrome so pages like the invoice print on their own.
+   The header/footer come from the root layout and would otherwise land on
+   every printout. Individual pages can still hide their own bits via .no-print. */
+@media print {
+  .site-header,
+  .site-footer,
+  .announce-bar {
+    display: none !important;
+  }
+  main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+}

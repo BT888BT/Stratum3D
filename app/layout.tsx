@@ -2,6 +2,8 @@ import "./globals.css";
 import Link from "next/link";
 import AnnounceBar from "./components/AnnounceBar";
 import HeaderNav from "./components/HeaderNav";
+import HolidayDecor from "./components/HolidayDecor";
+import { getActiveCampaign, themeMeta } from "@/lib/campaigns";
 import type { Metadata } from "next";
 import { Manrope, Bebas_Neue, IBM_Plex_Mono } from "next/font/google";
 
@@ -85,9 +87,18 @@ const jsonLd = {
   },
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  // Active seasonal campaign (appearance only). Rendered server-side into the
+  // initial HTML so there's no flash/CLS; the result is cached (see lib/campaigns).
+  const campaign = await getActiveCampaign();
+  const deco = campaign ? themeMeta(campaign.theme_key) : null;
+
   return (
-    <html lang="en" className={`${manrope.variable} ${bebasNeue.variable} ${ibmPlexMono.variable}`}>
+    <html
+      lang="en"
+      data-campaign={campaign?.theme_key ?? undefined}
+      className={`${manrope.variable} ${bebasNeue.variable} ${ibmPlexMono.variable}`}
+    >
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="geo.region" content="AU-WA" />
@@ -101,7 +112,15 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
 
-          <AnnounceBar />
+          <AnnounceBar
+            campaign={
+              campaign
+                ? { message: campaign.banner_message, promoCode: campaign.promo_code }
+                : null
+            }
+          />
+
+          {deco && <HolidayDecor deco={deco.deco} count={deco.count} />}
 
           {/* Header */}
           <header className="site-header" style={{

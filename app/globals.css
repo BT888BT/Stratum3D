@@ -406,9 +406,11 @@ input, select, textarea, button { font: inherit; }
 }
 
 /* ── Announce bar ────────────────────────────── */
+/* Colours come from CSS vars so a seasonal theme (data-campaign on <html>) can
+   recolour the strip without touching this rule. Defaults = normal orange. */
 .announce-bar {
-  background: rgba(249,115,22,0.12);
-  border-bottom: 1px solid rgba(249,115,22,0.22);
+  background: var(--announce-bg, rgba(249,115,22,0.12));
+  border-bottom: 1px solid var(--announce-border, rgba(249,115,22,0.22));
   padding: 7px clamp(16px, 4vw, 32px);
   display: flex;
   align-items: center;
@@ -416,6 +418,22 @@ input, select, textarea, button { font: inherit; }
   gap: 6px;
   flex-wrap: wrap;
 }
+.announce-item { color: var(--announce-text, var(--text)); }
+/* Promo code chip — subtle pill in the bar's own text colour, so it stays
+   legible on every theme regardless of accent. */
+.announce-promo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--announce-text, var(--text)) 32%, transparent);
+  background: color-mix(in srgb, var(--announce-text, var(--text)) 10%, transparent);
+  vertical-align: middle;
+}
+.announce-promo-label { opacity: 0.7; }
+.announce-promo-code { font-weight: 600; letter-spacing: 0.16em; }
 /* Desktop/tablet: single static line, duplicate copy hidden */
 .announce-dup { display: none; }
 
@@ -838,4 +856,103 @@ input, select, textarea, button { font: inherit; }
     max-width: none !important;
     padding: 0 !important;
   }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SEASONAL CAMPAIGNS — appearance only
+   <html data-campaign="KEY"> swaps the site accent (--orange/--orange-hi),
+   themes the announce bar and tints the decoration layer. Nothing here changes
+   layout or behaviour. Accents are kept light-luminance on purpose: .btn-primary
+   paints DARK text on the accent, so a too-dark accent would fail contrast.
+   Keep these keys in sync with THEME_REGISTRY in lib/campaigns.ts.
+   ══════════════════════════════════════════════════════════════════════════ */
+[data-campaign="newyear"] {
+  --orange: #e5b53b; --orange-hi: #f0c95a; --decor-color: #f0c95a;
+  --announce-bg: #0b0b12; --announce-text: #f4efe2; --announce-border: #2a2a38;
+}
+[data-campaign="australia"] {
+  --orange: #ffd54a; --orange-hi: #ffe07a; --decor-color: #ffe07a;
+  --announce-bg: #06311f; --announce-text: #eafff4; --announce-border: #0e4a30;
+}
+[data-campaign="valentines"] {
+  --orange: #ff7aa2; --orange-hi: #ff9bbb; --decor-color: #ff9bbb;
+  --announce-bg: #2a0a14; --announce-text: #ffe9f0; --announce-border: #43121f;
+}
+[data-campaign="easter"] {
+  --orange: #b39cff; --orange-hi: #c9b8ff; --decor-color: #c9b8ff;
+  --announce-bg: #f6f1ff; --announce-text: #2c2545; --announce-border: #e4dcfa;
+}
+[data-campaign="mothers"] {
+  --orange: #ec86ac; --orange-hi: #f2a3c2; --decor-color: #f2a3c2;
+  --announce-bg: #fbeef2; --announce-text: #3a2530; --announce-border: #f3d9e2;
+}
+[data-campaign="waday"] {
+  --orange: #3fd8d1; --orange-hi: #6fe6e0; --decor-color: #6fe6e0;
+  --announce-bg: #05131a; --announce-text: #e6f7f6; --announce-border: #0d2b34;
+}
+[data-campaign="eofy"] {
+  --orange: #ff5c4a; --orange-hi: #ff7a68; --decor-color: #ff7a68;
+  --announce-bg: #1a1413; --announce-text: #fff6f4; --announce-border: #3a2622;
+}
+[data-campaign="midyear"] {
+  --orange: #5cb3ff; --orange-hi: #82c6ff; --decor-color: #82c6ff;
+  --announce-bg: #06121f; --announce-text: #eaf3ff; --announce-border: #123049;
+}
+[data-campaign="fathers"] {
+  --orange: #f0a83a; --orange-hi: #f7bd5e; --decor-color: #f7bd5e;
+  --announce-bg: #12161c; --announce-text: #eef2f6; --announce-border: #26303a;
+}
+[data-campaign="halloween"] {
+  --orange: #ff7a1a; --orange-hi: #ff943f; --decor-color: #ff943f;
+  --announce-bg: #140a1c; --announce-text: #f3e9ff; --announce-border: #2c1740;
+}
+[data-campaign="blackfriday"] {
+  --orange: #c6ff2e; --orange-hi: #d7ff5c; --decor-color: #d7ff5c;
+  --announce-bg: #000000; --announce-text: #ffffff; --announce-border: #1c1c1c;
+}
+[data-campaign="christmas"] {
+  --orange: #f26166; --orange-hi: #f7888c; --decor-color: #7ee0a0;
+  --announce-bg: #0a1f14; --announce-text: #f2f7f2; --announce-border: #153524;
+}
+
+/* Sale themes: give the announce bar a soft glow so 'neon' events read as a deal
+   without needing a particle layer. */
+[data-campaign="eofy"] .announce-bar,
+[data-campaign="midyear"] .announce-bar,
+[data-campaign="blackfriday"] .announce-bar {
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--orange) 45%, transparent),
+              0 0 22px color-mix(in srgb, var(--orange) 22%, transparent);
+}
+
+/* ── Decoration layer ─────────────────────────── */
+.holiday-decor {
+  position: fixed;
+  inset: 0;
+  z-index: 40;            /* above content, below the sticky header (z-50) */
+  overflow: hidden;
+  pointer-events: none;   /* never blocks clicks */
+}
+.decor-particle {
+  position: absolute;
+  top: -8%;
+  color: var(--decor-color, var(--orange));
+  line-height: 1;
+  user-select: none;
+  will-change: transform;
+}
+.decor-fall { animation: decor-fall linear infinite; }
+.decor-rise { top: auto; bottom: -8%; animation: decor-rise linear infinite; }
+
+@keyframes decor-fall {
+  from { transform: translate3d(0, -10vh, 0) rotate(0deg); }
+  to   { transform: translate3d(var(--drift, 0px), 112vh, 0) rotate(240deg); }
+}
+@keyframes decor-rise {
+  from { transform: translate3d(0, 10vh, 0) rotate(0deg); }
+  to   { transform: translate3d(var(--drift, 0px), -112vh, 0) rotate(-120deg); }
+}
+
+/* Motion-sensitive visitors: no drifting particles at all. */
+@media (prefers-reduced-motion: reduce) {
+  .holiday-decor { display: none; }
 }

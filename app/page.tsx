@@ -27,10 +27,14 @@ function MaintenancePage() {
       textAlign: "center",
       padding: "clamp(48px, 8vw, 96px) clamp(24px, 4vw, 48px)",
     }}>
-      {/* Logo mark */}
+      {/* Logo mark — replaced by the plain wordmark while a seasonal theme is on
+          (the mark's baked-in orange can't follow the theme accent). */}
       <div style={{ marginBottom: 40 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.webp" alt="Stratum3D logo" width={56} height={56} style={{ display: "block", margin: "0 auto" }} />
+        <img className="brand-mark" src="/logo.webp" alt="Stratum3D logo" width={56} height={56} style={{ display: "block", margin: "0 auto" }} />
+        <span className="brand-wordmark-solo font-display" style={{ fontSize: 30, color: "var(--text)", letterSpacing: "0.06em" }}>
+          STRATUM<span style={{ color: "var(--orange)" }}>3D</span>
+        </span>
       </div>
 
       {/* Stacked layer lines — top */}

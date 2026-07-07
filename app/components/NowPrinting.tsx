@@ -133,11 +133,11 @@ function CubeSilhouette() {
       {/* True isometric cube on a regular hexagon: all three vertical edges
           (27,41->27,79 · 60,60->60,98 · 93,41->93,79) are an equal 38px long. */}
       {/* top face */}
-      <path d="M60 22 L93 41 L60 60 L27 41 Z" fill="rgba(249,115,22,0.22)" />
+      <path d="M60 22 L93 41 L60 60 L27 41 Z" fill="color-mix(in srgb, var(--orange) 22%, transparent)" />
       {/* left face */}
-      <path d="M27 41 L60 60 L60 98 L27 79 Z" fill="rgba(249,115,22,0.10)" />
+      <path d="M27 41 L60 60 L60 98 L27 79 Z" fill="color-mix(in srgb, var(--orange) 10%, transparent)" />
       {/* right face */}
-      <path d="M93 41 L60 60 L60 98 L93 79 Z" fill="rgba(249,115,22,0.15)" />
+      <path d="M93 41 L60 60 L60 98 L93 79 Z" fill="color-mix(in srgb, var(--orange) 15%, transparent)" />
     </svg>
   );
 }
@@ -153,13 +153,48 @@ const IMAGE_EXTS = ["svg", "png", "webp", "jpg", "jpeg"] as const;
 // Shows the customer's own image (public/now-printing/<slug>.<ext>). It tries
 // each extension in turn; if none exist it quietly falls back to the 3D line
 // cube so the card never shows a broken image.
+//
+// The bundled art is single-colour SVG line work, so for `.svg` sources we don't
+// render the file directly — we use it as a CSS mask and fill it with the current
+// accent (var(--orange)). That way a seasonal theme recolours the silhouette
+// instead of leaving it stuck on the brand orange. Real photos (png/webp/jpg) are
+// rendered as-is so their true colours are preserved.
 function PrintVisual({ model }: { model: string }) {
   const [extIndex, setExtIndex] = useState(0);
   if (extIndex >= IMAGE_EXTS.length) return <CubeSilhouette />;
+  const ext = IMAGE_EXTS[extIndex];
+  const src = `/now-printing/${slugify(model)}.${ext}`;
+
+  if (ext === "svg") {
+    return (
+      <>
+        {/* Hidden probe: an <img> can report load failures, a mask can't. If the
+            svg is missing this fires onError and we advance to the next extension
+            (and ultimately the cube), so the card never shows an empty box. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt=""
+          aria-hidden="true"
+          width={1}
+          height={1}
+          onError={() => setExtIndex((i) => i + 1)}
+          style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }}
+        />
+        <span
+          className="print-visual-mask"
+          role="img"
+          aria-label={model}
+          style={{ WebkitMaskImage: `url("${src}")`, maskImage: `url("${src}")` }}
+        />
+      </>
+    );
+  }
+
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={`/now-printing/${slugify(model)}.${IMAGE_EXTS[extIndex]}`}
+      src={src}
       alt={model}
       width={148}
       height={148}

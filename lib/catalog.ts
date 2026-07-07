@@ -13,7 +13,8 @@ export type Material = {
   use: string;
   temp: string;
   strength: "Good" | "Very Good" | "Excellent";
-  accent: string;          // brand swatch colour
+  accent: string;          // brand swatch colour — derived from the theme accent
+                           // (var(--orange)) so seasonal campaigns recolour it.
 };
 
 export const MATERIALS: Material[] = [
@@ -25,7 +26,7 @@ export const MATERIALS: Material[] = [
     use: "Hobby / Display",
     temp: "190–220°C",
     strength: "Good",
-    accent: "#fb923c",
+    accent: "var(--orange-hi)",
   },
   {
     key: "PETG",
@@ -35,7 +36,7 @@ export const MATERIALS: Material[] = [
     use: "Functional / Outdoor",
     temp: "230–250°C",
     strength: "Very Good",
-    accent: "#f97316",
+    accent: "var(--orange)",
   },
   {
     key: "ABS",
@@ -45,7 +46,7 @@ export const MATERIALS: Material[] = [
     use: "Engineering / Mechanical",
     temp: "230–260°C",
     strength: "Excellent",
-    accent: "#ea580c",
+    accent: "color-mix(in srgb, var(--orange) 78%, #000)",
   },
 ];
 

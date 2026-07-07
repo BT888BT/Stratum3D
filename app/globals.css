@@ -86,10 +86,25 @@ input, select, textarea, button { font: inherit; }
   padding: 28px;
 }
 .card-orange {
-  background: linear-gradient(135deg, #1e0e00 0%, var(--surface) 100%);
-  border: 1px solid rgba(249,115,22,0.25);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--orange) 14%, #050505) 0%, var(--surface) 100%);
+  border: 1px solid color-mix(in srgb, var(--orange) 25%, transparent);
   border-radius: 16px;
   padding: 28px;
+}
+
+/* Single-colour silhouette art (the "Now printing" line drawings) rendered as a
+   mask so it follows the theme accent instead of the baked-in brand orange. */
+.print-visual-mask {
+  display: block;
+  width: 148px;
+  height: 148px;
+  background: var(--orange);
+  -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+          mask-position: center;
+  -webkit-mask-size: contain;
+          mask-size: contain;
 }
 
 /* ── Inputs ──────────────────────────────────── */
@@ -866,6 +881,16 @@ input, select, textarea, button { font: inherit; }
    paints DARK text on the accent, so a too-dark accent would fail contrast.
    Keep these keys in sync with THEME_REGISTRY in lib/campaigns.ts.
    ══════════════════════════════════════════════════════════════════════════ */
+
+/* The logo mark (/logo.webp) has the brand orange baked in and can't be
+   recoloured, so while a seasonal theme is on we drop the mark and let the
+   text wordmark stand alone. .brand-wordmark-solo is the standalone wordmark
+   used where the mark normally appears without adjacent text (the homepage
+   hero); it only shows once a theme is active. */
+[data-campaign] .brand-mark { display: none; }
+.brand-wordmark-solo { display: none; }
+[data-campaign] .brand-wordmark-solo { display: block; }
+
 [data-campaign="newyear"] {
   --orange: #e5b53b; --orange-hi: #f0c95a; --decor-color: #f0c95a;
   --announce-bg: #0b0b12; --announce-text: #f4efe2; --announce-border: #2a2a38;

@@ -887,7 +887,9 @@ input, select, textarea, button { font: inherit; }
    text wordmark stand alone. .brand-wordmark-solo is the standalone wordmark
    used where the mark normally appears without adjacent text (the homepage
    hero); it only shows once a theme is active. */
-[data-campaign] .brand-mark { display: none; }
+/* !important is required: both marks carry an inline `display` style, which
+   would otherwise beat this rule and keep the orange logo visible during a theme. */
+[data-campaign] .brand-mark { display: none !important; }
 .brand-wordmark-solo { display: none; }
 [data-campaign] .brand-wordmark-solo { display: block; }
 

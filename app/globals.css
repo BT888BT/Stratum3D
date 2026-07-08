@@ -942,13 +942,57 @@ input, select, textarea, button { font: inherit; }
   --announce-bg: #0a1f14; --announce-text: #f2f7f2; --announce-border: #153524;
 }
 
-/* Sale themes: give the announce bar a soft glow so 'neon' events read as a deal
-   without needing a particle layer. */
-[data-campaign="eofy"] .announce-bar,
-[data-campaign="midyear"] .announce-bar,
-[data-campaign="blackfriday"] .announce-bar {
-  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--orange) 45%, transparent),
-              0 0 22px color-mix(in srgb, var(--orange) 22%, transparent);
+/* Sale themes ('neon' events): amplify the announce bar so it reads as a live
+   deal — a pulsing accent glow, a SALE badge and an accent-coloured promo chip.
+   `.is-sale` is set by <AnnounceBar> when the active campaign is a sale theme
+   (isSaleTheme in lib/campaigns.ts), so this stays in sync with THEME_REGISTRY. */
+.announce-bar.is-sale {
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--orange) 55%, transparent),
+              0 0 26px color-mix(in srgb, var(--orange) 28%, transparent);
+  animation: announce-sale-glow 2.6s ease-in-out infinite;
+}
+@keyframes announce-sale-glow {
+  0%, 100% { box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--orange) 55%, transparent),
+                         0 0 20px color-mix(in srgb, var(--orange) 20%, transparent); }
+  50%      { box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--orange) 70%, transparent),
+                         0 0 34px color-mix(in srgb, var(--orange) 40%, transparent); }
+}
+
+/* Pulsing SALE badge — accent pill, dark text drawn from the bar background so it
+   stays legible on every sale theme. */
+.announce-sale-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 8px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--orange);
+  color: var(--announce-bg, #0a0a0a);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  vertical-align: middle;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--orange) 55%, transparent);
+  animation: announce-sale-pulse 1.6s ease-in-out infinite;
+}
+@keyframes announce-sale-pulse {
+  0%, 100% { transform: scale(1);    box-shadow: 0 0 10px color-mix(in srgb, var(--orange) 45%, transparent); }
+  50%      { transform: scale(1.06); box-shadow: 0 0 18px color-mix(in srgb, var(--orange) 75%, transparent); }
+}
+
+/* On a sale, make the promo-code chip pop in the accent colour instead of the
+   neutral bar text, so the code is the thing that catches the eye. */
+.announce-bar.is-sale .announce-promo {
+  border-color: color-mix(in srgb, var(--orange) 55%, transparent);
+  background: color-mix(in srgb, var(--orange) 16%, transparent);
+  color: var(--orange);
+}
+.announce-bar.is-sale .announce-promo-label { color: var(--orange); opacity: 0.85; }
+
+/* Motion-sensitive visitors: keep the emphasis, drop the movement. */
+@media (prefers-reduced-motion: reduce) {
+  .announce-bar.is-sale,
+  .announce-sale-badge { animation: none; }
 }
 
 /* ── Decoration layer ─────────────────────────── */

@@ -8,7 +8,11 @@ import { usePathname } from "next/navigation";
 // When a seasonal campaign is active the layout passes its message + promo code
 // through; the bar's colours come from `data-campaign` on <html> (globals.css),
 // so this component just swaps the copy. No campaign → default site copy.
-type CampaignBar = { message: string; promoCode: string | null };
+//
+// `sale` (neon events — EOFY / mid-year / Black Friday) amplifies the strip: a
+// pulsing SALE badge, an accent-coloured promo chip and a stronger glow (styled
+// off `.is-sale` in globals.css) so it clearly reads as a live deal.
+type CampaignBar = { message: string; promoCode: string | null; sale?: boolean };
 
 const DEFAULT_COPY =
   "Perth-based · Transparent volume pricing · No minimum order · Ships Australia-wide";
@@ -19,9 +23,11 @@ export default function AnnounceBar({ campaign }: { campaign?: CampaignBar | nul
 
   const text = campaign?.message ?? DEFAULT_COPY;
   const promo = campaign?.promoCode?.trim() || null;
+  const sale = campaign?.sale ?? false;
 
   const content = (
     <>
+      {sale && <span className="announce-sale-badge">Sale</span>}
       <span>{text}</span>
       {promo && (
         <>
@@ -42,7 +48,7 @@ export default function AnnounceBar({ campaign }: { campaign?: CampaignBar | nul
   };
 
   return (
-    <div className="announce-bar">
+    <div className={`announce-bar${sale ? " is-sale" : ""}`}>
       <div className="announce-track">
         <span className="font-mono announce-item" style={itemStyle}>
           {content}

@@ -50,6 +50,14 @@ export function themeMeta(themeKey: string): ThemeMeta {
   return THEME_REGISTRY[themeKey] ?? { deco: "neon", count: 0 };
 }
 
+// A "sale" event is any theme whose decoration is `neon` (EOFY, mid-year, Black
+// Friday). These get the amplified announce bar — SALE badge, accent promo chip
+// and stronger glow — instead of a particle layer. Single source of truth so the
+// component and the CSS glow rule stay in sync with THEME_REGISTRY.
+export function isSaleTheme(themeKey: string): boolean {
+  return themeMeta(themeKey).deco === "neon";
+}
+
 // All enabled campaigns, cached. We cache the raw rows (not "what's active now")
 // and recompute active-in-JS below so a page rendered from cache still flips at
 // the right time. Busted by revalidateTag('campaigns') on any admin mutation and

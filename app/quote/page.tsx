@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import QuoteForm from "@/components/forms/quote-form";
+import AwayOverlay from "@/components/away-overlay";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +19,13 @@ export default async function QuotePage() {
 
   if (!orderingEnabled) redirect("/");
 
+  // Away notice — only show while enabled and the resume date is today or later.
+  const awayResumeDate = settings["away_resume_date"] ?? "";
+  const showAway =
+    settings["away_enabled"] === "true" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(awayResumeDate) &&
+    awayResumeDate >= new Date().toLocaleDateString("en-CA");
+
   return (
     <div>
       <div style={{ marginBottom: "clamp(20px, 3vw, 36px)" }}>
@@ -28,6 +36,9 @@ export default async function QuotePage() {
         </p>
       </div>
       <QuoteForm />
+      {showAway && (
+        <AwayOverlay resumeDate={awayResumeDate} message={settings["away_message"]} />
+      )}
     </div>
   );
 }

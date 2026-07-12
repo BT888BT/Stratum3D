@@ -1027,3 +1027,13 @@ input, select, textarea, button { font: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .holiday-decor { display: none; }
 }
+
+/* Away notice overlay */
+@keyframes awayFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes awayPop {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}

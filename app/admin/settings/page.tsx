@@ -11,6 +11,9 @@ export default async function AdminSettingsPage() {
 
   const pickupEnabled = settings["pickup_enabled"] !== "false";
   const orderingEnabled = settings["ordering_enabled"] !== "false";
+  const awayEnabled = settings["away_enabled"] === "true";
+  const awayResumeDate = settings["away_resume_date"] ?? "";
+  const awayMessage = settings["away_message"] ?? "";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
@@ -26,7 +29,13 @@ export default async function AdminSettingsPage() {
 
       <div className="card" style={{ maxWidth: 480 }}>
         <p className="eyebrow" style={{ marginBottom: 16 }}>Site</p>
-        <SettingsClient pickupEnabled={pickupEnabled} orderingEnabled={orderingEnabled} />
+        <SettingsClient
+          pickupEnabled={pickupEnabled}
+          orderingEnabled={orderingEnabled}
+          awayEnabled={awayEnabled}
+          awayResumeDate={awayResumeDate}
+          awayMessage={awayMessage}
+        />
 
         <div style={{ borderTop: "1px solid var(--border)", margin: "24px 0" }} />
 

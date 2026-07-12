@@ -157,8 +157,11 @@ create table public.site_settings (
 );
 
 insert into public.site_settings (key, value) values
-  ('pickup_enabled',   'true'),
-  ('ordering_enabled', 'true');
+  ('pickup_enabled',    'true'),
+  ('ordering_enabled',  'true'),
+  ('away_enabled',      'false'),
+  ('away_resume_date',  ''),
+  ('away_message',      '');
 
 -- ─── Processed webhook events (Stripe idempotency) ────────────────────────
 create table public.processed_webhook_events (

@@ -282,7 +282,7 @@ export async function POST(request: Request) {
       const surfAreaCm2 = surfaceAreaMm2 / 100;
       const layerCount  = heightMm > 0 ? Math.ceil(heightMm / 0.2) : 0;
       const matCostPerG = settings.material === "ABS" ? "$0.05" : "$0.04";
-      const heightPct   = heightMm <= 50 ? "0" : heightMm <= 100 ? "5" : heightMm <= 200 ? "10" : "15";
+      const heightPct   = heightMm <= 50 ? "0" : heightMm <= 100 ? "4.5" : heightMm <= 200 ? "9" : "13.5";
       const saPct       = surfAreaCm2 <= 100 ? "0" : surfAreaCm2 <= 300 ? "5" : surfAreaCm2 <= 600 ? "10" : "15";
       console.log(`\n[quote:debug] ══ Item ${i + 1}: ${item.originalFilename} ══`);
       console.log(`[quote:debug]   ── Mesh data ──`);

@@ -38,7 +38,7 @@ const GST_RATE = business.gstRegistered ? 0.1 : 0;
  *   Machine cost       = totalPrintTime × machine ¢/hr × quantity
  *   Setup fee          = per line item (not per unit)
  *   Support removal    = +20% on (material + machine)  [labour to remove supports]
- *   Height surcharge   = 0/5/10/15% on (material+machine)  ≤50/≤100/≤200/>200 mm
+ *   Height surcharge   = 0/4.5/9/13.5% on (material+machine)  ≤50/≤100/≤200/>200 mm
  *   SA surcharge       = 0/5/10/15% on material cost        ≤100/≤300/≤600/>600 cm²
  *   Minimum per item
  *   GST 10%, shipping $10 AUD or $5.00 pickup
@@ -142,12 +142,12 @@ function estimatePrintTime(
 }
 
 // ── Surcharge helpers ─────────────────────────────────────────────────────────
-/** ≤50mm → 0%  51–100mm → 5%  101–200mm → 10%  >200mm → 15% */
+/** ≤50mm → 0%  51–100mm → 4.5%  101–200mm → 9%  >200mm → 13.5% */
 function heightSurchargeFactor(heightMm: number): number {
   if (heightMm <= 50)  return 0;
-  if (heightMm <= 100) return 0.05;
-  if (heightMm <= 200) return 0.10;
-  return 0.15;
+  if (heightMm <= 100) return 0.045;
+  if (heightMm <= 200) return 0.09;
+  return 0.135;
 }
 
 /** ≤100cm² → 0%  101–300cm² → 5%  301–600cm² → 10%  >600cm² → 15% */

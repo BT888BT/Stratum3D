@@ -137,22 +137,19 @@ export default function AwayOverlay({ resumeDate, message }: Props) {
           </svg>
         </div>
 
-        <span className="eyebrow" style={{ display: "block", marginBottom: 10 }}>Currently Away</span>
-        <h2 id="away-title" className="font-display" style={{ fontSize: 30, marginBottom: 12, lineHeight: 1.1 }}>
-          PRINTING PAUSED
-        </h2>
+        <span id="away-title" className="eyebrow" style={{ display: "block", marginBottom: 12 }}>Currently Away</span>
 
         <p style={{ color: "var(--text-dim)", fontSize: 14, lineHeight: 1.6, marginBottom: 20 }}>
           {message?.trim()
             ? message
-            : "We're away for a short break. You can still browse and place an order — it'll be queued and printed as soon as we're back."}
+            : "We're away for a short break. You can still browse and place an order — it'll be queued, printed and shipped from the following date."}
         </p>
 
         <div
           style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: 8,
+            justifyContent: "center",
             padding: "10px 18px",
             borderRadius: 12,
             background: "var(--bg2)",
@@ -160,9 +157,6 @@ export default function AwayOverlay({ resumeDate, message }: Props) {
             marginBottom: 24,
           }}
         >
-          <span style={{ fontSize: 12, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-            Printing resumes
-          </span>
           <span style={{ fontSize: 14, fontWeight: 700, color: "var(--orange)" }}>
             {formatResume(resumeDate)}
           </span>

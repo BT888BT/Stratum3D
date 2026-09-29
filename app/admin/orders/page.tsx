@@ -49,7 +49,7 @@ export default async function AdminOrdersPage() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+    <div className="admin-orders-page" style={{ display: "flex", flexDirection: "column", gap: 32 }}>
 
       {/* Header — admin nav controls now live in the site header (see HeaderNav) */}
       <div>
@@ -58,7 +58,7 @@ export default async function AdminOrdersPage() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
+      <div className="admin-order-stats" style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
         {[
           { label: "Total Orders",     value: counts.total,           color: "var(--text)" },
           { label: "Pending Approval", value: counts.pendingApproval, color: "var(--accent)" },
@@ -76,7 +76,7 @@ export default async function AdminOrdersPage() {
       {/* Table */}
       <div className="card" style={{ padding: 0, overflow: "hidden" }}>
         {/* Table header */}
-        <div style={{
+        <div className="order-table-header" style={{
           display: "grid",
           gridTemplateColumns: "110px 1fr 1fr 140px 80px 90px 140px 90px 44px",
           gap: 12,
@@ -92,14 +92,14 @@ export default async function AdminOrdersPage() {
         <div>
           {orders?.map((order) => (
             <div key={order.id} className="order-row">
-              <span className="font-mono" style={{ fontSize: 12, color: "var(--accent)" }}>{orderLabel(order)}</span>
-              <span style={{ fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{order.customer_name}</span>
-              <span style={{ fontSize: 12, color: "var(--text-dim)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{order.email}</span>
-              <StatusBadge status={order.status} />
-              <PaidBadge order={order} />
-              <span className="font-mono" style={{ fontSize: 13 }}>{formatAud(order.total_cents)}</span>
-              <span style={{ fontSize: 12, color: "var(--text-dim)" }}>{new Date(order.created_at).toLocaleString("en-AU", { dateStyle: "short", timeStyle: "short" })}</span>
-              <Link href={`/admin/orders/${order.id}`} style={{
+              <span className="order-mobile-id font-mono" style={{ fontSize: 12, color: "var(--accent)" }}>{orderLabel(order)}</span>
+              <span className="order-mobile-customer" style={{ fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{order.customer_name}</span>
+              <span className="order-mobile-email" style={{ fontSize: 12, color: "var(--text-dim)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{order.email}</span>
+              <span className="order-mobile-status"><StatusBadge status={order.status} /></span>
+              <span className="order-mobile-paid"><PaidBadge order={order} /></span>
+              <span className="order-mobile-total font-mono" style={{ fontSize: 13 }}>{formatAud(order.total_cents)}</span>
+              <span className="order-mobile-date" style={{ fontSize: 12, color: "var(--text-dim)" }}>{new Date(order.created_at).toLocaleString("en-AU", { dateStyle: "short", timeStyle: "short" })}</span>
+              <Link className="order-mobile-open" href={`/admin/orders/${order.id}`} style={{
                 fontSize: 12,
                 color: "var(--accent)",
                 border: "1px solid var(--accent-dim)",
@@ -108,9 +108,10 @@ export default async function AdminOrdersPage() {
                 display: "inline-block",
                 transition: "background 0.15s"
               }}>
-                View →
+                <span className="order-open-desktop">View →</span>
+                <span className="order-open-mobile">Manage order →</span>
               </Link>
-              <OrderRowActions orderId={order.id} isPaid={order.stripe_payment_intent_id != null || order.status === "refunded"} />
+              <div className="order-mobile-actions"><OrderRowActions orderId={order.id} isPaid={order.stripe_payment_intent_id != null || order.status === "refunded"} /></div>
             </div>
           ))}
 

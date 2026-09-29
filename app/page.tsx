@@ -183,7 +183,7 @@ export default async function HomePage() {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-            gap: 24,
+            gap: 20,
             textAlign: "center",
             background: "linear-gradient(180deg, var(--surface) 0%, var(--bg2) 100%)",
           }}
@@ -205,7 +205,7 @@ export default async function HomePage() {
       {/* ── How it works ─────────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(43px, 7.2vw, 79px)" }}>
         <div className="sec-head">
-          <span className="eyebrow" style={{ marginBottom: 8 }}>How it works</span>
+          <span className="eyebrow" style={{ marginBottom: 7 }}>How it works</span>
           <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)" }}>
             THREE STEPS TO A FINISHED PART
           </h2>
@@ -218,7 +218,7 @@ export default async function HomePage() {
           ].map(([n, title, body]) => (
             <div key={n} className="step-card">
               <div className="step-num">{n}</div>
-              <h3 className="font-display" style={{ fontSize: 23, margin: "14px 0 8px", letterSpacing: "0.04em" }}>{title}</h3>
+              <h3 className="font-display" style={{ fontSize: 23, margin: "12px 0 7px", letterSpacing: "0.04em" }}>{title}</h3>
               <p style={{ fontSize: 14, color: "var(--text-dim)" }}>{body}</p>
             </div>
           ))}
@@ -228,16 +228,16 @@ export default async function HomePage() {
       {/* ── Materials ────────────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(43px, 7.2vw, 79px)" }}>
         <div className="sec-head">
-          <span className="eyebrow" style={{ marginBottom: 8 }}>Materials</span>
+          <span className="eyebrow" style={{ marginBottom: 7 }}>Materials</span>
           <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)" }}>
             PICK THE RIGHT PLASTIC
           </h2>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14 }}>
           {MATERIALS.map((m) => (
             <div key={m.key} className="mat-card" style={{ boxShadow: `inset 0 0 0 1px transparent` }}>
               <div className="mat-accent-bar" style={{ background: `linear-gradient(90deg, ${m.accent}, transparent)` }} />
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
                 <div>
                   <span className="font-display" style={{ fontSize: 30, color: m.accent, letterSpacing: "0.06em", display: "block", lineHeight: 1 }}>{m.name}</span>
                   <div className="mat-swatches" aria-hidden="true">
@@ -248,9 +248,9 @@ export default async function HomePage() {
                 </div>
                 <span className="badge">{m.strength}</span>
               </div>
-              <div className="font-mono" style={{ fontSize: 11, color: "var(--orange)", letterSpacing: "0.1em", marginBottom: 12 }}>{m.tagline.toUpperCase()}</div>
-              <p style={{ fontSize: 13.5, color: "var(--text-dim)", marginBottom: 16 }}>{m.desc}</p>
-              <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid var(--border)", paddingTop: 12 }}>
+              <div className="font-mono" style={{ fontSize: 11, color: "var(--orange)", letterSpacing: "0.1em", marginBottom: 10 }}>{m.tagline.toUpperCase()}</div>
+              <p style={{ fontSize: 13.5, color: "var(--text-dim)", marginBottom: 14 }}>{m.desc}</p>
+              <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid var(--border)", paddingTop: 10 }}>
                 <span className="font-mono" style={{ fontSize: 10, color: "var(--muted)" }}>{m.use}</span>
                 <span className="font-mono" style={{ fontSize: 10, color: "var(--muted)" }}>{m.temp}</span>
               </div>
@@ -262,7 +262,7 @@ export default async function HomePage() {
       {/* ── Gallery preview ──────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(43px, 7.2vw, 79px)" }}>
         <div className="sec-head">
-          <span className="eyebrow" style={{ marginBottom: 8 }}>Recent work</span>
+          <span className="eyebrow" style={{ marginBottom: 7 }}>Recent work</span>
           <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)" }}>FROM THE BUILD PLATE</h2>
         </div>
         <div className="gallery-grid">
@@ -276,7 +276,7 @@ export default async function HomePage() {
                 loading="lazy"
                 style={{ display: "block", width: "100%", height: 190, objectFit: "cover" }}
               />
-              <div style={{ padding: "14px 16px" }}>
+              <div style={{ padding: "12px 14px" }}>
                 <div style={{ fontSize: 14, color: "var(--text)", fontWeight: 600 }}>{p.title}</div>
                 <div className="font-mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.1em", marginTop: 4, textTransform: "uppercase" }}>
                   {p.material}
@@ -285,7 +285,7 @@ export default async function HomePage() {
             </div>
           ))}
         </div>
-        <div style={{ display: "flex", justifyContent: "center", marginTop: 24 }}>
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 20 }}>
           <Link href="/gallery" className="btn-ghost" style={{ fontSize: 14, padding: "11px 26px" }}>
             Browse the full gallery →
           </Link>
@@ -296,7 +296,7 @@ export default async function HomePage() {
       {homeReviewsEnabled && (
         <section className="home-reviews" aria-labelledby="home-reviews-title">
           <div className="sec-head">
-            <span className="eyebrow" style={{ marginBottom: 8 }}>Customer feedback</span>
+            <span className="eyebrow" style={{ marginBottom: 7 }}>Customer feedback</span>
             <h2 id="home-reviews-title" className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)" }}>
               FROM OUR CUSTOMERS
             </h2>
@@ -329,11 +329,11 @@ export default async function HomePage() {
       {/* ── CTA ──────────────────────────────────────────────── */}
       <section>
         <div className="home-cta">
-          <span className="eyebrow" style={{ marginBottom: 12 }}>Ready when you are</span>
-          <h2 className="font-display" style={{ fontSize: "clamp(32px, 6vw, 58px)", marginBottom: 8 }}>
+          <span className="eyebrow" style={{ marginBottom: 10 }}>Ready when you are</span>
+          <h2 className="font-display" style={{ fontSize: "clamp(32px, 6vw, 58px)", marginBottom: 7 }}>
             LET&apos;S PRINT <span className="grad-text">SOMETHING</span>
           </h2>
-          <p style={{ fontSize: 16, color: "var(--text-dim)", maxWidth: 480, margin: "0 auto 28px" }}>
+          <p style={{ fontSize: 16, color: "var(--text-dim)", maxWidth: 480, margin: "0 auto 24px" }}>
             From a single keyring to a full cosplay build — configure it, price it, and we&apos;ll
             have it on the plate.
           </p>

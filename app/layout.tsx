@@ -138,7 +138,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                 {/* Logo */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img className="brand-mark" src="/logo.webp" alt="Stratum3D logo" width={38} height={38} style={{ display: "block" }} />
-                <span className="font-display" style={{ fontSize: 26, color: "var(--text)", letterSpacing: "0.06em" }}>
+                <span className="font-display" style={{ fontSize: 28, color: "var(--text)", letterSpacing: "0.06em", lineHeight: 1, position: "relative", top: 2 }}>
                   STRATUM<span style={{ color: "var(--orange)" }}>3D</span>
                 </span>
               </Link>

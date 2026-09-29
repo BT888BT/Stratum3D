@@ -348,7 +348,7 @@ input, select, textarea, button { font: inherit; }
 @media (max-width: 600px) {
   .site-header > div { gap: 8px; }
   .site-header .brand-mark { width: 32px; height: 32px; }
-  .site-header .font-display { font-size: 21px !important; }
+  .site-header .font-display { font-size: 23px !important; }
   .public-header-nav { gap: 2px !important; }
   .public-header-nav .nav-link { padding: 5px 7px; font-size: 11px; white-space: nowrap; }
   .public-header-nav .btn-primary { padding: 8px 11px !important; font-size: 12px !important; white-space: nowrap; }

@@ -535,95 +535,60 @@ input, select, textarea, button { font: inherit; }
 }
 .home-hero-inner { position: relative; z-index: 1; }
 
-/* One quiet, rotating 3D form in place of a detailed hero illustration. */
+/* A crisp, layered vector study in place of the rotating cube. */
 .hero-visual-wrap { display: flex; min-width: 0; align-items: center; justify-content: center; }
 .hero-artwork {
-  --cube-size: 156px;
-  --cube-depth: 78px;
   position: relative;
   isolation: isolate;
   width: min(100%, 480px);
-  aspect-ratio: 1;
+  aspect-ratio: 1.13;
   margin-inline: auto;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .hero-artwork::before {
   position: absolute;
-  inset: 18%;
+  inset: 22%;
   z-index: -2;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(192,119,79,.16), rgba(192,119,79,.045) 48%, transparent 74%);
-  filter: blur(22px);
+  background: radial-gradient(circle, rgba(192,119,79,.12), rgba(192,119,79,.025) 52%, transparent 76%);
+  filter: blur(30px);
   content: "";
 }
-.hero-cube-orbit {
-  position: absolute;
-  width: 72%;
-  height: 34%;
-  border: 1px solid rgba(228,216,202,.12);
-  border-radius: 50%;
-  transform: rotate(-25deg);
+.hero-artwork-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+/* ── Hero tile (rotating line cube) ──────────────────────────────── */
+.hero-tile {
+  width: min(100%, 420px);
+  margin-inline: auto;
+  animation: heroTileIn .9s ease .15s both;
 }
-.hero-cube-shadow {
-  position: absolute;
-  bottom: 27%;
-  width: 35%;
-  height: 7%;
-  border-radius: 50%;
-  background: rgba(0,0,0,.62);
-  filter: blur(13px);
+.hero-tile-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
-.hero-cube-scene {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  perspective: 850px;
-  perspective-origin: 50% 45%;
+.hero-tile-edge       { stroke: var(--orange); stroke-width: 1.6; }
+.hero-tile-layers     { stroke: color-mix(in srgb, var(--orange) 55%, transparent); stroke-width: 1; }
+.hero-tile-edge-back  { stroke: color-mix(in srgb, var(--orange) 28%, transparent); stroke-width: 1; stroke-dasharray: 3 5; }
+.hero-tile-back       { stroke: color-mix(in srgb, var(--orange) 12%, transparent); stroke-width: 1; stroke-dasharray: 2 5; }
+.hero-tile-float {
+  animation: heroTileFloat 6s ease-in-out infinite;
 }
-.hero-cube {
-  position: relative;
-  width: var(--cube-size);
-  height: var(--cube-size);
-  transform-style: preserve-3d;
-  animation: heroCubeTurn 24s linear infinite;
+.hero-tile-shadow {
+  fill: #000;
+  opacity: .45;
+  filter: blur(6px);
 }
-.hero-cube-face {
-  position: absolute;
-  inset: 0;
-  border: 1px solid rgba(242,231,218,.52);
-  border-radius: 3px;
-  backface-visibility: hidden;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.24), inset -14px -18px 30px rgba(0,0,0,.16);
-}
-.hero-cube-face-front {
-  transform: translateZ(var(--cube-depth));
-  background: linear-gradient(116deg, rgba(255,249,241,.28), transparent 38%), linear-gradient(145deg, #d8b39a, #b98261 58%, #895940);
-}
-.hero-cube-face-front::after {
-  position: absolute;
-  top: 10%;
-  right: 12%;
-  bottom: 10%;
-  width: 1px;
-  background: linear-gradient(180deg, transparent, rgba(255,246,235,.24), transparent);
-  content: "";
-}
-.hero-cube-face-back { transform: rotateY(180deg) translateZ(var(--cube-depth)); background: linear-gradient(145deg, #80624e, #49372d); }
-.hero-cube-face-right { transform: rotateY(90deg) translateZ(var(--cube-depth)); background: linear-gradient(145deg, #61696b, #343b3d 62%, #22282a); }
-.hero-cube-face-left { transform: rotateY(-90deg) translateZ(var(--cube-depth)); background: linear-gradient(145deg, #c09273, #8f644d 65%, #684a3b); }
-.hero-cube-face-top { transform: rotateX(90deg) translateZ(var(--cube-depth)); background: linear-gradient(130deg, #e4d4c4, #c0a58c 58%, #947661); }
-.hero-cube-face-bottom { transform: rotateX(-90deg) translateZ(var(--cube-depth)); background: linear-gradient(145deg, #343a3c, #1d2224); }
-@keyframes heroCubeTurn {
-  from { transform: rotateX(-24deg) rotateY(-35deg); }
-  to { transform: rotateX(336deg) rotateY(325deg); }
-}
+@keyframes heroTileIn     { from { opacity: 0; } to { opacity: 1; } }
+@keyframes heroTileFloat  { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
 @media (prefers-reduced-motion: reduce) {
-  .hero-cube { animation: none; transform: rotateX(-24deg) rotateY(-35deg); }
-}
-@media (max-width: 600px) {
-  .hero-artwork { --cube-size: 124px; --cube-depth: 62px; }
+  .hero-tile, .hero-tile-float { animation: none; }
 }
 
 /* Factual service points replace placeholder performance numbers. */

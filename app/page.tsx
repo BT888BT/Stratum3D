@@ -145,7 +145,7 @@ export default async function HomePage() {
                 <span className="grad-text">PERTH.</span>
               </h1>
               <p className="hero-lede" style={{ fontSize: 17, color: "var(--text-dim)", maxWidth: 480, marginBottom: 28 }}>
-                High-quality 3D printing, made local.
+                <strong style={{ color: "var(--text)", fontWeight: 700 }}>Affordable high-quality 3D printing, made local.</strong>
                 <br />
                 Configure your part and see a clear quote up front.
                 <br />

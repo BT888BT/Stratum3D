@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { MATERIALS } from "@/lib/catalog";
 import { getPublicReviews } from "@/lib/public-reviews";
-import HomePhotoCollage from "./components/HomePhotoCollage";
+import HeroArtwork from "./components/HeroArtwork";
 import Stars from "./components/Stars";
 
 export const dynamic = "force-dynamic";
@@ -168,9 +168,9 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* Real examples of recent work; the photos carry the visual story. */}
+            {/* Original text-free artwork for the hero; real examples stay in the gallery. */}
             <div className="fade-up-2 hero-visual-wrap">
-              <HomePhotoCollage />
+              <HeroArtwork />
             </div>
           </div>
         </div>

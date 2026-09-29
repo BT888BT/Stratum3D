@@ -387,7 +387,7 @@ input, select, textarea, button { font: inherit; }
   .announce-dup { display: inline; }
   .announce-item { padding-right: 2.5rem; } /* gap between repeats */
   .input-field { font-size: 16px !important; }
-  .hero-photo-collage { width: 100%; }
+  .hero-artwork { width: min(100%, 440px); }
   .home-reviews-grid { grid-template-columns: 1fr; }
   .home-reviews-actions > a { flex: 1 1 180px; text-align: center; }
   .home-service-strip { gap: 18px 10px !important; padding: 20px 14px !important; }
@@ -535,45 +535,15 @@ input, select, textarea, button { font: inherit; }
 }
 .home-hero-inner { position: relative; z-index: 1; }
 
-/* Photo-led homepage visual built from real Stratum3D work. */
+/* Original, text-free vector artwork in place of the homepage photo collage. */
 .hero-visual-wrap { display: flex; min-width: 0; align-items: center; justify-content: center; }
-.hero-photo-collage {
+.hero-artwork {
   position: relative;
   isolation: isolate;
   width: min(100%, 480px);
-  aspect-ratio: 1.04;
   margin-inline: auto;
 }
-.hero-photo-collage::before {
-  position: absolute;
-  z-index: -1;
-  inset: 12% 9%;
-  border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(249,115,22,.19), rgba(249,115,22,.035) 56%, transparent 76%);
-  filter: blur(18px);
-  content: "";
-}
-.hero-photo-collage::after {
-  position: absolute;
-  z-index: -1;
-  inset: 9% 7%;
-  transform: rotate(-8deg);
-  border: 1px solid rgba(249,115,22,.2);
-  border-radius: 28px;
-  content: "";
-}
-.hero-photo-frame {
-  position: absolute;
-  overflow: hidden;
-  border: 5px solid rgba(240,232,220,.9);
-  border-radius: 18px;
-  background: var(--surface);
-  box-shadow: 0 20px 48px rgba(0,0,0,.45);
-}
-.hero-photo-frame img { object-fit: cover; }
-.hero-photo-frame-main { top: 9%; left: 3%; z-index: 1; width: 69%; height: 82%; transform: rotate(-3deg); }
-.hero-photo-frame-top { top: 1%; right: 4%; z-index: 2; width: 44%; height: 45%; transform: rotate(3deg); }
-.hero-photo-frame-bottom { right: 2%; bottom: 3%; z-index: 3; width: 40%; height: 39%; transform: rotate(4deg); }
+.hero-artwork-svg { display: block; width: 100%; height: auto; overflow: visible; }
 
 /* Factual service points replace placeholder performance numbers. */
 .home-service-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }

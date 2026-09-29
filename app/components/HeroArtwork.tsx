@@ -2,7 +2,7 @@ const CUBE_FACES = ["front", "back", "right", "left", "top", "bottom"] as const;
 
 export default function HeroArtwork() {
   return (
-    <div className="hero-artwork" role="img" aria-label="Slowly rotating three-dimensional orange cube">
+    <div className="hero-artwork" role="img" aria-label="Slowly rotating satin copper and graphite cube">
       <span className="hero-cube-orbit" aria-hidden="true" />
       <span className="hero-cube-shadow" aria-hidden="true" />
       <div className="hero-cube-scene" aria-hidden="true">

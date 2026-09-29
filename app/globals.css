@@ -387,7 +387,7 @@ input, select, textarea, button { font: inherit; }
   .announce-dup { display: inline; }
   .announce-item { padding-right: 2.5rem; } /* gap between repeats */
   .input-field { font-size: 16px !important; }
-  .process-card { width: 100%; }
+  .hero-photo-collage { width: 100%; }
   .home-reviews-grid { grid-template-columns: 1fr; }
   .home-reviews-actions > a { flex: 1 1 180px; text-align: center; }
   .home-service-strip { gap: 18px 10px !important; padding: 20px 14px !important; }
@@ -535,34 +535,45 @@ input, select, textarea, button { font: inherit; }
 }
 .home-hero-inner { position: relative; z-index: 1; }
 
-/* Evergreen process card; it does not imply a simulated live print. */
-.home-process-wrap { display: flex; align-items: center; justify-content: center; min-width: 0; }
-.process-card {
-  width: min(100%, 390px);
-  padding: clamp(22px, 3vw, 30px);
-  border: 1px solid var(--border-hi);
+/* Photo-led homepage visual built from real Stratum3D work. */
+.hero-visual-wrap { display: flex; min-width: 0; align-items: center; justify-content: center; }
+.hero-photo-collage {
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 480px);
+  aspect-ratio: 1.04;
+  margin-inline: auto;
+}
+.hero-photo-collage::before {
+  position: absolute;
+  z-index: -1;
+  inset: 12% 9%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(249,115,22,.19), rgba(249,115,22,.035) 56%, transparent 76%);
+  filter: blur(18px);
+  content: "";
+}
+.hero-photo-collage::after {
+  position: absolute;
+  z-index: -1;
+  inset: 9% 7%;
+  transform: rotate(-8deg);
+  border: 1px solid rgba(249,115,22,.2);
+  border-radius: 28px;
+  content: "";
+}
+.hero-photo-frame {
+  position: absolute;
+  overflow: hidden;
+  border: 5px solid rgba(240,232,220,.9);
   border-radius: 18px;
-  background: linear-gradient(150deg, rgba(34,26,15,.96), rgba(20,15,8,.96));
-  box-shadow: 0 24px 70px rgba(0,0,0,.24);
+  background: var(--surface);
+  box-shadow: 0 20px 48px rgba(0,0,0,.45);
 }
-.process-card-topline { display: flex; align-items: center; gap: 12px; }
-.process-card-mark {
-  display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 auto;
-  border: 1px solid rgba(249,115,22,.35); border-radius: 12px; background: rgba(249,115,22,.08);
-}
-.process-card-mark svg { width: 26px; height: 26px; stroke: var(--orange-hi); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
-.process-card-label { color: var(--text-dim); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
-.process-card-rule { height: 1px; margin: 22px 0; background: linear-gradient(90deg, var(--orange), transparent); opacity: .5; }
-.process-card-title { max-width: 300px; font-size: clamp(26px, 3vw, 34px); line-height: 1.02; letter-spacing: .025em; }
-.process-card-copy { max-width: 330px; margin-top: 12px; color: var(--text-dim); font-size: 13px; line-height: 1.7; }
-.process-steps { display: grid; gap: 0; margin: 22px 0 18px; padding: 0; list-style: none; }
-.process-steps li { display: flex; align-items: center; gap: 14px; min-height: 54px; border-top: 1px solid var(--border); }
-.process-step-number { color: var(--orange); font-size: 10px; letter-spacing: .1em; }
-.process-step-copy { display: flex; flex-direction: column; line-height: 1.35; }
-.process-step-copy strong { color: var(--text); font-size: 12px; font-weight: 600; }
-.process-step-copy span { color: var(--muted); font-size: 11px; }
-.process-card-link { display: inline-flex; align-items: center; gap: 8px; color: var(--orange-hi); font-size: 12px; font-weight: 600; }
-.process-card-link:focus-visible { outline: 2px solid var(--orange-hi); outline-offset: 4px; border-radius: 2px; }
+.hero-photo-frame img { object-fit: cover; }
+.hero-photo-frame-main { top: 9%; left: 3%; z-index: 1; width: 69%; height: 82%; transform: rotate(-3deg); }
+.hero-photo-frame-top { top: 1%; right: 4%; z-index: 2; width: 44%; height: 45%; transform: rotate(3deg); }
+.hero-photo-frame-bottom { right: 2%; bottom: 3%; z-index: 3; width: 40%; height: 39%; transform: rotate(4deg); }
 
 /* Factual service points replace placeholder performance numbers. */
 .home-service-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { MATERIALS } from "@/lib/catalog";
 import { getPublicReviews } from "@/lib/public-reviews";
-import PrintProcessCard from "./components/PrintProcessCard";
+import HomePhotoCollage from "./components/HomePhotoCollage";
 import Stars from "./components/Stars";
 
 export const dynamic = "force-dynamic";
@@ -168,9 +168,9 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* Clear order process overview */}
-            <div className="fade-up-2 home-process-wrap">
-              <PrintProcessCard />
+            {/* Real examples of recent work; the photos carry the visual story. */}
+            <div className="fade-up-2 hero-visual-wrap">
+              <HomePhotoCollage />
             </div>
           </div>
         </div>

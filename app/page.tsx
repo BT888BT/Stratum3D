@@ -207,14 +207,15 @@ export default async function HomePage() {
         <div className="sec-head">
           <span className="eyebrow" style={{ marginBottom: 0 }}>How it works</span>
           <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)" }}>
-            THREE STEPS TO A FINISHED PART
+            FOUR STEPS TO A FINISHED PART
           </h2>
         </div>
         <div className="steps-grid">
           {[
             ["01", "Configure", "Choose your material, colour, wall count and infill. See an itemised price update instantly."],
-            ["02", "We print", "Your job goes on a calibrated FDM machine. We quality-check every part before it leaves the bench."],
-            ["03", "Collect or ship", "Pick up locally in Perth or have it shipped Australia-wide. Track every order from your account."],
+            ["02", "We review", "Every model is checked before it prints — wall thickness, orientation and supports — so your part prints reliably first time."],
+            ["03", "We print", "Your job goes on a calibrated FDM machine. We quality-check every part before it leaves the bench."],
+            ["04", "Collect or ship", "Pick up locally in Perth or have it shipped Australia-wide. Track every order from your account."],
           ].map(([n, title, body]) => (
             <div key={n} className="step-card">
               <div className="step-num">{n}</div>

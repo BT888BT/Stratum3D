@@ -689,10 +689,11 @@ input, select, textarea, button { font: inherit; }
   background: linear-gradient(90deg, var(--orange), transparent);
 }
 .step-num {
-  font-family: var(--font-plex-mono), monospace;
-  font-size: 10px;
-  letter-spacing: 0.25em;
-  color: var(--orange);
+  font-family: var(--font-bebas), sans-serif;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  color: var(--orange-hi);
 }
 
 /* ── Material cards ──────────────────────────────────────────── */

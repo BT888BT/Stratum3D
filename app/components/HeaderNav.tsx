@@ -32,7 +32,7 @@ export default function HeaderNav() {
       <Link href="/reviews" className="nav-link hidden-mobile" style={{ textDecoration: "none" }}>Reviews</Link>
       <Link href="/guide" className="nav-link hidden-mobile" style={{ textDecoration: "none" }}>Guide</Link>
       <Link href="/account" className="nav-link" style={{ textDecoration: "none" }}>Track Order</Link>
-      <Link href="/quote" className="btn-primary" style={{ fontSize: 14, padding: "8px 20px", marginLeft: 6 }}>
+      <Link href="/quote" className="btn-primary" style={{ fontSize: 15, padding: "10px 22px", marginLeft: 6 }}>
         Get Quote
       </Link>
     </nav>

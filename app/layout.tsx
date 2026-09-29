@@ -1,9 +1,8 @@
 import "./globals.css";
 import Link from "next/link";
-import AnnounceBar from "./components/AnnounceBar";
 import HeaderNav from "./components/HeaderNav";
 import HolidayDecor from "./components/HolidayDecor";
-import { getActiveCampaign, themeMeta, isSaleTheme } from "@/lib/campaigns";
+import { getActiveCampaign, themeMeta } from "@/lib/campaigns";
 import type { Metadata } from "next";
 import { Manrope, Bebas_Neue, IBM_Plex_Mono } from "next/font/google";
 
@@ -92,7 +91,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   // initial HTML so there's no flash/CLS; the result is cached (see lib/campaigns).
   const campaign = await getActiveCampaign();
   const deco = campaign ? themeMeta(campaign.theme_key) : null;
-  const sale = campaign ? isSaleTheme(campaign.theme_key) : false;
 
   return (
     <html
@@ -113,14 +111,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body>
         <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
 
-          <AnnounceBar
-            campaign={
-              campaign
-                ? { message: campaign.banner_message, promoCode: campaign.promo_code, sale }
-                : null
-            }
-          />
-
           {deco && <HolidayDecor deco={deco.deco} count={deco.count} />}
 
           {/* Header */}
@@ -133,14 +123,14 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             <div style={{
               maxWidth: 1200, margin: "0 auto",
               padding: "0 clamp(16px, 4vw, 32px)",
-              height: 60,
+              height: 72,
               display: "flex", alignItems: "center", justifyContent: "space-between"
             }}>
               <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 {/* Logo */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img className="brand-mark" src="/logo.webp" alt="Stratum3D logo" width={32} height={32} style={{ display: "block" }} />
-                <span className="font-display" style={{ fontSize: 22, color: "var(--text)", letterSpacing: "0.06em" }}>
+                <img className="brand-mark" src="/logo.webp" alt="Stratum3D logo" width={38} height={38} style={{ display: "block" }} />
+                <span className="font-display" style={{ fontSize: 26, color: "var(--text)", letterSpacing: "0.06em" }}>
                   STRATUM<span style={{ color: "var(--orange)" }}>3D</span>
                 </span>
               </Link>

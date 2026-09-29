@@ -176,25 +176,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── Capability marquee ───────────────────────────────── */}
-      <section style={{ margin: "clamp(28px, 5vw, 44px) 0" }}>
-        <div className="home-marquee">
-          <div className="home-marquee-track">
-            {[0, 1].map((dup) => (
-              <span key={dup} className="home-marquee-group" aria-hidden={dup === 1}>
-                {[
-                  "PLA", "PETG", "ABS", "FDM printing", "Custom parts",
-                  "Instant quotes", "Perth pickup", "Australia-wide shipping",
-                  "Made to order", "Order tracking",
-                ].map((cap) => (
-                  <span key={cap} className="home-marquee-item">{cap}</span>
-                ))}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── Service details ──────────────────────────────────── */}
       <section style={{ margin: "clamp(40px, 7vw, 80px) 0" }}>
         <div

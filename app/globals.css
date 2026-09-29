@@ -648,52 +648,6 @@ input, select, textarea, button { font: inherit; }
   border-top: 1px solid var(--border);
 }
 
-/* ── Capability marquee ──────────────────────────────────────── */
-.home-marquee {
-  position: relative;
-  overflow: hidden;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  padding: 13px 0;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
-          mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
-}
-.home-marquee-track {
-  display: inline-flex;
-  align-items: center;
-  gap: 30px;
-  white-space: nowrap;
-  will-change: transform;
-  animation: homeMarquee 34s linear infinite;
-}
-.home-marquee-group {
-  display: inline-flex;
-  align-items: center;
-  gap: 30px;
-}
-.home-marquee-item {
-  font-family: var(--font-plex-mono), monospace;
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  display: inline-flex;
-  align-items: center;
-  gap: 30px;
-}
-.home-marquee-item::after {
-  content: '';
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--orange);
-  opacity: 0.7;
-}
-@keyframes homeMarquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
-
 /* ── Section headers ─────────────────────────────────────────── */
 .sec-head { text-align: center; margin-bottom: 26px; }
 .sec-head h2 { position: relative; display: inline-block; }
@@ -825,7 +779,7 @@ input, select, textarea, button { font: inherit; }
 .home-cta > * { position: relative; z-index: 1; }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-glow, .home-scan, .home-marquee-track { animation: none; }
+  .home-glow, .home-scan { animation: none; }
 }
 
 /* Print: strip the site chrome so pages like the invoice print on their own.

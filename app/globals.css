@@ -596,7 +596,7 @@ input, select, textarea, button { font: inherit; }
 .home-service-item { min-width: 0; text-align: center; }
 .home-service-value { color: var(--text); font-size: clamp(13px, 1.6vw, 17px); font-weight: 650; line-height: 1.35; overflow-wrap: anywhere; }
 .home-service-label { margin-top: 5px; color: var(--text-dim); font-family: var(--font-plex-mono), monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
-.home-reviews { margin-bottom: clamp(48px, 8vw, 88px); }
+.home-reviews { margin-bottom: clamp(43px, 7.2vw, 79px); }
 .home-reviews-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .home-review-card { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; }
 .home-review-body { margin: 14px 0 18px; color: var(--text); font-size: 14px; line-height: 1.65; overflow-wrap: anywhere; }

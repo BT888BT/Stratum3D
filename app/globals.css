@@ -650,7 +650,7 @@ input, select, textarea, button { font: inherit; }
 
 /* ── Section headers ─────────────────────────────────────────── */
 .sec-head { text-align: center; margin-bottom: 22px; }
-.sec-head h2 { position: relative; display: inline-block; }
+.sec-head h2 { position: relative; display: inline-block; line-height: 1; }
 .sec-head h2::after {
   content: '';
   display: block;

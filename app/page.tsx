@@ -205,7 +205,7 @@ export default async function HomePage() {
       {/* ── How it works ─────────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(43px, 7.2vw, 79px)" }}>
         <div className="sec-head">
-          <span className="eyebrow" style={{ marginBottom: 7 }}>How it works</span>
+          <span className="eyebrow" style={{ marginBottom: 0 }}>How it works</span>
           <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)" }}>
             THREE STEPS TO A FINISHED PART
           </h2>
@@ -228,7 +228,7 @@ export default async function HomePage() {
       {/* ── Materials ────────────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(43px, 7.2vw, 79px)" }}>
         <div className="sec-head">
-          <span className="eyebrow" style={{ marginBottom: 7 }}>Materials</span>
+          <span className="eyebrow" style={{ marginBottom: 0 }}>Materials</span>
           <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)" }}>
             PICK THE RIGHT PLASTIC
           </h2>
@@ -262,7 +262,7 @@ export default async function HomePage() {
       {/* ── Gallery preview ──────────────────────────────────── */}
       <section style={{ marginBottom: "clamp(43px, 7.2vw, 79px)" }}>
         <div className="sec-head">
-          <span className="eyebrow" style={{ marginBottom: 7 }}>Recent work</span>
+          <span className="eyebrow" style={{ marginBottom: 0 }}>Recent work</span>
           <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)" }}>FROM THE BUILD PLATE</h2>
         </div>
         <div className="gallery-grid">

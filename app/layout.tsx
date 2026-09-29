@@ -1,8 +1,9 @@
 import "./globals.css";
 import Link from "next/link";
+import AnnounceBar from "./components/AnnounceBar";
 import HeaderNav from "./components/HeaderNav";
 import HolidayDecor from "./components/HolidayDecor";
-import { getActiveCampaign, themeMeta } from "@/lib/campaigns";
+import { getActiveCampaign, themeMeta, isSaleTheme } from "@/lib/campaigns";
 import type { Metadata } from "next";
 import { Manrope, Bebas_Neue, IBM_Plex_Mono } from "next/font/google";
 
@@ -91,6 +92,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   // initial HTML so there's no flash/CLS; the result is cached (see lib/campaigns).
   const campaign = await getActiveCampaign();
   const deco = campaign ? themeMeta(campaign.theme_key) : null;
+  const sale = campaign ? isSaleTheme(campaign.theme_key) : false;
 
   return (
     <html
@@ -110,6 +112,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       </head>
       <body>
         <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
+
+          {campaign && (
+            <AnnounceBar
+              campaign={{ message: campaign.banner_message, promoCode: campaign.promo_code, sale }}
+            />
+          )}
 
           {deco && <HolidayDecor deco={deco.deco} count={deco.count} />}
 

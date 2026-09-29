@@ -52,9 +52,12 @@ export default async function AdminOrdersPage() {
     <div className="admin-orders-page" style={{ display: "flex", flexDirection: "column", gap: 32 }}>
 
       {/* Header — admin nav controls now live in the site header (see HeaderNav) */}
-      <div>
-        <p className="eyebrow" style={{ marginBottom: 8 }}>Dashboard</p>
-        <h1 className="font-display" style={{ fontSize: 32, fontWeight: 700 }}>Orders</h1>
+      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
+        <div>
+          <p className="eyebrow" style={{ marginBottom: 8 }}>Dashboard</p>
+          <h1 className="font-display" style={{ fontSize: 32, fontWeight: 700 }}>Orders</h1>
+        </div>
+        <Link href="/admin/stats" className="btn-ghost" style={{ fontSize: 13, padding: "8px 16px" }}>View stats →</Link>
       </div>
 
       {/* Stats */}

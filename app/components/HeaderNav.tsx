@@ -14,6 +14,7 @@ export default function HeaderNav() {
       <nav className="admin-header-nav" aria-label="Admin navigation">
         <Link href="/admin/orders" className="btn-ghost admin-primary-link">Orders</Link>
         <Link href="/admin/settings" className="btn-ghost admin-primary-link">Settings</Link>
+        <Link href="/admin/stats" className="btn-ghost admin-secondary-link">Stats</Link>
         <Link href="/admin/gallery" className="btn-ghost admin-secondary-link">Gallery Management</Link>
         <Link href="/admin/reviews" className="btn-ghost admin-secondary-link">Reviews</Link>
         <Link href="/admin/colours" className="btn-ghost admin-secondary-link">Colour Management</Link>

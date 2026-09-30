@@ -114,6 +114,7 @@ export async function sendOrderUnderReviewEmail(order: {
   items: OrderLineItem[];
   shippingMethod: string;
   shippingAddress: string;
+  mediaConsent?: boolean;
 }) {
   if (!process.env.RESEND_API_KEY) return;
 
@@ -236,6 +237,7 @@ export async function sendOrderUnderReviewEmail(order: {
           <p><strong>Total:</strong> ${formatAud(order.totalCents)}</p>
           <p><strong>Delivery:</strong> ${deliveryInfo}</p>
           <p><strong>Items:</strong> ${itemSummary}</p>
+          <p><strong>Photo/media use:</strong> ${order.mediaConsent ? "✅ Yes — OK to share photos of the print" : "No — do not share"}</p>
           <p><a href="${adminLink}" style="color:#0070f3;font-weight:600">Review &amp; approve order →</a></p>
         </div>
       `,

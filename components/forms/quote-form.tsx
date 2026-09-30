@@ -85,6 +85,7 @@ export default function QuoteForm() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loadingQuote, setLoadingQuote] = useState(false);
   const [loadingCheckout, setLoadingCheckout] = useState(false);
+  const [mediaConsent, setMediaConsent] = useState(true);
   const [uploadProgress, setUploadProgress] = useState("");
 
   // Discount code
@@ -378,7 +379,7 @@ export default function QuoteForm() {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: quote.orderId, checkoutToken: quote.checkoutToken }),
+        body: JSON.stringify({ orderId: quote.orderId, checkoutToken: quote.checkoutToken, mediaConsent }),
       });
       if (!res.ok) {
         const errData = await res.json().catch(() => null);
@@ -776,6 +777,16 @@ export default function QuoteForm() {
             )}
 
             {error && <div className="error-box">{error}</div>}
+
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 12, color: "var(--text-dim)", lineHeight: 1.5, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={mediaConsent}
+                onChange={(e) => setMediaConsent(e.target.checked)}
+                style={{ marginTop: 2, accentColor: "var(--orange)" }}
+              />
+              OK to share photos of your finished print on our gallery and socials (untick to opt out)
+            </label>
 
             <button type="button" onClick={startCheckout} disabled={loadingCheckout || loadingQuote} className="btn-primary" style={{ width: "100%", fontSize: 16 }}>
               {loadingCheckout ? "Redirecting to payment..." : "Proceed to Payment →"}

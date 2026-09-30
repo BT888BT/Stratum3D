@@ -5,7 +5,7 @@ import { recomputeTotals } from "@/lib/quote";
 
 export async function POST(request: Request) {
   try {
-    const { orderId, checkoutToken } = await request.json();
+    const { orderId, checkoutToken, mediaConsent } = await request.json();
 
     if (!orderId || !checkoutToken) {
       return NextResponse.json(
@@ -137,7 +137,8 @@ export async function POST(request: Request) {
         customer_email: order.email,
         client_reference_id: order.id,
         metadata: {
-          orderId: order.id
+          orderId: order.id,
+          mediaConsent: mediaConsent === true ? "yes" : "no"
         },
         line_items: [
           {

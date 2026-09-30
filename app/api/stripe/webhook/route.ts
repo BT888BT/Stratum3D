@@ -124,6 +124,7 @@ export async function POST(request: Request) {
             gstCents: order.gst_cents,
             items,
             shippingMethod: isPickup ? "pickup" : "shipping",
+            mediaConsent: session.metadata?.mediaConsent === "yes",
             shippingAddress: [
               order.shipping_address_line1,
               order.shipping_address_line2,

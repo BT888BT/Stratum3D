@@ -11,13 +11,14 @@ export default function HeaderNav() {
 
   if (isAdmin) {
     return (
-      <nav style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <Link href="/admin/settings" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Settings</Link>
-        <Link href="/admin/gallery" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Gallery Management</Link>
-        <Link href="/admin/reviews" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Reviews</Link>
-        <Link href="/admin/colours" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Colour Management</Link>
-        <Link href="/admin/discount-codes" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Discount Codes</Link>
-        <Link href="/admin/campaigns" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Campaigns</Link>
+      <nav style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+        <Link href="/admin/orders" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Orders</Link>
+        <Link href="/admin/settings" className="btn-ghost hidden-mobile" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Settings</Link>
+        <Link href="/admin/gallery" className="btn-ghost hidden-mobile" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Gallery Management</Link>
+        <Link href="/admin/reviews" className="btn-ghost hidden-mobile" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Reviews</Link>
+        <Link href="/admin/colours" className="btn-ghost hidden-mobile" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Colour Management</Link>
+        <Link href="/admin/discount-codes" className="btn-ghost hidden-mobile" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Discount Codes</Link>
+        <Link href="/admin/campaigns" className="btn-ghost hidden-mobile" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Campaigns</Link>
         <form action="/api/admin/logout" method="POST">
           <button type="submit" className="btn-ghost" style={{ fontSize: 12, background: "var(--orange)", borderColor: "var(--orange)", color: "#fff", fontWeight: 700 }}>Log out</button>
         </form>

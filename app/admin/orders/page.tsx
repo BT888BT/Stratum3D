@@ -11,14 +11,25 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function PaidBadge({ order }: { order: { status: string; stripe_payment_intent_id: string | null } }) {
+// Payment state, not just "has a Stripe payment". Checkout only places a hold;
+// money is captured when the order is approved (→ order_received).
+function PaidBadge({ order, captured }: { order: { status: string; stripe_payment_intent_id: string | null }; captured: boolean }) {
   if (order.status === "refunded") {
     return <span className="badge badge-refunded">refunded</span>;
   }
-  if (order.stripe_payment_intent_id) {
-    return <span className="badge badge-paid">paid</span>;
+  if (!order.stripe_payment_intent_id) {
+    return <span className="badge" style={{ color: "var(--muted)" }}>unpaid</span>;
   }
-  return <span className="badge" style={{ color: "var(--muted)" }}>unpaid</span>;
+  if (order.status === "pending_approval") {
+    return <span className="badge badge-pending_approval" title="Card on hold — not charged until approved">authorised</span>;
+  }
+  if (order.status === "cancelled") {
+    // Captured then cancelled without a refund — money is still held; needs refunding in Stripe.
+    return captured
+      ? <span className="badge badge-cancelled" title="Payment was captured and has not been refunded">charged</span>
+      : <span className="badge badge-draft" title="Hold released — customer was not charged">not charged</span>;
+  }
+  return <span className="badge badge-paid">paid</span>;
 }
 
 function orderLabel(order: { order_number?: number; id: string }) {
@@ -38,6 +49,18 @@ export default async function AdminOrdersPage() {
 
   if (error) {
     return <div className="error-box">Failed to load orders: {error.message}</div>;
+  }
+
+  // Cancelled orders that were approved first had their payment captured.
+  const cancelledIds = (orders ?? []).filter(o => o.status === "cancelled" && o.stripe_payment_intent_id).map(o => o.id);
+  const capturedIds = new Set<string>();
+  if (cancelledIds.length) {
+    const { data: history } = await supabase
+      .from("order_status_history")
+      .select("order_id")
+      .in("order_id", cancelledIds)
+      .eq("status", "order_received");
+    for (const h of history ?? []) capturedIds.add(h.order_id);
   }
 
   const counts = {
@@ -99,7 +122,7 @@ export default async function AdminOrdersPage() {
               <span style={{ fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{order.customer_name}</span>
               <span style={{ fontSize: 12, color: "var(--text-dim)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{order.email}</span>
               <StatusBadge status={order.status} />
-              <PaidBadge order={order} />
+              <PaidBadge order={order} captured={capturedIds.has(order.id)} />
               <span className="font-mono" style={{ fontSize: 13 }}>{formatAud(order.total_cents)}</span>
               <span style={{ fontSize: 12, color: "var(--text-dim)" }}>{new Date(order.created_at).toLocaleString("en-AU", { dateStyle: "short", timeStyle: "short" })}</span>
               <Link href={`/admin/orders/${order.id}`} style={{

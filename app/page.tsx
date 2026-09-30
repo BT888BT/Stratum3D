@@ -156,7 +156,7 @@ export default async function HomePage() {
 
               {/* Trust chips */}
               <div className="hero-trust">
-                {["Instant pricing", "48h avg turnaround", "Perth pickup", "Ships Australia-wide"].map((t) => (
+                {["Instant pricing", "48h avg turnaround", "Perth pickup"].map((t) => (
                   <span key={t} className="trust-item">{t}</span>
                 ))}
               </div>

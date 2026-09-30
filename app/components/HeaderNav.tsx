@@ -13,7 +13,6 @@ export default function HeaderNav() {
     return (
       <nav style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <Link href="/admin/settings" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Settings</Link>
-        <Link href="/admin/stats" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Stats</Link>
         <Link href="/admin/gallery" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Gallery Management</Link>
         <Link href="/admin/reviews" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Reviews</Link>
         <Link href="/admin/colours" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Colour Management</Link>

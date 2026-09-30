@@ -698,6 +698,8 @@ input, select, textarea, button { font: inherit; }
   padding-top: 22px;
   border-top: 1px solid var(--border);
 }
+/* Phones: the two remaining points sit side by side */
+@media (max-width: 768px) { .hero-trust { gap: 10px 16px; } }
 
 /* ── Section headers ─────────────────────────────────────────── */
 .sec-head { text-align: center; margin-bottom: 22px; }

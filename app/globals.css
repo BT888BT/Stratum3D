@@ -410,6 +410,10 @@ input, select, textarea, button { font: inherit; }
 /* ── Responsive ──────────────────────────────── */
 @media (max-width: 768px) {
   .quote-grid    { grid-template-columns: 1fr !important; }
+  /* Admin order detail: one card per row on phones */
+  .admin-order-detail-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  .admin-order-detail-grid > * { min-width: 0; }
+  .admin-order-title-row { flex-wrap: wrap; gap: 8px !important; }
   .hidden-mobile { display: none !important; }
   .order-row {
     grid-template-columns: 80px 1fr 100px 60px 40px !important;

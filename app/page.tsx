@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { MATERIALS } from "@/lib/catalog";
-import { SHOP_STATS, TESTIMONIALS } from "@/lib/mock-data";
-import NowPrinting from "./components/NowPrinting";
+import { TESTIMONIALS } from "@/lib/mock-data";
+import HeroTile from "./components/HeroTile";
 import Stars from "./components/Stars";
 
 export const dynamic = "force-dynamic";
@@ -162,18 +162,18 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* Hero visual — live "now printing" card */}
-            <div className="fade-up-2 hidden-mobile" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-              <NowPrinting />
+            {/* Rotating line-art cube; real examples stay in the gallery. */}
+            <div className="fade-up-2 hero-visual-wrap">
+              <HeroTile />
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Stats strip ──────────────────────────────────────── */}
+      {/* ── Service details ──────────────────────────────────── */}
       <section style={{ margin: "clamp(36px, 6.3vw, 72px) 0" }}>
         <div
-          className="card-lg stats-strip"
+          className="card-lg home-service-strip"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
@@ -183,14 +183,14 @@ export default async function HomePage() {
           }}
         >
           {[
-            [`${SHOP_STATS.printsCompleted}+`, "Prints completed"],
-            [`${SHOP_STATS.rating}★`, `${SHOP_STATS.reviews} reviews`],
-            [`${SHOP_STATS.turnaroundHours}h`, "Avg. turnaround"],
-            [`${SHOP_STATS.repeatCustomerPct}%`, "Repeat customers"],
-          ].map(([num, label]) => (
-            <div key={label}>
-              <div className="stat-num">{num}</div>
-              <div className="stat-label">{label}</div>
+            ["PLA · PETG · ABS", "Materials available"],
+            ["Perth, WA", "Locally made"],
+            ["Australia-wide", "Shipping available"],
+            ["Itemised", "Upfront quotes"],
+          ].map(([value, label]) => (
+            <div key={label} className="home-service-item">
+              <div className="home-service-value">{value}</div>
+              <div className="home-service-label">{label}</div>
             </div>
           ))}
         </div>

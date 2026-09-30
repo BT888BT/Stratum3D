@@ -79,7 +79,7 @@ export default async function AdminOrdersPage() {
       {/* Table */}
       <div className="card" style={{ padding: 0, overflow: "hidden" }}>
         {/* Table header */}
-        <div style={{
+        <div className="order-table-header" style={{
           display: "grid",
           gridTemplateColumns: "110px 1fr 1fr 140px 80px 90px 140px 90px 44px",
           gap: 12,

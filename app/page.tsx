@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { MATERIALS } from "@/lib/catalog";
-import { getPublicReviews } from "@/lib/public-reviews";
-import HeroTile from "./components/HeroTile";
+import { SHOP_STATS, TESTIMONIALS } from "@/lib/mock-data";
+import NowPrinting from "./components/NowPrinting";
 import Stars from "./components/Stars";
 
 export const dynamic = "force-dynamic";
@@ -94,19 +94,13 @@ function MaintenancePage() {
 
 export default async function HomePage() {
   const supabase = createAdminClient();
-  const { data } = await supabase
-    .from("site_settings")
-    .select("key, value")
-    .in("key", ["ordering_enabled", "home_reviews_enabled"]);
+  const { data } = await supabase.from("site_settings").select("key, value");
   const settings = Object.fromEntries((data ?? []).map(r => [r.key, r.value]));
   const orderingEnabled = settings["ordering_enabled"] !== "false";
-  const homeReviewsEnabled = settings["home_reviews_enabled"] === "true";
 
   if (!orderingEnabled) {
     return <MaintenancePage />;
   }
-
-  const homeReviews = homeReviewsEnabled ? await getPublicReviews(3) : [];
 
   return (
     <>
@@ -147,9 +141,9 @@ export default async function HomePage() {
               <p className="hero-lede" style={{ fontSize: 17, color: "var(--text-dim)", maxWidth: 480, marginBottom: 28 }}>
                 <strong style={{ color: "var(--text)", fontWeight: 700 }}>Affordable high-quality 3D printing, made local.</strong>
                 <br />
-                Configure your part and see a clear quote up front.
+                Configure your part, see a transparent price up front.
                 <br />
-                Choose Perth pickup or Australia-wide shipping.
+                Receive your parts in days — not weeks.
               </p>
               <div className="hero-cta" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <Link href="/quote" className="btn-primary glow-pulse" style={{ fontSize: 18, padding: "13px 32px" }}>
@@ -162,24 +156,24 @@ export default async function HomePage() {
 
               {/* Trust chips */}
               <div className="hero-trust">
-                {["Instant pricing", "Order tracking", "Perth pickup", "Ships Australia-wide"].map((t) => (
+                {["Instant pricing", "48h avg turnaround", "Perth pickup", "Ships Australia-wide"].map((t) => (
                   <span key={t} className="trust-item">{t}</span>
                 ))}
               </div>
             </div>
 
-            {/* Rotating line-art cube; real examples stay in the gallery. */}
-            <div className="fade-up-2 hero-visual-wrap">
-              <HeroTile />
+            {/* Hero visual — live "now printing" card */}
+            <div className="fade-up-2 hidden-mobile" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+              <NowPrinting />
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Service details ──────────────────────────────────── */}
+      {/* ── Stats strip ──────────────────────────────────────── */}
       <section style={{ margin: "clamp(36px, 6.3vw, 72px) 0" }}>
         <div
-          className="card-lg home-service-strip"
+          className="card-lg stats-strip"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
@@ -189,14 +183,14 @@ export default async function HomePage() {
           }}
         >
           {[
-            ["PLA · PETG · ABS", "Materials available"],
-            ["Perth, WA", "Locally made"],
-            ["Australia-wide", "Shipping available"],
-            ["Itemised", "Upfront quotes"],
-          ].map(([value, label]) => (
-            <div key={label} className="home-service-item">
-              <div className="home-service-value">{value}</div>
-              <div className="home-service-label">{label}</div>
+            [`${SHOP_STATS.printsCompleted}+`, "Prints completed"],
+            [`${SHOP_STATS.rating}★`, `${SHOP_STATS.reviews} reviews`],
+            [`${SHOP_STATS.turnaroundHours}h`, "Avg. turnaround"],
+            [`${SHOP_STATS.repeatCustomerPct}%`, "Repeat customers"],
+          ].map(([num, label]) => (
+            <div key={label}>
+              <div className="stat-num">{num}</div>
+              <div className="stat-label">{label}</div>
             </div>
           ))}
         </div>
@@ -212,7 +206,7 @@ export default async function HomePage() {
         </div>
         <div className="steps-grid">
           {[
-            ["01", "Configure", "Choose your material, colour, wall count and infill. See an itemised price update instantly."],
+            ["01", "Configure", "Pick your material, colour, quality and size. See a transparent price update instantly — no waiting on a quote."],
             ["02", "We review", "Every model is checked before it prints — wall thickness, orientation and supports — so your part prints reliably first time."],
             ["03", "We print", "Your job goes on a calibrated FDM machine. We quality-check every part before it leaves the bench."],
             ["04", "Collect or ship", "Pick up locally in Perth or have it shipped Australia-wide. Track every order from your account."],
@@ -293,39 +287,34 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── Approved customer reviews ────────────────────────── */}
-      {homeReviewsEnabled && (
-        <section className="home-reviews" aria-labelledby="home-reviews-title">
-          <div className="sec-head">
-            <span className="eyebrow" style={{ marginBottom: 7 }}>Customer feedback</span>
-            <h2 id="home-reviews-title" className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)" }}>
-              FROM OUR CUSTOMERS
-            </h2>
-          </div>
-          {homeReviews.length > 0 ? (
-            <div className="home-reviews-grid">
-              {homeReviews.map((review) => (
-                <article key={review.id} className="card home-review-card">
-                  <Stars rating={review.rating} size={13} />
-                  <p className="home-review-body">“{review.body}”</p>
-                  <p className="home-review-author">{review.first_name}</p>
-                  {review.model && <p className="font-mono home-review-model">{review.model}</p>}
-                </article>
-              ))}
+      {/* ── Testimonials ─────────────────────────────────────── */}
+      <section style={{ marginBottom: "clamp(43px, 7.2vw, 79px)" }}>
+        <div className="sec-head">
+          <span className="eyebrow" style={{ marginBottom: 7 }}>What customers say</span>
+          <h2 className="font-display" style={{ fontSize: "clamp(30px, 5vw, 46px)" }}>TRUSTED BY PERTH MAKERS</h2>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14 }}>
+          {TESTIMONIALS.map((t) => (
+            <div key={t.name} className="card" style={{ display: "flex", flexDirection: "column", position: "relative" }}>
+              <span className="font-display" aria-hidden="true" style={{ position: "absolute", top: 8, right: 18, fontSize: 64, lineHeight: 1, color: "var(--orange)", opacity: 0.12 }}>”</span>
+              <div style={{ marginBottom: 10 }}>
+                <Stars rating={t.rating} size={13} color="#6f685b" />
+              </div>
+              <p style={{ fontSize: 14.5, color: "var(--text)", marginBottom: 14, lineHeight: 1.6, flex: 1 }}>“{t.quote}”</p>
+              <div style={{ fontSize: 13, color: "var(--text)", fontWeight: 600 }}>{t.name}</div>
+              <div className="font-mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.08em", marginTop: 2 }}>{t.detail}</div>
             </div>
-          ) : (
-            <p className="home-reviews-empty">No customer reviews have been published yet.</p>
-          )}
-          <div className="home-reviews-actions">
-            <Link href="/reviews" className="btn-ghost" style={{ fontSize: 14, padding: "10px 24px" }}>
-              Read customer reviews
-            </Link>
-            <Link href="/reviews/new" className="btn-primary" style={{ fontSize: 14, padding: "10px 24px" }}>
-              Leave a review →
-            </Link>
-          </div>
-        </section>
-      )}
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", marginTop: 20 }}>
+          <Link href="/reviews/new" className="btn-primary" style={{ fontSize: 14, padding: "10px 24px" }}>
+            Leave a review →
+          </Link>
+          <Link href="/reviews" className="btn-ghost" style={{ fontSize: 14, padding: "10px 24px" }}>
+            See all reviews
+          </Link>
+        </div>
+      </section>
 
       {/* ── CTA ──────────────────────────────────────────────── */}
       <section>

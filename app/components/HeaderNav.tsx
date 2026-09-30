@@ -11,24 +11,23 @@ export default function HeaderNav() {
 
   if (isAdmin) {
     return (
-      <nav className="admin-header-nav" aria-label="Admin navigation">
-        <Link href="/admin/orders" className="btn-ghost admin-primary-link">Orders</Link>
-        <Link href="/admin/settings" className="btn-ghost admin-primary-link">Settings</Link>
-        <Link href="/admin/stats" className="btn-ghost admin-secondary-link">Stats</Link>
-        <Link href="/admin/gallery" className="btn-ghost admin-secondary-link">Gallery Management</Link>
-        <Link href="/admin/reviews" className="btn-ghost admin-secondary-link">Reviews</Link>
-        <Link href="/admin/colours" className="btn-ghost admin-secondary-link">Colour Management</Link>
-        <Link href="/admin/discount-codes" className="btn-ghost admin-secondary-link">Discount Codes</Link>
-        <Link href="/admin/campaigns" className="btn-ghost admin-secondary-link">Campaigns</Link>
-        <form action="/api/admin/logout" method="POST" className="admin-logout-form">
-          <button type="submit" className="btn-ghost">Log out</button>
+      <nav style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <Link href="/admin/settings" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Settings</Link>
+        <Link href="/admin/stats" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Stats</Link>
+        <Link href="/admin/gallery" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Gallery Management</Link>
+        <Link href="/admin/reviews" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Reviews</Link>
+        <Link href="/admin/colours" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Colour Management</Link>
+        <Link href="/admin/discount-codes" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Discount Codes</Link>
+        <Link href="/admin/campaigns" className="btn-ghost" style={{ fontSize: 12, color: "var(--orange)", borderColor: "var(--orange)" }}>Campaigns</Link>
+        <form action="/api/admin/logout" method="POST">
+          <button type="submit" className="btn-ghost" style={{ fontSize: 12, background: "var(--orange)", borderColor: "var(--orange)", color: "#fff", fontWeight: 700 }}>Log out</button>
         </form>
       </nav>
     );
   }
 
   return (
-    <nav className="public-header-nav" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+    <nav style={{ display: "flex", alignItems: "center", gap: 4 }}>
       <Link href="/gallery" className="nav-link hidden-mobile" style={{ textDecoration: "none" }}>Gallery</Link>
       <Link href="/reviews" className="nav-link hidden-mobile" style={{ textDecoration: "none" }}>Reviews</Link>
       <Link href="/guide" className="nav-link hidden-mobile" style={{ textDecoration: "none" }}>Guide</Link>

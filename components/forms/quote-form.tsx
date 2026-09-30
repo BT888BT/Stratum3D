@@ -785,7 +785,7 @@ export default function QuoteForm() {
       </div>
 
       {/* ── Summary sidebar ── */}
-      <div className="quote-summary">
+      <div style={{ position: "sticky", top: 76 }}>
         <div className="card-orange">
           <span className="eyebrow" style={{ marginBottom: 18 }}>Quote Summary</span>
 
@@ -901,3 +901,4 @@ function formatPrintTime(minutes: number): string {
   const m = minutes % 60;
   return m === 0 ? `${h} hr` : `${h} hr ${m} min`;
 }
+

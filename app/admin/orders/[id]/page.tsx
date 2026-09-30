@@ -52,7 +52,7 @@ export default async function AdminOrderDetailPage({
           <Link href="/admin/orders" style={{ fontSize: 12, color: "var(--text-dim)", display: "inline-flex", alignItems: "center", gap: 4, marginBottom: 10 }}>
             ← Back to orders
           </Link>
-          <div className="admin-order-title-row" style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <h1 className="font-display" style={{ fontSize: 28, fontWeight: 700 }}>
               Order <span style={{ color: "var(--accent)" }}>{shortId}</span>
             </h1>
@@ -67,7 +67,7 @@ export default async function AdminOrderDetailPage({
         </Link>
       </div>
 
-      <div className="admin-order-detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
 
         {/* Actions */}
         <div className="card">

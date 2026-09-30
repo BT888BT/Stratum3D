@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 interface Props {
   pickupEnabled: boolean;
   orderingEnabled: boolean;
-  homeReviewsEnabled: boolean;
   awayEnabled: boolean;
   awayResumeDate: string;
   awayMessage: string;
@@ -16,19 +15,13 @@ function Toggle({
   enabled,
   onToggle,
   saving,
-  label,
 }: {
   enabled: boolean;
   onToggle: () => void;
   saving: boolean;
-  label: string;
 }) {
   return (
     <button
-      type="button"
-      role="switch"
-      aria-checked={enabled}
-      aria-label={label}
       onClick={onToggle}
       disabled={saving}
       style={{
@@ -62,69 +55,48 @@ function Toggle({
 export default function SettingsClient({
   pickupEnabled: initialPickup,
   orderingEnabled: initialOrdering,
-  homeReviewsEnabled: initialHomeReviews,
   awayEnabled: initialAway,
   awayResumeDate: initialAwayDate,
   awayMessage: initialAwayMessage,
 }: Props) {
   const [pickupEnabled, setPickupEnabled] = useState(initialPickup);
   const [orderingEnabled, setOrderingEnabled] = useState(initialOrdering);
-  const [homeReviewsEnabled, setHomeReviewsEnabled] = useState(initialHomeReviews);
   const [awayEnabled, setAwayEnabled] = useState(initialAway);
   const [awayResumeDate, setAwayResumeDate] = useState(initialAwayDate);
   const [awayMessage, setAwayMessage] = useState(initialAwayMessage);
   const [saving, setSaving] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
-  const [saveError, setSaveError] = useState<string | null>(null);
   const router = useRouter();
 
-  async function save(key: string, value: boolean | string): Promise<boolean> {
+  async function save(key: string, value: boolean | string) {
     setSaving(key);
     setSaved(null);
-    setSaveError(null);
-    try {
-      const response = await fetch("/api/admin/settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ [key]: value }),
-      });
-      if (!response.ok) throw new Error("Settings could not be saved. Please try again.");
-      setSaved(key);
-      router.refresh();
-      setTimeout(() => setSaved(null), 2000);
-      return true;
-    } catch (error) {
-      setSaveError(error instanceof Error ? error.message : "Settings could not be saved.");
-      router.refresh();
-      return false;
-    } finally {
-      setSaving(null);
-    }
+    await fetch("/api/admin/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ [key]: String(value) }),
+    });
+    setSaving(null);
+    setSaved(key);
+    router.refresh();
+    setTimeout(() => setSaved(null), 2000);
   }
 
   async function saveAwayDetails() {
     setSaving("away_details");
     setSaved(null);
-    setSaveError(null);
-    try {
-      const response = await fetch("/api/admin/settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          away_resume_date: awayResumeDate,
-          away_message: awayMessage,
-        }),
-      });
-      if (!response.ok) throw new Error("Settings could not be saved. Please try again.");
-      setSaved("away_details");
-      router.refresh();
-      setTimeout(() => setSaved(null), 2000);
-    } catch (error) {
-      setSaveError(error instanceof Error ? error.message : "Settings could not be saved.");
-      router.refresh();
-    } finally {
-      setSaving(null);
-    }
+    await fetch("/api/admin/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        away_resume_date: awayResumeDate,
+        away_message: awayMessage,
+      }),
+    });
+    setSaving(null);
+    setSaved("away_details");
+    router.refresh();
+    setTimeout(() => setSaved(null), 2000);
   }
 
   return (
@@ -142,7 +114,6 @@ export default function SettingsClient({
           <Toggle
             enabled={orderingEnabled}
             saving={saving === "ordering_enabled"}
-            label="Website Ordering"
             onToggle={() => {
               const next = !orderingEnabled;
               setOrderingEnabled(next);
@@ -170,7 +141,6 @@ export default function SettingsClient({
           <Toggle
             enabled={pickupEnabled}
             saving={saving === "pickup_enabled"}
-            label="Local Pickup"
             onToggle={() => {
               const next = !pickupEnabled;
               setPickupEnabled(next);
@@ -180,35 +150,6 @@ export default function SettingsClient({
         </div>
         <p style={{ fontSize: 12, marginTop: 8, color: pickupEnabled ? "var(--green)" : "var(--muted)" }}>
           {pickupEnabled ? "Pickup is currently enabled" : "Pickup is disabled — customers will only see shipping"}
-        </p>
-      </div>
-
-      <div style={{ borderTop: "1px solid var(--border)" }} />
-
-      {/* Homepage customer reviews */}
-      <div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20 }}>
-          <div>
-            <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>Customer Reviews on Homepage</p>
-            <p style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 4 }}>
-              Show approved reviews linked to real orders. Placeholder reviews are never displayed.
-            </p>
-          </div>
-          <Toggle
-            enabled={homeReviewsEnabled}
-            saving={saving === "home_reviews_enabled"}
-            label="Customer reviews on homepage"
-            onToggle={() => {
-              const next = !homeReviewsEnabled;
-              setHomeReviewsEnabled(next);
-              void save("home_reviews_enabled", next).then((didSave) => {
-                if (!didSave) setHomeReviewsEnabled(!next);
-              });
-            }}
-          />
-        </div>
-        <p style={{ fontSize: 12, marginTop: 8, color: homeReviewsEnabled ? "var(--green)" : "var(--muted)" }}>
-          {homeReviewsEnabled ? "Approved customer reviews are shown" : "Customer reviews are hidden from the homepage"}
         </p>
       </div>
 
@@ -227,7 +168,6 @@ export default function SettingsClient({
           <Toggle
             enabled={awayEnabled}
             saving={saving === "away_enabled"}
-            label="Away Notice"
             onToggle={() => {
               const next = !awayEnabled;
               setAwayEnabled(next);
@@ -293,7 +233,6 @@ export default function SettingsClient({
       {saved && (
         <p style={{ fontSize: 12, color: "var(--green)" }}>Saved.</p>
       )}
-      {saveError && <p role="alert" style={{ fontSize: 12, color: "var(--red)" }}>{saveError}</p>}
     </div>
   );
 }

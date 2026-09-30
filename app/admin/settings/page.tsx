@@ -11,7 +11,6 @@ export default async function AdminSettingsPage() {
 
   const pickupEnabled = settings["pickup_enabled"] !== "false";
   const orderingEnabled = settings["ordering_enabled"] !== "false";
-  const homeReviewsEnabled = settings["home_reviews_enabled"] === "true";
   const awayEnabled = settings["away_enabled"] === "true";
   const awayResumeDate = settings["away_resume_date"] ?? "";
   const awayMessage = settings["away_message"] ?? "";
@@ -33,7 +32,6 @@ export default async function AdminSettingsPage() {
         <SettingsClient
           pickupEnabled={pickupEnabled}
           orderingEnabled={orderingEnabled}
-          homeReviewsEnabled={homeReviewsEnabled}
           awayEnabled={awayEnabled}
           awayResumeDate={awayResumeDate}
           awayMessage={awayMessage}
@@ -42,7 +40,7 @@ export default async function AdminSettingsPage() {
         <div style={{ borderTop: "1px solid var(--border)", margin: "24px 0" }} />
 
         {/* Export invoices */}
-        <div className="admin-settings-export" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20 }}>
           <div>
             <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>Export Invoices</p>
             <p style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 4 }}>

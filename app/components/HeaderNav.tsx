@@ -27,7 +27,7 @@ export default function HeaderNav() {
   }
 
   return (
-    <nav style={{ display: "flex", alignItems: "center", gap: 4 }}>
+    <nav className="public-header-nav" style={{ display: "flex", alignItems: "center", gap: 4 }}>
       <Link href="/gallery" className="nav-link hidden-mobile" style={{ textDecoration: "none" }}>Gallery</Link>
       <Link href="/reviews" className="nav-link hidden-mobile" style={{ textDecoration: "none" }}>Reviews</Link>
       <Link href="/guide" className="nav-link hidden-mobile" style={{ textDecoration: "none" }}>Guide</Link>

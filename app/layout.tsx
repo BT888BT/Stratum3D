@@ -134,7 +134,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
               height: 72,
               display: "flex", alignItems: "center", justifyContent: "space-between"
             }}>
-              <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <Link href="/" className="brand-link" style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 {/* Logo */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img className="brand-mark" src="/logo.webp" alt="Stratum3D logo" width={38} height={38} style={{ display: "block" }} />

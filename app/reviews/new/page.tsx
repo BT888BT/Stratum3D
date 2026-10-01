@@ -9,6 +9,7 @@ export default function NewReviewPage() {
   // step: "write" → fill out the form, "done" → submitted
   const [step, setStep] = useState<"write" | "done">("write");
   const [orderNumber, setOrderNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [rating, setRating] = useState(5);
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
@@ -21,6 +22,10 @@ export default function NewReviewPage() {
       setError("Please enter your order code.");
       return;
     }
+    if (!email.trim() || !email.includes("@")) {
+      setError("Please enter the email used for your order.");
+      return;
+    }
     if (!text) {
       setError("Your review can't be empty.");
       return;
@@ -31,7 +36,7 @@ export default function NewReviewPage() {
       const res = await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderNumber, body: text, rating }),
+        body: JSON.stringify({ orderNumber, email: email.trim(), body: text, rating }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
@@ -54,7 +59,7 @@ export default function NewReviewPage() {
           LEAVE A REVIEW
         </h1>
         <p style={{ color: "var(--text-dim)", fontSize: "clamp(13px, 1.5vw, 15px)" }}>
-          Enter your order code to leave a verified review.
+          Enter your order code and order email to leave a verified review.
         </p>
       </div>
 
@@ -68,6 +73,19 @@ export default function NewReviewPage() {
               onChange={(e) => setOrderNumber(e.target.value)}
               placeholder="e.g. S3D-0001"
               autoComplete="off"
+              className="input-field"
+              required
+            />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <label htmlFor="email" className="eyebrow">Order email</label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="The email you ordered with"
+              autoComplete="email"
               className="input-field"
               required
             />
@@ -114,7 +132,7 @@ export default function NewReviewPage() {
             </p>
           </div>
           {error && <div className="error-box">{error}</div>}
-          <button type="submit" className="btn-primary" disabled={busy || !orderNumber.trim() || !body.trim()} style={{ marginTop: 4 }}>
+          <button type="submit" className="btn-primary" disabled={busy || !orderNumber.trim() || !email.trim() || !body.trim()} style={{ marginTop: 4 }}>
             {busy ? "Submitting..." : "Submit review"}
           </button>
         </form>

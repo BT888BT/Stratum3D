@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { checkRateLimit } from "@/lib/rate-limit";
-import { buildRateLimitKey } from "@/lib/trusted-ip";
-import { parseOrderNumber, firstNameOf } from "@/lib/reviews";
+import { checkLayeredRateLimit } from "@/lib/rate-limit";
+import { parseOrderNumber, firstNameOf, escapeLike } from "@/lib/reviews";
 
 export const dynamic = "force-dynamic";
 
@@ -11,8 +10,11 @@ export const dynamic = "force-dynamic";
 // show "Reviewing as Marcus") — never the full name or any other detail.
 export async function POST(request: Request) {
   // Order numbers are sequential and guessable, so keep attempts tight per IP/UA.
-  const key = await buildRateLimitKey("review-validate", request);
-  const { allowed } = await checkRateLimit(key, 10, 10 * 60 * 1000);
+  const allowed = await checkLayeredRateLimit("review-validate", request, {
+    perClient: [3, 15 * 60 * 1000],
+    perIp: [5, 60 * 60 * 1000],
+    global: [20, 60 * 60 * 1000],
+  });
   if (!allowed) {
     return NextResponse.json(
       { error: "Too many attempts. Please wait a few minutes and try again." },
@@ -20,7 +22,7 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: { orderNumber?: string };
+  let body: { orderNumber?: string; email?: string };
   try {
     body = await request.json();
   } catch {
@@ -32,6 +34,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Please enter a valid order code." }, { status: 400 });
   }
 
+  const email = typeof body.email === "string" ? body.email.trim() : "";
+  if (!email || !email.includes("@") || email.length > 254) {
+    return NextResponse.json({ error: "Please enter the email used for your order." }, { status: 400 });
+  }
+
   const supabase = createAdminClient();
 
   // Must be a real order that has actually been placed (not a draft / abandoned
@@ -40,11 +47,12 @@ export async function POST(request: Request) {
     .from("orders")
     .select("id, customer_name, status")
     .eq("order_number", orderNumber)
+    .ilike("email", escapeLike(email))
     .not("status", "in", '("draft","checkout_pending")')
     .maybeSingle();
 
   if (!order) {
-    return NextResponse.json({ error: "We couldn't find that order code." }, { status: 404 });
+    return NextResponse.json({ error: "We couldn't find an order matching that code and email." }, { status: 404 });
   }
 
   // One review per order.

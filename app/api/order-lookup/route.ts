@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { checkRateLimit } from "@/lib/rate-limit";
-import { buildRateLimitKey } from "@/lib/trusted-ip";
+import { checkLayeredRateLimit } from "@/lib/rate-limit";
+import { escapeLike } from "@/lib/reviews";
 
 export const dynamic = "force-dynamic";
 
@@ -12,8 +12,11 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   // Rate limit: this endpoint is a guessing surface (order numbers are
   // sequential), so keep attempts tight per IP/UA.
-  const key = await buildRateLimitKey("order-lookup", request);
-  const { allowed } = await checkRateLimit(key, 8, 10 * 60 * 1000);
+  const allowed = await checkLayeredRateLimit("order-lookup", request, {
+    perClient: [5, 15 * 60 * 1000],
+    perIp: [10, 60 * 60 * 1000],
+    global: [60, 60 * 60 * 1000],
+  });
   if (!allowed) {
     return NextResponse.json(
       { error: "Too many attempts. Please wait a few minutes and try again." },
@@ -52,7 +55,7 @@ export async function POST(request: Request) {
     .from("orders")
     .select("*")
     .eq("order_number", orderNumber)
-    .ilike("email", email.replace(/[\\%_]/g, "\\$&"))
+    .ilike("email", escapeLike(email))
     .maybeSingle();
 
   if (!order) {

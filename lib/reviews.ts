@@ -20,3 +20,8 @@ export function firstNameOf(fullName: string | null | undefined): string {
   const first = trimmed.split(/\s+/)[0] ?? "";
   return first || trimmed;
 }
+
+// Escape LIKE/ILIKE wildcards so a user-supplied email can only match literally.
+export function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, "\\$&");
+}

@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { checkRateLimit } from "@/lib/rate-limit";
-import { buildRateLimitKey } from "@/lib/trusted-ip";
-import { parseOrderNumber, firstNameOf, REVIEW_MAX_LENGTH } from "@/lib/reviews";
+import { checkLayeredRateLimit } from "@/lib/rate-limit";
+import { parseOrderNumber, firstNameOf, escapeLike, REVIEW_MAX_LENGTH } from "@/lib/reviews";
 import { sendNewReviewEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
@@ -36,8 +35,11 @@ export async function GET() {
 
 // POST — submit a review. Stored as 'pending' until an admin approves it.
 export async function POST(request: Request) {
-  const key = await buildRateLimitKey("review-submit", request);
-  const { allowed } = await checkRateLimit(key, 5, 10 * 60 * 1000);
+  const allowed = await checkLayeredRateLimit("review-submit", request, {
+    perClient: [3, 15 * 60 * 1000],
+    perIp: [5, 60 * 60 * 1000],
+    global: [20, 60 * 60 * 1000],
+  });
   if (!allowed) {
     return NextResponse.json(
       { error: "Too many attempts. Please wait a few minutes and try again." },
@@ -45,7 +47,7 @@ export async function POST(request: Request) {
     );
   }
 
-  let payload: { orderNumber?: string; body?: string; rating?: number };
+  let payload: { orderNumber?: string; email?: string; body?: string; rating?: number };
   try {
     payload = await request.json();
   } catch {
@@ -53,12 +55,16 @@ export async function POST(request: Request) {
   }
 
   const orderNumber = parseOrderNumber(payload.orderNumber);
+  const email = typeof payload.email === "string" ? payload.email.trim() : "";
   const text = (payload.body ?? "").trim();
   // Clamp to 1–5; default to 5 if missing/invalid.
   const rating = Math.min(5, Math.max(1, Math.round(Number(payload.rating) || 5)));
 
   if (!Number.isFinite(orderNumber)) {
     return NextResponse.json({ error: "Please enter a valid order code." }, { status: 400 });
+  }
+  if (!email || !email.includes("@") || email.length > 254) {
+    return NextResponse.json({ error: "Please enter the email used for your order." }, { status: 400 });
   }
   if (!text) {
     return NextResponse.json({ error: "Your review can't be empty." }, { status: 400 });
@@ -76,11 +82,12 @@ export async function POST(request: Request) {
     .from("orders")
     .select("id, order_number, customer_name, status")
     .eq("order_number", orderNumber)
+    .ilike("email", escapeLike(email))
     .not("status", "in", '("draft","checkout_pending")')
     .maybeSingle();
 
   if (!order) {
-    return NextResponse.json({ error: "We couldn't find that order code." }, { status: 404 });
+    return NextResponse.json({ error: "We couldn't find an order matching that code and email." }, { status: 404 });
   }
 
   const reviewFirstName = firstNameOf(order.customer_name);

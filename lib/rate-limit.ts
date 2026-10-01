@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { buildRateLimitKey, getTrustedIp } from "@/lib/trusted-ip";
 
 /**
  * Persistent rate limiter backed by Supabase.
@@ -66,4 +67,29 @@ export async function checkRateLimit(
 export async function clearRateLimit(key: string): Promise<void> {
   const supabase = createAdminClient();
   await supabase.from("rate_limits").delete().eq("key", key);
+}
+
+/**
+ * Layered limiter: per IP+UA, per IP, and global. Rotating the User-Agent only
+ * defeats the first layer. Returns false as soon as any layer is exhausted.
+ */
+export async function checkLayeredRateLimit(
+  prefix: string,
+  request: Request,
+  limits: {
+    perClient: [number, number];
+    perIp: [number, number];
+    global: [number, number];
+  }
+): Promise<boolean> {
+  const layers: Array<[string, [number, number]]> = [
+    [await buildRateLimitKey(prefix, request), limits.perClient],
+    [`${prefix}-ip:${getTrustedIp(request)}`, limits.perIp],
+    [`${prefix}-global`, limits.global],
+  ];
+  for (const [key, [max, windowMs]] of layers) {
+    const { allowed } = await checkRateLimit(key, max, windowMs);
+    if (!allowed) return false;
+  }
+  return true;
 }

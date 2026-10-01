@@ -6,7 +6,9 @@ export const dynamic = "force-dynamic";
 
 /** Wrap a value for CSV: quote it and escape embedded quotes. */
 function csv(value: string | number | null | undefined): string {
-  const s = value == null ? "" : String(value);
+  let s = value == null ? "" : String(value);
+  // Neutralise spreadsheet formula injection (=, +, -, @, tab, CR prefixes).
+  if (typeof value === "string" && /^[=+\-@\t\r]/.test(s)) s = `'${s}`;
   return `"${s.replace(/"/g, '""')}"`;
 }
 

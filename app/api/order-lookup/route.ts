@@ -45,13 +45,14 @@ export async function POST(request: Request) {
 
   const supabase = createAdminClient();
 
-  // Match on BOTH order number and email (case-insensitive). One generic
+  // Match on BOTH order number and email (case-insensitive). LIKE wildcards
+  // in the email are escaped so it only matches literally. One generic
   // "not found" response for any mismatch so we never reveal which part is wrong.
   const { data: order } = await supabase
     .from("orders")
     .select("*")
     .eq("order_number", orderNumber)
-    .ilike("email", email)
+    .ilike("email", email.replace(/[\\%_]/g, "\\$&"))
     .maybeSingle();
 
   if (!order) {

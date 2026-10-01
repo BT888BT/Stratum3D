@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { autoCompleteShippedOrders } from "@/lib/auto-complete-shipped";
 
 export const dynamic = "force-dynamic";
@@ -8,8 +9,9 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
   if (secret) {
-    const auth = request.headers.get("authorization");
-    if (auth !== `Bearer ${secret}`) {
+    const auth = request.headers.get("authorization") ?? "";
+    const sha = (v: string) => crypto.createHash("sha256").update(v).digest();
+    if (!crypto.timingSafeEqual(sha(auth), sha(`Bearer ${secret}`))) {
       return new Response("Unauthorized", { status: 401 });
     }
   }

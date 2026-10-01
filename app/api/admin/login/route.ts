@@ -9,16 +9,30 @@ export async function POST(request: Request) {
     const ip = getTrustedIp(request);
     const rateLimitKey = await buildRateLimitKey("login", request);
 
-    // Persistent rate limit: 5 attempts per IP+UA per 15 minutes
-    const { allowed } = await checkRateLimit(rateLimitKey, 5, 15 * 60 * 1000);
-    if (!allowed) {
-      return NextResponse.json(
-        { error: "Too many login attempts. Try again in 15 minutes." },
-        { status: 429 }
-      );
+    // Layered persistent rate limits. Rotating the User-Agent only defeats the
+    // first layer; the IP-wide and global layers still apply.
+    const ipKey = `login-ip:${ip}`;
+    const globalKey = "login-global";
+    const layers: Array<[string, number, number]> = [
+      [rateLimitKey, 5, 15 * 60 * 1000], // 5 per IP+UA per 15 min
+      [ipKey, 10, 60 * 60 * 1000], // 10 per IP per hour
+      [globalKey, 30, 60 * 60 * 1000], // 30 per hour across all clients
+    ];
+    for (const [key, max, windowMs] of layers) {
+      const { allowed } = await checkRateLimit(key, max, windowMs);
+      if (!allowed) {
+        return NextResponse.json(
+          { error: "Too many login attempts. Try again later." },
+          { status: 429 }
+        );
+      }
     }
 
-    const { password } = await request.json();
+    const body = await request.json().catch(() => null);
+    const password: unknown = body?.password;
+    if (typeof password !== "string" || password.length > 256) {
+      return NextResponse.json({ error: "Invalid password." }, { status: 401 });
+    }
 
     if (!process.env.ADMIN_PASSWORD) {
       return NextResponse.json(
@@ -27,13 +41,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // #3: Constant-time comparison to prevent timing attacks
-    const inputBuf = Buffer.from(password || "");
-    const expectedBuf = Buffer.from(process.env.ADMIN_PASSWORD);
-
-    const isCorrect =
-      inputBuf.length === expectedBuf.length &&
-      crypto.timingSafeEqual(inputBuf, expectedBuf);
+    // Constant-time comparison of fixed-length digests (no length leak)
+    const sha = (v: string) => crypto.createHash("sha256").update(v).digest();
+    const isCorrect = crypto.timingSafeEqual(
+      sha(password),
+      sha(process.env.ADMIN_PASSWORD)
+    );
 
     if (!isCorrect) {
       console.warn(`[admin-login] Failed login attempt from ${ip}`);
@@ -45,6 +58,7 @@ export async function POST(request: Request) {
 
     // Success — clear rate limit and create session
     await clearRateLimit(rateLimitKey);
+    await clearRateLimit(ipKey);
     const token = await createAdminSession(ip);
 
     console.log(`[admin-login] Successful login from ${ip}`);

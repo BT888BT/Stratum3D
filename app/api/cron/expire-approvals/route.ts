@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { expireStaleApprovals } from "@/lib/expire-approvals";
+import { cleanupPendingUploads } from "@/lib/cleanup-pending-uploads";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,16 @@ export async function GET(request: Request) {
 
   try {
     const { expired } = await expireStaleApprovals();
-    return Response.json({ ok: true, expired });
+
+    // Housekeeping: remove abandoned uploads. Never allowed to fail the job.
+    let cleaned = 0;
+    try {
+      cleaned = (await cleanupPendingUploads()).deleted;
+    } catch (err) {
+      console.error("[cron/expire-approvals] upload cleanup error:", err);
+    }
+
+    return Response.json({ ok: true, expired, cleaned });
   } catch (err) {
     console.error(
       "[cron/expire-approvals] error:",

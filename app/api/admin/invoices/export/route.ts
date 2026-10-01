@@ -7,8 +7,9 @@ export const dynamic = "force-dynamic";
 /** Wrap a value for CSV: quote it and escape embedded quotes. */
 function csv(value: string | number | null | undefined): string {
   let s = value == null ? "" : String(value);
-  // Neutralise spreadsheet formula injection (=, +, -, @, tab, CR prefixes).
-  if (typeof value === "string" && /^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+  // Neutralise spreadsheet formula injection (OWASP): a leading =, +, -, @,
+  // tab, CR or LF, including after leading whitespace, gets a single quote.
+  if (typeof value === "string" && /^(?:[\t\r\n]|\s*[=+\-@])/.test(s)) s = `'${s}`;
   return `"${s.replace(/"/g, '""')}"`;
 }
 

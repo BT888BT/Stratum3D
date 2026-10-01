@@ -15,8 +15,8 @@ export async function POST(request: Request) {
     const globalKey = "login-global";
     const layers: Array<[string, number, number]> = [
       [rateLimitKey, 5, 15 * 60 * 1000], // 5 per IP+UA per 15 min
-      [ipKey, 10, 60 * 60 * 1000], // 10 per IP per hour
-      [globalKey, 30, 60 * 60 * 1000], // 30 per hour across all clients
+      [ipKey, 5, 60 * 60 * 1000], // 5 per IP per hour
+      [globalKey, 5, 60 * 60 * 1000], // 5 per hour across all clients
     ];
     for (const [key, max, windowMs] of layers) {
       const { allowed } = await checkRateLimit(key, max, windowMs);

@@ -2,12 +2,13 @@ import { z } from "zod";
 
 export const allowedExtensions = [".stl"];
 export const maxFileSizeBytes = 50 * 1024 * 1024;
+export const MAX_QUANTITY = 200;
 
 // Per-file item settings
 export const fileItemSchema = z.object({
   material: z.enum(["PLA", "PETG", "ABS"]),
   colour: z.string().min(1).max(50),
-  quantity: z.coerce.number().int().min(1).max(100),
+  quantity: z.coerce.number().int().min(1).max(MAX_QUANTITY),
   wallLayers: z.coerce.number().int().min(2).max(4),
   infillPercent: z.coerce.number().int().min(5).max(100),
   removeSupports: z.boolean().default(false),

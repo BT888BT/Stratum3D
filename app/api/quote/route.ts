@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { calculateItemQuote, sumQuote } from "@/lib/quote";
 import { extractMeshDataFromBuffer } from "@/lib/mesh-volume";
-import { fileItemSchema, orderContactSchema } from "@/lib/validation";
+import { fileItemSchema, orderContactSchema, MAX_QUANTITY } from "@/lib/validation";
 import { slugFileName } from "@/lib/utils";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getTrustedIp, buildRateLimitKey } from "@/lib/trusted-ip";
@@ -192,8 +192,12 @@ export async function POST(request: Request) {
       });
 
       if (!settingsParsed.success) {
+        const failed = Object.keys(settingsParsed.error.flatten().fieldErrors);
+        const reason = failed.includes("quantity")
+          ? `quantity must be a whole number between 1 and ${MAX_QUANTITY}.`
+          : `invalid ${failed.join(", ") || "settings"}.`;
         return NextResponse.json(
-          { error: `"${item.originalFilename}": invalid settings.`, details: settingsParsed.error.flatten() },
+          { error: `"${item.originalFilename}": ${reason}`, details: settingsParsed.error.flatten() },
           { status: 400 }
         );
       }

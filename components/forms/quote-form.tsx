@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { formatAud } from "@/lib/utils";
+import { MAX_QUANTITY } from "@/lib/validation";
 import { extractMeshDataFromArrayBuffer } from "@/lib/mesh-volume-client";
 import { validateSTLArrayBuffer, type MeshWarning } from "@/lib/mesh-validate-client";
 import AddressAutocomplete, { type ParsedAddress } from "@/components/forms/address-autocomplete";
@@ -262,6 +263,12 @@ export default function QuoteForm() {
     setQuote(null);
 
     if (items.length === 0) { setError("Upload at least one STL file."); return; }
+
+    const badQty = items.find(i => !Number.isInteger(i.quantity) || i.quantity < 1 || i.quantity > MAX_QUANTITY);
+    if (badQty) {
+      setError(`"${badQty.file.name}": quantity must be between 1 and ${MAX_QUANTITY}. For larger runs, please contact us.`);
+      return;
+    }
 
     try {
       setLoadingQuote(true);
@@ -634,7 +641,7 @@ export default function QuoteForm() {
                         </select>
                       )},
                       { label: "Qty", helpId: "", content: (
-                        <input type="number" min={1} max={100} value={item.quantity}
+                        <input type="number" min={1} max={MAX_QUANTITY} value={item.quantity}
                           onChange={e => updateItem(item.id, { quantity: parseInt(e.target.value) || 1 })}
                           className="input-field" style={{ fontSize: 12 }} />
                       )},
